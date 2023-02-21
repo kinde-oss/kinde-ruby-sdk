@@ -4,12 +4,11 @@
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **id** | **Integer** |  | [optional] |
-| **email** | **String** |  | [optional] |
-| **full_name** | **String** |  | [optional] |
-| **last_name** | **String** |  | [optional] |
-| **first_name** | **String** |  | [optional] |
-| **is_suspended** | **Boolean** |  | [optional] |
+| **id** | **Integer** | Unique id of the user in Kinde | [optional] |
+| **email** | **String** | Default email address of the user in Kinde | [optional] |
+| **last_name** | **String** | User&#39;s last name | [optional] |
+| **first_name** | **String** | User&#39;s first name | [optional] |
+| **is_suspended** | **Boolean** | Whether the user is currently suspended or not | [optional] |
 
 ## Example
 
@@ -19,7 +18,6 @@ require 'kinde_sdk'
 instance = KindeSdk::User.new(
   id: null,
   email: null,
-  full_name: null,
   last_name: null,
   first_name: null,
   is_suspended: null
