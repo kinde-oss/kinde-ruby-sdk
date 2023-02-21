@@ -4,7 +4,7 @@
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **type** | **String** |  | [optional] |
+| **type** | **String** | The type of identity object created | [optional] |
 | **result** | [**UserIdentityResult**](UserIdentityResult.md) |  | [optional] |
 
 ## Example

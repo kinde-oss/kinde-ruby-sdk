@@ -4,7 +4,7 @@
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **email** | **String** |  | [optional] |
+| **email** | **String** | The email address of the user | [optional] |
 
 ## Example
 
