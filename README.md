@@ -5,7 +5,7 @@ KindeApi - the Ruby gem for the Kinde Management API
 Provides endpoints to manage your Kinde Businesses
 
 Contains oauth2 authorization part with generatable sdk.
-For more sdk information please refer to [KindeSDK README](kinde-sdk-ruby/README.md)
+For more sdk information please refer to [KindeSDK README](kinde-sdk/README.md)
 
 ## Installation
 
