@@ -14,12 +14,12 @@ require 'date'
 require 'time'
 
 module KindeSdk
-  # Basic information required to create a user
+  # Basic information required to create a user.
   class CreateUserRequestProfile
-    # User's first name
+    # User's first name.
     attr_accessor :given_name
 
-    # User's last name
+    # User's last name.
     attr_accessor :family_name
 
     # Attribute mapping from ruby-style variable name to JSON key.

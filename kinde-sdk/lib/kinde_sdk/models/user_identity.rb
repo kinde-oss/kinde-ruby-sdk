@@ -15,7 +15,7 @@ require 'time'
 
 module KindeSdk
   class UserIdentity
-    # The type of identity object created
+    # The type of identity object created.
     attr_accessor :type
 
     attr_accessor :result

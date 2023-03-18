@@ -4,7 +4,7 @@
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **result** | **String** | The result of the api operation | [optional] |
+| **result** | **String** | The result of the api operation. | [optional] |
 
 ## Example
 

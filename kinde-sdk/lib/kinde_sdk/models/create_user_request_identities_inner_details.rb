@@ -14,9 +14,9 @@ require 'date'
 require 'time'
 
 module KindeSdk
-  # Additional details required to create the user
+  # Additional details required to create the user.
   class CreateUserRequestIdentitiesInnerDetails
-    # The email address of the user
+    # The email address of the user.
     attr_accessor :email
 
     # Attribute mapping from ruby-style variable name to JSON key.

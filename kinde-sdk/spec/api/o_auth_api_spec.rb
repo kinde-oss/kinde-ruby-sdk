@@ -34,7 +34,7 @@ describe 'OAuthApi' do
 
   # unit tests for get_user
   # Returns the details of the currently logged in user
-  # Contains the id, names and email of the currently logged in user 
+  # Contains the id, names and email of the currently logged in user. 
   # @param [Hash] opts the optional parameters
   # @return [UserProfile]
   describe 'get_user test' do
@@ -45,7 +45,7 @@ describe 'OAuthApi' do
 
   # unit tests for get_user_profile_v2
   # Returns the details of the currently logged in user
-  # Contains the id, names and email of the currently logged in user 
+  # Contains the id, names, profile picture URL and email of the currently logged in user. 
   # @param [Hash] opts the optional parameters
   # @return [UserProfileV2]
   describe 'get_user_profile_v2 test' do

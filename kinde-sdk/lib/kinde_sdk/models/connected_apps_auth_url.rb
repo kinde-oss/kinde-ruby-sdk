@@ -15,10 +15,10 @@ require 'time'
 
 module KindeSdk
   class ConnectedAppsAuthUrl
-    # A URL that is used to authenticate an end-user against a connected app
+    # A URL that is used to authenticate an end-user against a connected app.
     attr_accessor :url
 
-    # A unique identifier for the login session
+    # A unique identifier for the login session.
     attr_accessor :session_id
 
     # Attribute mapping from ruby-style variable name to JSON key.

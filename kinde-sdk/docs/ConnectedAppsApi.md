@@ -15,7 +15,7 @@ All URIs are relative to *https://app.kinde.com*
 
 Get Connected App URL
 
-Get a URL that authenticates and authorizes a user to a third-party connected app
+Get a URL that authenticates and authorizes a user to a third-party connected app.
 
 ### Examples
 
@@ -86,7 +86,7 @@ end
 
 Get Connected App Token
 
-Get an access token that can be used to call the third-party provider linked to the connected app
+Get an access token that can be used to call the third-party provider linked to the connected app.
 
 ### Examples
 
@@ -155,7 +155,7 @@ end
 
 Revoke Connected App Token
 
-Revoke the tokens linked to the connected app session
+Revoke the tokens linked to the connected app session.
 
 ### Examples
 

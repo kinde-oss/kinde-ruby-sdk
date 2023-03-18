@@ -15,10 +15,10 @@ require 'time'
 
 module KindeSdk
   class UpdateUserRequest
-    # User's first name
+    # User's first name.
     attr_accessor :given_name
 
-    # User's last name
+    # User's last name.
     attr_accessor :family_name
 
     # Attribute mapping from ruby-style variable name to JSON key.

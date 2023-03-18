@@ -25,13 +25,19 @@ describe KindeSdk::AddOrganizationUsers200Response do
       expect(instance).to be_instance_of(KindeSdk::AddOrganizationUsers200Response)
     end
   end
+  describe 'test attribute "code"' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
   describe 'test attribute "message"' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
     end
   end
 
-  describe 'test attribute "users_add"' do
+  describe 'test attribute "users_added"' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
     end

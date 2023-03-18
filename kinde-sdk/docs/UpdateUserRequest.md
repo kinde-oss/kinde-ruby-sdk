@@ -4,8 +4,8 @@
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **given_name** | **String** | User&#39;s first name | [optional] |
-| **family_name** | **String** | User&#39;s last name | [optional] |
+| **given_name** | **String** | User&#39;s first name. | [optional] |
+| **family_name** | **String** | User&#39;s last name. | [optional] |
 
 ## Example
 

@@ -14,9 +14,9 @@ require 'date'
 require 'time'
 
 module KindeSdk
-  # The result of the user creation operation
+  # The result of the user creation operation.
   class CreateUserRequestIdentitiesInner
-    # The type of identity to create, for e.g. email
+    # The type of identity to create, for e.g. email.
     attr_accessor :type
 
     attr_accessor :details

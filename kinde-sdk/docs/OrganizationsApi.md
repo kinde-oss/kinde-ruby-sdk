@@ -6,10 +6,13 @@ All URIs are relative to *https://app.kinde.com*
 | ------ | ------------ | ----------- |
 | [**add_organization_users**](OrganizationsApi.md#add_organization_users) | **POST** /api/v1/organization/users | Assign Users to an Organization |
 | [**create_organization**](OrganizationsApi.md#create_organization) | **POST** /api/v1/organization | Create Organization |
+| [**delete_organization_feature_flag_override**](OrganizationsApi.md#delete_organization_feature_flag_override) | **DELETE** /api/v1/organizations/{org_code}/feature_flags/{feature_flag_key} | Delete organization feature flag override |
+| [**delete_organization_feature_flag_overrides**](OrganizationsApi.md#delete_organization_feature_flag_overrides) | **DELETE** /api/v1/organizations/{org_code}/feature_flags | Delete all organization feature flag overrides |
 | [**get_orgainzations**](OrganizationsApi.md#get_orgainzations) | **GET** /api/v1/organizations | List Organizations |
 | [**get_organization**](OrganizationsApi.md#get_organization) | **GET** /api/v1/organization | Get Organization |
 | [**get_organization_users**](OrganizationsApi.md#get_organization_users) | **GET** /api/v1/organization/users | List Organization Users |
 | [**remove_organization_users**](OrganizationsApi.md#remove_organization_users) | **PATCH** /api/v1/organization/users | Remove Users from an Organization |
+| [**update_organization_feature_flag_override**](OrganizationsApi.md#update_organization_feature_flag_override) | **PATCH** /api/v1/organizations/{org_code}/feature_flags/{feature_flag_key} | Update organization feature flag override |
 
 
 ## add_organization_users
@@ -152,12 +155,152 @@ nil (empty response body)
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: Not defined
+- **Accept**: application/json
+
+
+## delete_organization_feature_flag_override
+
+> <SuccessResponse> delete_organization_feature_flag_override(org_code, feature_flag_key)
+
+Delete organization feature flag override
+
+Delete organization feature flag override.
+
+### Examples
+
+```ruby
+require 'time'
+require 'kinde_sdk'
+# setup authorization
+KindeSdk.configure do |config|
+  # Configure Bearer authorization (JWT): kindeBearerAuth
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = KindeSdk::OrganizationsApi.new
+org_code = 'org_code_example' # String | The identifier for the organization.
+feature_flag_key = 'feature_flag_key_example' # String | The identifier for the feature flag.
+
+begin
+  # Delete organization feature flag override
+  result = api_instance.delete_organization_feature_flag_override(org_code, feature_flag_key)
+  p result
+rescue KindeSdk::ApiError => e
+  puts "Error when calling OrganizationsApi->delete_organization_feature_flag_override: #{e}"
+end
+```
+
+#### Using the delete_organization_feature_flag_override_with_http_info variant
+
+This returns an Array which contains the response data, status code and headers.
+
+> <Array(<SuccessResponse>, Integer, Hash)> delete_organization_feature_flag_override_with_http_info(org_code, feature_flag_key)
+
+```ruby
+begin
+  # Delete organization feature flag override
+  data, status_code, headers = api_instance.delete_organization_feature_flag_override_with_http_info(org_code, feature_flag_key)
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => <SuccessResponse>
+rescue KindeSdk::ApiError => e
+  puts "Error when calling OrganizationsApi->delete_organization_feature_flag_override_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+| Name | Type | Description | Notes |
+| ---- | ---- | ----------- | ----- |
+| **org_code** | **String** | The identifier for the organization. |  |
+| **feature_flag_key** | **String** | The identifier for the feature flag. |  |
+
+### Return type
+
+[**SuccessResponse**](SuccessResponse.md)
+
+### Authorization
+
+[kindeBearerAuth](../README.md#kindeBearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+
+## delete_organization_feature_flag_overrides
+
+> <SuccessResponse> delete_organization_feature_flag_overrides(org_code)
+
+Delete all organization feature flag overrides
+
+Delete all organization feature flag overrides.
+
+### Examples
+
+```ruby
+require 'time'
+require 'kinde_sdk'
+# setup authorization
+KindeSdk.configure do |config|
+  # Configure Bearer authorization (JWT): kindeBearerAuth
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = KindeSdk::OrganizationsApi.new
+org_code = 'org_code_example' # String | The identifier for the organization.
+
+begin
+  # Delete all organization feature flag overrides
+  result = api_instance.delete_organization_feature_flag_overrides(org_code)
+  p result
+rescue KindeSdk::ApiError => e
+  puts "Error when calling OrganizationsApi->delete_organization_feature_flag_overrides: #{e}"
+end
+```
+
+#### Using the delete_organization_feature_flag_overrides_with_http_info variant
+
+This returns an Array which contains the response data, status code and headers.
+
+> <Array(<SuccessResponse>, Integer, Hash)> delete_organization_feature_flag_overrides_with_http_info(org_code)
+
+```ruby
+begin
+  # Delete all organization feature flag overrides
+  data, status_code, headers = api_instance.delete_organization_feature_flag_overrides_with_http_info(org_code)
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => <SuccessResponse>
+rescue KindeSdk::ApiError => e
+  puts "Error when calling OrganizationsApi->delete_organization_feature_flag_overrides_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+| Name | Type | Description | Notes |
+| ---- | ---- | ----------- | ----- |
+| **org_code** | **String** | The identifier for the organization. |  |
+
+### Return type
+
+[**SuccessResponse**](SuccessResponse.md)
+
+### Authorization
+
+[kindeBearerAuth](../README.md#kindeBearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
 
 ## get_orgainzations
 
-> <Array<Organization>> get_orgainzations(opts)
+> <GetOrgainzations200Response> get_orgainzations(opts)
 
 List Organizations
 
@@ -194,7 +337,7 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<Array<Organization>>, Integer, Hash)> get_orgainzations_with_http_info(opts)
+> <Array(<GetOrgainzations200Response>, Integer, Hash)> get_orgainzations_with_http_info(opts)
 
 ```ruby
 begin
@@ -202,7 +345,7 @@ begin
   data, status_code, headers = api_instance.get_orgainzations_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <Array<Organization>>
+  p data # => <GetOrgainzations200Response>
 rescue KindeSdk::ApiError => e
   puts "Error when calling OrganizationsApi->get_orgainzations_with_http_info: #{e}"
 end
@@ -218,7 +361,7 @@ end
 
 ### Return type
 
-[**Array&lt;Organization&gt;**](Organization.md)
+[**GetOrgainzations200Response**](GetOrgainzations200Response.md)
 
 ### Authorization
 
@@ -303,11 +446,11 @@ end
 
 ## get_organization_users
 
-> <OrganizationUser> get_organization_users(opts)
+> <GetOrganizationUsers200Response> get_organization_users(opts)
 
 List Organization Users
 
-Get users in an organizaiton.
+Get users in an organization.
 
 ### Examples
 
@@ -341,7 +484,7 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<OrganizationUser>, Integer, Hash)> get_organization_users_with_http_info(opts)
+> <Array(<GetOrganizationUsers200Response>, Integer, Hash)> get_organization_users_with_http_info(opts)
 
 ```ruby
 begin
@@ -349,7 +492,7 @@ begin
   data, status_code, headers = api_instance.get_organization_users_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <OrganizationUser>
+  p data # => <GetOrganizationUsers200Response>
 rescue KindeSdk::ApiError => e
   puts "Error when calling OrganizationsApi->get_organization_users_with_http_info: #{e}"
 end
@@ -366,7 +509,7 @@ end
 
 ### Return type
 
-[**OrganizationUser**](OrganizationUser.md)
+[**GetOrganizationUsers200Response**](GetOrganizationUsers200Response.md)
 
 ### Authorization
 
@@ -448,5 +591,78 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
+- **Accept**: application/json
+
+
+## update_organization_feature_flag_override
+
+> <SuccessResponse> update_organization_feature_flag_override(org_code, feature_flag_key, value)
+
+Update organization feature flag override
+
+Update organization feature flag override.
+
+### Examples
+
+```ruby
+require 'time'
+require 'kinde_sdk'
+# setup authorization
+KindeSdk.configure do |config|
+  # Configure Bearer authorization (JWT): kindeBearerAuth
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = KindeSdk::OrganizationsApi.new
+org_code = 'org_code_example' # String | The identifier for the organization
+feature_flag_key = 'feature_flag_key_example' # String | The identifier for the feature flag
+value = 'value_example' # String | Override value
+
+begin
+  # Update organization feature flag override
+  result = api_instance.update_organization_feature_flag_override(org_code, feature_flag_key, value)
+  p result
+rescue KindeSdk::ApiError => e
+  puts "Error when calling OrganizationsApi->update_organization_feature_flag_override: #{e}"
+end
+```
+
+#### Using the update_organization_feature_flag_override_with_http_info variant
+
+This returns an Array which contains the response data, status code and headers.
+
+> <Array(<SuccessResponse>, Integer, Hash)> update_organization_feature_flag_override_with_http_info(org_code, feature_flag_key, value)
+
+```ruby
+begin
+  # Update organization feature flag override
+  data, status_code, headers = api_instance.update_organization_feature_flag_override_with_http_info(org_code, feature_flag_key, value)
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => <SuccessResponse>
+rescue KindeSdk::ApiError => e
+  puts "Error when calling OrganizationsApi->update_organization_feature_flag_override_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+| Name | Type | Description | Notes |
+| ---- | ---- | ----------- | ----- |
+| **org_code** | **String** | The identifier for the organization |  |
+| **feature_flag_key** | **String** | The identifier for the feature flag |  |
+| **value** | **String** | Override value |  |
+
+### Return type
+
+[**SuccessResponse**](SuccessResponse.md)
+
+### Authorization
+
+[kindeBearerAuth](../README.md#kindeBearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
 - **Accept**: application/json
 

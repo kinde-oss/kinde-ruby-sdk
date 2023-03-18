@@ -15,7 +15,7 @@ require 'time'
 
 module KindeSdk
   class ApiResult
-    # The result of the api operation
+    # The result of the api operation.
     attr_accessor :result
 
     # Attribute mapping from ruby-style variable name to JSON key.
