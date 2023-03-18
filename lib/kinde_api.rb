@@ -5,6 +5,7 @@ require "kinde_api/client"
 require 'securerandom'
 require 'oauth2'
 require 'pkce_challenge'
+require 'faraday/follow_redirects'
 
 module KindeApi
   class << self
@@ -62,6 +63,22 @@ module KindeApi
           query_params: { 'redirect' => @config.logout_url },
           header_params: { 'Authorization' => "Bearer #{bearer_token}" }
         )
+    end
+
+    def client_credentials_access(
+      client_id: @config.client_id,
+      client_secret: @config.client_secret,
+      audience: "#{@config.domain}/api"
+    )
+      Faraday.new(url: @config.domain) do |faraday|
+        faraday.response :json
+        faraday.use Faraday::FollowRedirects::Middleware
+      end
+        .post(@config.token_url) do |req|
+        req.headers[:content_type] = 'application/x-www-form-urlencoded'
+        req.body =
+          "grant_type=client_credentials&client_id=#{client_id}&client_secret=#{client_secret}&audience=#{audience}"
+      end.body
     end
 
     def token_expired?(hash)
