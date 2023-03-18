@@ -34,7 +34,7 @@ describe 'ConnectedAppsApi' do
 
   # unit tests for get_connected_app_auth_url
   # Get Connected App URL
-  # Get a URL that authenticates and authorizes a user to a third-party connected app
+  # Get a URL that authenticates and authorizes a user to a third-party connected app.
   # @param key_code_ref The unique key code reference of the connected app to authenticate against.
   # @param user_id The id of the user that needs to authenticate to the third-party connected app.
   # @param [Hash] opts the optional parameters
@@ -47,7 +47,7 @@ describe 'ConnectedAppsApi' do
 
   # unit tests for get_connected_app_token
   # Get Connected App Token
-  # Get an access token that can be used to call the third-party provider linked to the connected app
+  # Get an access token that can be used to call the third-party provider linked to the connected app.
   # @param session_id The unique sesssion id reprensenting the login session of a user.
   # @param [Hash] opts the optional parameters
   # @return [ConnectedAppsAccessToken]
@@ -59,7 +59,7 @@ describe 'ConnectedAppsApi' do
 
   # unit tests for revoke_connected_app_token
   # Revoke Connected App Token
-  # Revoke the tokens linked to the connected app session
+  # Revoke the tokens linked to the connected app session.
   # @param session_id The unique sesssion id reprensenting the login session of a user.
   # @param [Hash] opts the optional parameters
   # @return [ApiResult]

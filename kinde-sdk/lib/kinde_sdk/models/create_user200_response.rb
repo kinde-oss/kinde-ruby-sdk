@@ -15,10 +15,10 @@ require 'time'
 
 module KindeSdk
   class CreateUser200Response
-    # Unique id of the user in Kinde
+    # Unique id of the user in Kinde.
     attr_accessor :id
 
-    # True if the user was successfully created
+    # True if the user was successfully created.
     attr_accessor :created
 
     attr_accessor :identities

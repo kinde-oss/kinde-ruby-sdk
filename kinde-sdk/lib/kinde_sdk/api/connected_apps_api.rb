@@ -20,7 +20,7 @@ module KindeSdk
       @api_client = api_client
     end
     # Get Connected App URL
-    # Get a URL that authenticates and authorizes a user to a third-party connected app
+    # Get a URL that authenticates and authorizes a user to a third-party connected app.
     # @param key_code_ref [String] The unique key code reference of the connected app to authenticate against.
     # @param user_id [Integer] The id of the user that needs to authenticate to the third-party connected app.
     # @param [Hash] opts the optional parameters
@@ -31,7 +31,7 @@ module KindeSdk
     end
 
     # Get Connected App URL
-    # Get a URL that authenticates and authorizes a user to a third-party connected app
+    # Get a URL that authenticates and authorizes a user to a third-party connected app.
     # @param key_code_ref [String] The unique key code reference of the connected app to authenticate against.
     # @param user_id [Integer] The id of the user that needs to authenticate to the third-party connected app.
     # @param [Hash] opts the optional parameters
@@ -91,7 +91,7 @@ module KindeSdk
     end
 
     # Get Connected App Token
-    # Get an access token that can be used to call the third-party provider linked to the connected app
+    # Get an access token that can be used to call the third-party provider linked to the connected app.
     # @param session_id [String] The unique sesssion id reprensenting the login session of a user.
     # @param [Hash] opts the optional parameters
     # @return [ConnectedAppsAccessToken]
@@ -101,7 +101,7 @@ module KindeSdk
     end
 
     # Get Connected App Token
-    # Get an access token that can be used to call the third-party provider linked to the connected app
+    # Get an access token that can be used to call the third-party provider linked to the connected app.
     # @param session_id [String] The unique sesssion id reprensenting the login session of a user.
     # @param [Hash] opts the optional parameters
     # @return [Array<(ConnectedAppsAccessToken, Integer, Hash)>] ConnectedAppsAccessToken data, response status code and response headers
@@ -155,7 +155,7 @@ module KindeSdk
     end
 
     # Revoke Connected App Token
-    # Revoke the tokens linked to the connected app session
+    # Revoke the tokens linked to the connected app session.
     # @param session_id [String] The unique sesssion id reprensenting the login session of a user.
     # @param [Hash] opts the optional parameters
     # @return [ApiResult]
@@ -165,7 +165,7 @@ module KindeSdk
     end
 
     # Revoke Connected App Token
-    # Revoke the tokens linked to the connected app session
+    # Revoke the tokens linked to the connected app session.
     # @param session_id [String] The unique sesssion id reprensenting the login session of a user.
     # @param [Hash] opts the optional parameters
     # @return [Array<(ApiResult, Integer, Hash)>] ApiResult data, response status code and response headers

@@ -4,7 +4,7 @@
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **user_id** | **Integer** |  | [optional] |
+| **id** | **String** |  | [optional] |
 | **email** | **String** |  | [optional] |
 | **full_name** | **String** |  | [optional] |
 | **last_name** | **String** |  | [optional] |
@@ -16,7 +16,7 @@
 require 'kinde_sdk'
 
 instance = KindeSdk::OrganizationUser.new(
-  user_id: null,
+  id: null,
   email: null,
   full_name: null,
   last_name: null,

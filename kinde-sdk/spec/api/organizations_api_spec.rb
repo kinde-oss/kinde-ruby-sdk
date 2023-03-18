@@ -57,6 +57,31 @@ describe 'OrganizationsApi' do
     end
   end
 
+  # unit tests for delete_organization_feature_flag_override
+  # Delete organization feature flag override
+  # Delete organization feature flag override.
+  # @param org_code The identifier for the organization.
+  # @param feature_flag_key The identifier for the feature flag.
+  # @param [Hash] opts the optional parameters
+  # @return [SuccessResponse]
+  describe 'delete_organization_feature_flag_override test' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
+  # unit tests for delete_organization_feature_flag_overrides
+  # Delete all organization feature flag overrides
+  # Delete all organization feature flag overrides.
+  # @param org_code The identifier for the organization.
+  # @param [Hash] opts the optional parameters
+  # @return [SuccessResponse]
+  describe 'delete_organization_feature_flag_overrides test' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
   # unit tests for get_orgainzations
   # List Organizations
   # Get a list of organizations. 
@@ -64,7 +89,7 @@ describe 'OrganizationsApi' do
   # @option opts [String] :sort Field and order to sort the result by.
   # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
   # @option opts [String] :next_token A string to get the next page of results if there are more results.
-  # @return [Array<Organization>]
+  # @return [GetOrgainzations200Response]
   describe 'get_orgainzations test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
@@ -85,13 +110,13 @@ describe 'OrganizationsApi' do
 
   # unit tests for get_organization_users
   # List Organization Users
-  # Get users in an organizaiton.
+  # Get users in an organization.
   # @param [Hash] opts the optional parameters
   # @option opts [String] :sort Field and order to sort the result by.
   # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
   # @option opts [String] :next_token A string to get the next page of results if there are more results.
   # @option opts [String] :code The organization&#39;s code.
-  # @return [OrganizationUser]
+  # @return [GetOrganizationUsers200Response]
   describe 'get_organization_users test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
@@ -106,6 +131,20 @@ describe 'OrganizationsApi' do
   # @option opts [RemoveOrganizationUsersRequest] :remove_organization_users_request 
   # @return [RemoveOrganizationUsers200Response]
   describe 'remove_organization_users test' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
+  # unit tests for update_organization_feature_flag_override
+  # Update organization feature flag override
+  # Update organization feature flag override.
+  # @param org_code The identifier for the organization
+  # @param feature_flag_key The identifier for the feature flag
+  # @param value Override value
+  # @param [Hash] opts the optional parameters
+  # @return [SuccessResponse]
+  describe 'update_organization_feature_flag_override test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
     end

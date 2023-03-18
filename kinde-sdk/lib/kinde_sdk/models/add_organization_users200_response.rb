@@ -15,15 +15,20 @@ require 'time'
 
 module KindeSdk
   class AddOrganizationUsers200Response
+    # Response code.
+    attr_accessor :code
+
+    # Response message.
     attr_accessor :message
 
-    attr_accessor :users_add
+    attr_accessor :users_added
 
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
+        :'code' => :'code',
         :'message' => :'message',
-        :'users_add' => :'users_add'
+        :'users_added' => :'users_added'
       }
     end
 
@@ -35,8 +40,9 @@ module KindeSdk
     # Attribute type mapping.
     def self.openapi_types
       {
+        :'code' => :'String',
         :'message' => :'String',
-        :'users_add' => :'Array<String>'
+        :'users_added' => :'Array<String>'
       }
     end
 
@@ -61,13 +67,17 @@ module KindeSdk
         h[k.to_sym] = v
       }
 
+      if attributes.key?(:'code')
+        self.code = attributes[:'code']
+      end
+
       if attributes.key?(:'message')
         self.message = attributes[:'message']
       end
 
-      if attributes.key?(:'users_add')
-        if (value = attributes[:'users_add']).is_a?(Array)
-          self.users_add = value
+      if attributes.key?(:'users_added')
+        if (value = attributes[:'users_added']).is_a?(Array)
+          self.users_added = value
         end
       end
     end
@@ -90,8 +100,9 @@ module KindeSdk
     def ==(o)
       return true if self.equal?(o)
       self.class == o.class &&
+          code == o.code &&
           message == o.message &&
-          users_add == o.users_add
+          users_added == o.users_added
     end
 
     # @see the `==` method
@@ -103,7 +114,7 @@ module KindeSdk
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [message, users_add].hash
+      [code, message, users_added].hash
     end
 
     # Builds the object from hash

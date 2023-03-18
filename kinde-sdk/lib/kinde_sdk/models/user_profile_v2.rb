@@ -15,23 +15,26 @@ require 'time'
 
 module KindeSdk
   class UserProfileV2
-    # Unique id of the user in Kinde
+    # Unique id of the user in Kinde.
     attr_accessor :id
 
-    # Value of the user's id in a third-party system when the user is imported into Kinde
+    # Value of the user's id in a third-party system when the user is imported into Kinde.
     attr_accessor :provided_id
 
-    # Users's first and last name separated by a space
+    # Users's first and last name separated by a space.
     attr_accessor :name
 
-    # User's first name
+    # User's first name.
     attr_accessor :given_name
 
-    # User's last name
+    # User's last name.
     attr_accessor :family_name
 
-    # Date the user was last updated at (In Unix time)
+    # Date the user was last updated at (In Unix time).
     attr_accessor :updated_at
+
+    # User's email address if available.
+    attr_accessor :email
 
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
@@ -41,7 +44,8 @@ module KindeSdk
         :'name' => :'name',
         :'given_name' => :'given_name',
         :'family_name' => :'family_name',
-        :'updated_at' => :'updated_at'
+        :'updated_at' => :'updated_at',
+        :'email' => :'email'
       }
     end
 
@@ -58,13 +62,15 @@ module KindeSdk
         :'name' => :'String',
         :'given_name' => :'String',
         :'family_name' => :'String',
-        :'updated_at' => :'Integer'
+        :'updated_at' => :'Integer',
+        :'email' => :'String'
       }
     end
 
     # List of attributes with nullable: true
     def self.openapi_nullable
       Set.new([
+        :'provided_id',
       ])
     end
 
@@ -106,6 +112,10 @@ module KindeSdk
       if attributes.key?(:'updated_at')
         self.updated_at = attributes[:'updated_at']
       end
+
+      if attributes.key?(:'email')
+        self.email = attributes[:'email']
+      end
     end
 
     # Show invalid properties with the reasons. Usually used together with valid?
@@ -131,7 +141,8 @@ module KindeSdk
           name == o.name &&
           given_name == o.given_name &&
           family_name == o.family_name &&
-          updated_at == o.updated_at
+          updated_at == o.updated_at &&
+          email == o.email
     end
 
     # @see the `==` method
@@ -143,7 +154,7 @@ module KindeSdk
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [id, provided_id, name, given_name, family_name, updated_at].hash
+      [id, provided_id, name, given_name, family_name, updated_at, email].hash
     end
 
     # Builds the object from hash

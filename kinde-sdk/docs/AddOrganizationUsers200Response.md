@@ -4,8 +4,9 @@
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **message** | **String** |  | [optional] |
-| **users_add** | **Array&lt;String&gt;** |  | [optional] |
+| **code** | **String** | Response code. | [optional] |
+| **message** | **String** | Response message. | [optional] |
+| **users_added** | **Array&lt;String&gt;** |  | [optional] |
 
 ## Example
 
@@ -13,8 +14,9 @@
 require 'kinde_sdk'
 
 instance = KindeSdk::AddOrganizationUsers200Response.new(
+  code: null,
   message: null,
-  users_add: null
+  users_added: null
 )
 ```
 

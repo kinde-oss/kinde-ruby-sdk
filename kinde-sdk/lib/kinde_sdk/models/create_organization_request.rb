@@ -18,10 +18,36 @@ module KindeSdk
     # The organization's name.
     attr_accessor :name
 
+    # The organization's feature flag settings.
+    attr_accessor :feature_flags
+
+    class EnumAttributeValidator
+      attr_reader :datatype
+      attr_reader :allowable_values
+
+      def initialize(datatype, allowable_values)
+        @allowable_values = allowable_values.map do |value|
+          case datatype.to_s
+          when /Integer/i
+            value.to_i
+          when /Float/i
+            value.to_f
+          else
+            value
+          end
+        end
+      end
+
+      def valid?(value)
+        !value || allowable_values.include?(value)
+      end
+    end
+
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
-        :'name' => :'name'
+        :'name' => :'name',
+        :'feature_flags' => :'feature_flags'
       }
     end
 
@@ -33,7 +59,8 @@ module KindeSdk
     # Attribute type mapping.
     def self.openapi_types
       {
-        :'name' => :'String'
+        :'name' => :'String',
+        :'feature_flags' => :'Hash<String, String>'
       }
     end
 
@@ -61,6 +88,12 @@ module KindeSdk
       if attributes.key?(:'name')
         self.name = attributes[:'name']
       end
+
+      if attributes.key?(:'feature_flags')
+        if (value = attributes[:'feature_flags']).is_a?(Hash)
+          self.feature_flags = value
+        end
+      end
     end
 
     # Show invalid properties with the reasons. Usually used together with valid?
@@ -81,7 +114,8 @@ module KindeSdk
     def ==(o)
       return true if self.equal?(o)
       self.class == o.class &&
-          name == o.name
+          name == o.name &&
+          feature_flags == o.feature_flags
     end
 
     # @see the `==` method
@@ -93,7 +127,7 @@ module KindeSdk
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [name].hash
+      [name, feature_flags].hash
     end
 
     # Builds the object from hash

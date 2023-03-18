@@ -14,12 +14,12 @@ require 'date'
 require 'time'
 
 module KindeSdk
-  # The result of the user creation operation
+  # The result of the user creation operation.
   class UserIdentityResult
-    # True if the user identity was successfully created
+    # True if the user identity was successfully created.
     attr_accessor :created
 
-    # Unique id of the user's identity in Kinde
+    # Unique id of the user's identity in Kinde.
     attr_accessor :identity_id
 
     # Attribute mapping from ruby-style variable name to JSON key.

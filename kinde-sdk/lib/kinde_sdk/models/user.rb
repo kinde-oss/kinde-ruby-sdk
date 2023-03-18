@@ -15,20 +15,23 @@ require 'time'
 
 module KindeSdk
   class User
-    # Unique id of the user in Kinde
+    # Unique id of the user in Kinde.
     attr_accessor :id
 
-    # Default email address of the user in Kinde
+    # Default email address of the user in Kinde.
     attr_accessor :email
 
-    # User's last name
+    # User's last name.
     attr_accessor :last_name
 
-    # User's first name
+    # User's first name.
     attr_accessor :first_name
 
-    # Whether the user is currently suspended or not
+    # Whether the user is currently suspended or not.
     attr_accessor :is_suspended
+
+    # User's profile picture URL.
+    attr_accessor :picture
 
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
@@ -37,7 +40,8 @@ module KindeSdk
         :'email' => :'email',
         :'last_name' => :'last_name',
         :'first_name' => :'first_name',
-        :'is_suspended' => :'is_suspended'
+        :'is_suspended' => :'is_suspended',
+        :'picture' => :'picture'
       }
     end
 
@@ -49,11 +53,12 @@ module KindeSdk
     # Attribute type mapping.
     def self.openapi_types
       {
-        :'id' => :'Integer',
+        :'id' => :'String',
         :'email' => :'String',
         :'last_name' => :'String',
         :'first_name' => :'String',
-        :'is_suspended' => :'Boolean'
+        :'is_suspended' => :'Boolean',
+        :'picture' => :'String'
       }
     end
 
@@ -97,6 +102,10 @@ module KindeSdk
       if attributes.key?(:'is_suspended')
         self.is_suspended = attributes[:'is_suspended']
       end
+
+      if attributes.key?(:'picture')
+        self.picture = attributes[:'picture']
+      end
     end
 
     # Show invalid properties with the reasons. Usually used together with valid?
@@ -121,7 +130,8 @@ module KindeSdk
           email == o.email &&
           last_name == o.last_name &&
           first_name == o.first_name &&
-          is_suspended == o.is_suspended
+          is_suspended == o.is_suspended &&
+          picture == o.picture
     end
 
     # @see the `==` method
@@ -133,7 +143,7 @@ module KindeSdk
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [id, email, last_name, first_name, is_suspended].hash
+      [id, email, last_name, first_name, is_suspended, picture].hash
     end
 
     # Builds the object from hash

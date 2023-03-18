@@ -20,7 +20,7 @@ module KindeSdk
       @api_client = api_client
     end
     # Returns the details of the currently logged in user
-    # Contains the id, names and email of the currently logged in user 
+    # Contains the id, names and email of the currently logged in user. 
     # @param [Hash] opts the optional parameters
     # @return [UserProfile]
     def get_user(opts = {})
@@ -29,7 +29,7 @@ module KindeSdk
     end
 
     # Returns the details of the currently logged in user
-    # Contains the id, names and email of the currently logged in user 
+    # Contains the id, names and email of the currently logged in user. 
     # @param [Hash] opts the optional parameters
     # @return [Array<(UserProfile, Integer, Hash)>] UserProfile data, response status code and response headers
     def get_user_with_http_info(opts = {})
@@ -77,7 +77,7 @@ module KindeSdk
     end
 
     # Returns the details of the currently logged in user
-    # Contains the id, names and email of the currently logged in user 
+    # Contains the id, names, profile picture URL and email of the currently logged in user. 
     # @param [Hash] opts the optional parameters
     # @return [UserProfileV2]
     def get_user_profile_v2(opts = {})
@@ -86,7 +86,7 @@ module KindeSdk
     end
 
     # Returns the details of the currently logged in user
-    # Contains the id, names and email of the currently logged in user 
+    # Contains the id, names, profile picture URL and email of the currently logged in user. 
     # @param [Hash] opts the optional parameters
     # @return [Array<(UserProfileV2, Integer, Hash)>] UserProfileV2 data, response status code and response headers
     def get_user_profile_v2_with_http_info(opts = {})

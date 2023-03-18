@@ -15,19 +15,19 @@ require 'time'
 
 module KindeSdk
   class UserProfile
-    # Unique id of the user in Kinde
+    # Unique id of the user in Kinde.
     attr_accessor :id
 
-    # Default email address of the user in Kinde
+    # Default email address of the user in Kinde.
     attr_accessor :preferred_email
 
-    # Value of the user's id in a third-party system when the user is imported into Kinde
+    # Value of the user's id in a third-party system when the user is imported into Kinde.
     attr_accessor :provided_id
 
-    # User's last name
+    # User's last name.
     attr_accessor :last_name
 
-    # User's first name
+    # User's first name.
     attr_accessor :first_name
 
     # Attribute mapping from ruby-style variable name to JSON key.
@@ -60,6 +60,7 @@ module KindeSdk
     # List of attributes with nullable: true
     def self.openapi_nullable
       Set.new([
+        :'provided_id',
       ])
     end
 

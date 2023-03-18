@@ -15,10 +15,10 @@ require 'time'
 
 module KindeSdk
   class ConnectedAppsAccessToken
-    # The access token to access a third-party provider
+    # The access token to access a third-party provider.
     attr_accessor :access_token
 
-    # The date and time that the access token expires
+    # The date and time that the access token expires.
     attr_accessor :access_token_expiry
 
     # Attribute mapping from ruby-style variable name to JSON key.

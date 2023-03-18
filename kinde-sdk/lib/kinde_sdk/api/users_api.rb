@@ -151,20 +151,20 @@ module KindeSdk
     end
 
     # Delete User
-    # Delete a user record 
+    # Delete a user record. 
     # @param [Hash] opts the optional parameters
     # @option opts [String] :id The user&#39;s id.
-    # @return [nil]
+    # @return [SuccessResponse]
     def deleteuser(opts = {})
-      deleteuser_with_http_info(opts)
-      nil
+      data, _status_code, _headers = deleteuser_with_http_info(opts)
+      data
     end
 
     # Delete User
-    # Delete a user record 
+    # Delete a user record. 
     # @param [Hash] opts the optional parameters
     # @option opts [String] :id The user&#39;s id.
-    # @return [Array<(nil, Integer, Hash)>] nil, response status code and response headers
+    # @return [Array<(SuccessResponse, Integer, Hash)>] SuccessResponse data, response status code and response headers
     def deleteuser_with_http_info(opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: UsersApi.deleteuser ...'
@@ -178,6 +178,8 @@ module KindeSdk
 
       # header parameters
       header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
 
       # form parameters
       form_params = opts[:form_params] || {}
@@ -186,7 +188,7 @@ module KindeSdk
       post_body = opts[:debug_body]
 
       # return_type
-      return_type = opts[:debug_return_type]
+      return_type = opts[:debug_return_type] || 'SuccessResponse'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
@@ -209,26 +211,26 @@ module KindeSdk
     end
 
     # List Organization Users
-    # Get users in an organizaiton.
+    # Get users in an organization.
     # @param [Hash] opts the optional parameters
     # @option opts [String] :sort Field and order to sort the result by.
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
     # @option opts [String] :code The organization&#39;s code.
-    # @return [OrganizationUser]
+    # @return [GetOrganizationUsers200Response]
     def get_organization_users(opts = {})
       data, _status_code, _headers = get_organization_users_with_http_info(opts)
       data
     end
 
     # List Organization Users
-    # Get users in an organizaiton.
+    # Get users in an organization.
     # @param [Hash] opts the optional parameters
     # @option opts [String] :sort Field and order to sort the result by.
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
     # @option opts [String] :code The organization&#39;s code.
-    # @return [Array<(OrganizationUser, Integer, Hash)>] OrganizationUser data, response status code and response headers
+    # @return [Array<(GetOrganizationUsers200Response, Integer, Hash)>] GetOrganizationUsers200Response data, response status code and response headers
     def get_organization_users_with_http_info(opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: UsersApi.get_organization_users ...'
@@ -259,7 +261,7 @@ module KindeSdk
       post_body = opts[:debug_body]
 
       # return_type
-      return_type = opts[:debug_return_type] || 'OrganizationUser'
+      return_type = opts[:debug_return_type] || 'GetOrganizationUsers200Response'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
@@ -282,23 +284,23 @@ module KindeSdk
     end
 
     # Get User
-    # Retrieve a user record 
+    # Retrieve a user record. 
     # @param [Hash] opts the optional parameters
     # @option opts [String] :id The user&#39;s id.
     # @return [User]
-    def get_user(opts = {})
-      data, _status_code, _headers = get_user_with_http_info(opts)
+    def get_user_data(opts = {})
+      data, _status_code, _headers = get_user_data_with_http_info(opts)
       data
     end
 
     # Get User
-    # Retrieve a user record 
+    # Retrieve a user record. 
     # @param [Hash] opts the optional parameters
     # @option opts [String] :id The user&#39;s id.
     # @return [Array<(User, Integer, Hash)>] User data, response status code and response headers
-    def get_user_with_http_info(opts = {})
+    def get_user_data_with_http_info(opts = {})
       if @api_client.config.debugging
-        @api_client.config.logger.debug 'Calling API: UsersApi.get_user ...'
+        @api_client.config.logger.debug 'Calling API: UsersApi.get_user_data ...'
       end
       # resource path
       local_var_path = '/api/v1/user'
@@ -325,7 +327,7 @@ module KindeSdk
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
 
       new_options = opts.merge(
-        :operation => :"UsersApi.get_user",
+        :operation => :"UsersApi.get_user_data",
         :header_params => header_params,
         :query_params => query_params,
         :form_params => form_params,
@@ -336,7 +338,7 @@ module KindeSdk
 
       data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
       if @api_client.config.debugging
-        @api_client.config.logger.debug "API called: UsersApi#get_user\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+        @api_client.config.logger.debug "API called: UsersApi#get_user_data\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
       end
       return data, status_code, headers
     end
@@ -346,9 +348,9 @@ module KindeSdk
     # @param [Hash] opts the optional parameters
     # @option opts [String] :sort Field and order to sort the result by.
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
-    # @option opts [Integer] :user_id ID of the user to filter by.
+    # @option opts [String] :user_id ID of the user to filter by.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
-    # @return [Array<User>]
+    # @return [GetUsers200Response]
     def get_users(opts = {})
       data, _status_code, _headers = get_users_with_http_info(opts)
       data
@@ -359,9 +361,9 @@ module KindeSdk
     # @param [Hash] opts the optional parameters
     # @option opts [String] :sort Field and order to sort the result by.
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
-    # @option opts [Integer] :user_id ID of the user to filter by.
+    # @option opts [String] :user_id ID of the user to filter by.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
-    # @return [Array<(Array<User>, Integer, Hash)>] Array<User> data, response status code and response headers
+    # @return [Array<(GetUsers200Response, Integer, Hash)>] GetUsers200Response data, response status code and response headers
     def get_users_with_http_info(opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: UsersApi.get_users ...'
@@ -392,7 +394,7 @@ module KindeSdk
       post_body = opts[:debug_body]
 
       # return_type
-      return_type = opts[:debug_return_type] || 'Array<User>'
+      return_type = opts[:debug_return_type] || 'GetUsers200Response'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
@@ -482,7 +484,7 @@ module KindeSdk
     end
 
     # Update User
-    # Update a user record 
+    # Update a user record. 
     # @param update_user_request [UpdateUserRequest] The user to update.
     # @param [Hash] opts the optional parameters
     # @option opts [String] :id The user&#39;s id.
@@ -493,7 +495,7 @@ module KindeSdk
     end
 
     # Update User
-    # Update a user record 
+    # Update a user record. 
     # @param update_user_request [UpdateUserRequest] The user to update.
     # @param [Hash] opts the optional parameters
     # @option opts [String] :id The user&#39;s id.

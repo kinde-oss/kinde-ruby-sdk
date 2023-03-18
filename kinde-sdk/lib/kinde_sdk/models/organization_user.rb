@@ -15,7 +15,7 @@ require 'time'
 
 module KindeSdk
   class OrganizationUser
-    attr_accessor :user_id
+    attr_accessor :id
 
     attr_accessor :email
 
@@ -28,7 +28,7 @@ module KindeSdk
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
-        :'user_id' => :'user_id',
+        :'id' => :'id',
         :'email' => :'email',
         :'full_name' => :'full_name',
         :'last_name' => :'last_name',
@@ -44,7 +44,7 @@ module KindeSdk
     # Attribute type mapping.
     def self.openapi_types
       {
-        :'user_id' => :'Integer',
+        :'id' => :'String',
         :'email' => :'String',
         :'full_name' => :'String',
         :'last_name' => :'String',
@@ -73,8 +73,8 @@ module KindeSdk
         h[k.to_sym] = v
       }
 
-      if attributes.key?(:'user_id')
-        self.user_id = attributes[:'user_id']
+      if attributes.key?(:'id')
+        self.id = attributes[:'id']
       end
 
       if attributes.key?(:'email')
@@ -112,7 +112,7 @@ module KindeSdk
     def ==(o)
       return true if self.equal?(o)
       self.class == o.class &&
-          user_id == o.user_id &&
+          id == o.id &&
           email == o.email &&
           full_name == o.full_name &&
           last_name == o.last_name &&
@@ -128,7 +128,7 @@ module KindeSdk
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [user_id, email, full_name, last_name, first_name].hash
+      [id, email, full_name, last_name, first_name].hash
     end
 
     # Builds the object from hash

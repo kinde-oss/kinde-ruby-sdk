@@ -31,4 +31,14 @@ describe KindeSdk::CreateOrganizationRequest do
     end
   end
 
+  describe 'test attribute "feature_flags"' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+      # validator = Petstore::EnumTest::EnumAttributeValidator.new('Hash<String, String>', ["str", "int", "bool"])
+      # validator.allowable_values.each do |value|
+      #   expect { instance.feature_flags = value }.not_to raise_error
+      # end
+    end
+  end
+
 end

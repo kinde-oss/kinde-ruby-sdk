@@ -59,10 +59,10 @@ describe 'UsersApi' do
 
   # unit tests for deleteuser
   # Delete User
-  # Delete a user record 
+  # Delete a user record. 
   # @param [Hash] opts the optional parameters
   # @option opts [String] :id The user&#39;s id.
-  # @return [nil]
+  # @return [SuccessResponse]
   describe 'deleteuser test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
@@ -71,26 +71,26 @@ describe 'UsersApi' do
 
   # unit tests for get_organization_users
   # List Organization Users
-  # Get users in an organizaiton.
+  # Get users in an organization.
   # @param [Hash] opts the optional parameters
   # @option opts [String] :sort Field and order to sort the result by.
   # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
   # @option opts [String] :next_token A string to get the next page of results if there are more results.
   # @option opts [String] :code The organization&#39;s code.
-  # @return [OrganizationUser]
+  # @return [GetOrganizationUsers200Response]
   describe 'get_organization_users test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
     end
   end
 
-  # unit tests for get_user
+  # unit tests for get_user_data
   # Get User
-  # Retrieve a user record 
+  # Retrieve a user record. 
   # @param [Hash] opts the optional parameters
   # @option opts [String] :id The user&#39;s id.
   # @return [User]
-  describe 'get_user test' do
+  describe 'get_user_data test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
     end
@@ -102,9 +102,9 @@ describe 'UsersApi' do
   # @param [Hash] opts the optional parameters
   # @option opts [String] :sort Field and order to sort the result by.
   # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
-  # @option opts [Integer] :user_id ID of the user to filter by.
+  # @option opts [String] :user_id ID of the user to filter by.
   # @option opts [String] :next_token A string to get the next page of results if there are more results.
-  # @return [Array<User>]
+  # @return [GetUsers200Response]
   describe 'get_users test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
@@ -126,7 +126,7 @@ describe 'UsersApi' do
 
   # unit tests for update_user
   # Update User
-  # Update a user record 
+  # Update a user record. 
   # @param update_user_request The user to update.
   # @param [Hash] opts the optional parameters
   # @option opts [String] :id The user&#39;s id.

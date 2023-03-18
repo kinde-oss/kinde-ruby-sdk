@@ -113,6 +113,8 @@ module KindeSdk
 
       # header parameters
       header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
       # HTTP header 'Content-Type'
       content_type = @api_client.select_header_content_type(['application/json'])
       if !content_type.nil?
@@ -148,13 +150,145 @@ module KindeSdk
       return data, status_code, headers
     end
 
+    # Delete organization feature flag override
+    # Delete organization feature flag override.
+    # @param org_code [String] The identifier for the organization.
+    # @param feature_flag_key [String] The identifier for the feature flag.
+    # @param [Hash] opts the optional parameters
+    # @return [SuccessResponse]
+    def delete_organization_feature_flag_override(org_code, feature_flag_key, opts = {})
+      data, _status_code, _headers = delete_organization_feature_flag_override_with_http_info(org_code, feature_flag_key, opts)
+      data
+    end
+
+    # Delete organization feature flag override
+    # Delete organization feature flag override.
+    # @param org_code [String] The identifier for the organization.
+    # @param feature_flag_key [String] The identifier for the feature flag.
+    # @param [Hash] opts the optional parameters
+    # @return [Array<(SuccessResponse, Integer, Hash)>] SuccessResponse data, response status code and response headers
+    def delete_organization_feature_flag_override_with_http_info(org_code, feature_flag_key, opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: OrganizationsApi.delete_organization_feature_flag_override ...'
+      end
+      # verify the required parameter 'org_code' is set
+      if @api_client.config.client_side_validation && org_code.nil?
+        fail ArgumentError, "Missing the required parameter 'org_code' when calling OrganizationsApi.delete_organization_feature_flag_override"
+      end
+      # verify the required parameter 'feature_flag_key' is set
+      if @api_client.config.client_side_validation && feature_flag_key.nil?
+        fail ArgumentError, "Missing the required parameter 'feature_flag_key' when calling OrganizationsApi.delete_organization_feature_flag_override"
+      end
+      # resource path
+      local_var_path = '/api/v1/organizations/{org_code}/feature_flags/{feature_flag_key}'.sub('{' + 'org_code' + '}', CGI.escape(org_code.to_s)).sub('{' + 'feature_flag_key' + '}', CGI.escape(feature_flag_key.to_s))
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body]
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'SuccessResponse'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
+
+      new_options = opts.merge(
+        :operation => :"OrganizationsApi.delete_organization_feature_flag_override",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:DELETE, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: OrganizationsApi#delete_organization_feature_flag_override\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
+    # Delete all organization feature flag overrides
+    # Delete all organization feature flag overrides.
+    # @param org_code [String] The identifier for the organization.
+    # @param [Hash] opts the optional parameters
+    # @return [SuccessResponse]
+    def delete_organization_feature_flag_overrides(org_code, opts = {})
+      data, _status_code, _headers = delete_organization_feature_flag_overrides_with_http_info(org_code, opts)
+      data
+    end
+
+    # Delete all organization feature flag overrides
+    # Delete all organization feature flag overrides.
+    # @param org_code [String] The identifier for the organization.
+    # @param [Hash] opts the optional parameters
+    # @return [Array<(SuccessResponse, Integer, Hash)>] SuccessResponse data, response status code and response headers
+    def delete_organization_feature_flag_overrides_with_http_info(org_code, opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: OrganizationsApi.delete_organization_feature_flag_overrides ...'
+      end
+      # verify the required parameter 'org_code' is set
+      if @api_client.config.client_side_validation && org_code.nil?
+        fail ArgumentError, "Missing the required parameter 'org_code' when calling OrganizationsApi.delete_organization_feature_flag_overrides"
+      end
+      # resource path
+      local_var_path = '/api/v1/organizations/{org_code}/feature_flags'.sub('{' + 'org_code' + '}', CGI.escape(org_code.to_s))
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body]
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'SuccessResponse'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
+
+      new_options = opts.merge(
+        :operation => :"OrganizationsApi.delete_organization_feature_flag_overrides",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:DELETE, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: OrganizationsApi#delete_organization_feature_flag_overrides\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
     # List Organizations
     # Get a list of organizations. 
     # @param [Hash] opts the optional parameters
     # @option opts [String] :sort Field and order to sort the result by.
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
-    # @return [Array<Organization>]
+    # @return [GetOrgainzations200Response]
     def get_orgainzations(opts = {})
       data, _status_code, _headers = get_orgainzations_with_http_info(opts)
       data
@@ -166,7 +300,7 @@ module KindeSdk
     # @option opts [String] :sort Field and order to sort the result by.
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
-    # @return [Array<(Array<Organization>, Integer, Hash)>] Array<Organization> data, response status code and response headers
+    # @return [Array<(GetOrgainzations200Response, Integer, Hash)>] GetOrgainzations200Response data, response status code and response headers
     def get_orgainzations_with_http_info(opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: OrganizationsApi.get_orgainzations ...'
@@ -196,7 +330,7 @@ module KindeSdk
       post_body = opts[:debug_body]
 
       # return_type
-      return_type = opts[:debug_return_type] || 'Array<Organization>'
+      return_type = opts[:debug_return_type] || 'GetOrgainzations200Response'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
@@ -279,26 +413,26 @@ module KindeSdk
     end
 
     # List Organization Users
-    # Get users in an organizaiton.
+    # Get users in an organization.
     # @param [Hash] opts the optional parameters
     # @option opts [String] :sort Field and order to sort the result by.
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
     # @option opts [String] :code The organization&#39;s code.
-    # @return [OrganizationUser]
+    # @return [GetOrganizationUsers200Response]
     def get_organization_users(opts = {})
       data, _status_code, _headers = get_organization_users_with_http_info(opts)
       data
     end
 
     # List Organization Users
-    # Get users in an organizaiton.
+    # Get users in an organization.
     # @param [Hash] opts the optional parameters
     # @option opts [String] :sort Field and order to sort the result by.
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
     # @option opts [String] :code The organization&#39;s code.
-    # @return [Array<(OrganizationUser, Integer, Hash)>] OrganizationUser data, response status code and response headers
+    # @return [Array<(GetOrganizationUsers200Response, Integer, Hash)>] GetOrganizationUsers200Response data, response status code and response headers
     def get_organization_users_with_http_info(opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: OrganizationsApi.get_organization_users ...'
@@ -329,7 +463,7 @@ module KindeSdk
       post_body = opts[:debug_body]
 
       # return_type
-      return_type = opts[:debug_return_type] || 'OrganizationUser'
+      return_type = opts[:debug_return_type] || 'GetOrganizationUsers200Response'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
@@ -414,6 +548,82 @@ module KindeSdk
       data, status_code, headers = @api_client.call_api(:PATCH, local_var_path, new_options)
       if @api_client.config.debugging
         @api_client.config.logger.debug "API called: OrganizationsApi#remove_organization_users\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
+    # Update organization feature flag override
+    # Update organization feature flag override.
+    # @param org_code [String] The identifier for the organization
+    # @param feature_flag_key [String] The identifier for the feature flag
+    # @param value [String] Override value
+    # @param [Hash] opts the optional parameters
+    # @return [SuccessResponse]
+    def update_organization_feature_flag_override(org_code, feature_flag_key, value, opts = {})
+      data, _status_code, _headers = update_organization_feature_flag_override_with_http_info(org_code, feature_flag_key, value, opts)
+      data
+    end
+
+    # Update organization feature flag override
+    # Update organization feature flag override.
+    # @param org_code [String] The identifier for the organization
+    # @param feature_flag_key [String] The identifier for the feature flag
+    # @param value [String] Override value
+    # @param [Hash] opts the optional parameters
+    # @return [Array<(SuccessResponse, Integer, Hash)>] SuccessResponse data, response status code and response headers
+    def update_organization_feature_flag_override_with_http_info(org_code, feature_flag_key, value, opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: OrganizationsApi.update_organization_feature_flag_override ...'
+      end
+      # verify the required parameter 'org_code' is set
+      if @api_client.config.client_side_validation && org_code.nil?
+        fail ArgumentError, "Missing the required parameter 'org_code' when calling OrganizationsApi.update_organization_feature_flag_override"
+      end
+      # verify the required parameter 'feature_flag_key' is set
+      if @api_client.config.client_side_validation && feature_flag_key.nil?
+        fail ArgumentError, "Missing the required parameter 'feature_flag_key' when calling OrganizationsApi.update_organization_feature_flag_override"
+      end
+      # verify the required parameter 'value' is set
+      if @api_client.config.client_side_validation && value.nil?
+        fail ArgumentError, "Missing the required parameter 'value' when calling OrganizationsApi.update_organization_feature_flag_override"
+      end
+      # resource path
+      local_var_path = '/api/v1/organizations/{org_code}/feature_flags/{feature_flag_key}'.sub('{' + 'org_code' + '}', CGI.escape(org_code.to_s)).sub('{' + 'feature_flag_key' + '}', CGI.escape(feature_flag_key.to_s))
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+      query_params[:'value'] = value
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body]
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'SuccessResponse'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
+
+      new_options = opts.merge(
+        :operation => :"OrganizationsApi.update_organization_feature_flag_override",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:PATCH, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: OrganizationsApi#update_organization_feature_flag_override\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
       end
       return data, status_code, headers
     end

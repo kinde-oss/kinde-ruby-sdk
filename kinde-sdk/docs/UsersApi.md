@@ -8,7 +8,7 @@ All URIs are relative to *https://app.kinde.com*
 | [**create_user**](UsersApi.md#create_user) | **POST** /api/v1/user | Create User |
 | [**deleteuser**](UsersApi.md#deleteuser) | **DELETE** /api/v1/user | Delete User |
 | [**get_organization_users**](UsersApi.md#get_organization_users) | **GET** /api/v1/organization/users | List Organization Users |
-| [**get_user**](UsersApi.md#get_user) | **GET** /api/v1/user | Get User |
+| [**get_user_data**](UsersApi.md#get_user_data) | **GET** /api/v1/user | Get User |
 | [**get_users**](UsersApi.md#get_users) | **GET** /api/v1/users | List Users |
 | [**remove_organization_users**](UsersApi.md#remove_organization_users) | **PATCH** /api/v1/organization/users | Remove Users from an Organization |
 | [**update_user**](UsersApi.md#update_user) | **PATCH** /api/v1/user | Update User |
@@ -160,11 +160,11 @@ end
 
 ## deleteuser
 
-> deleteuser(opts)
+> <SuccessResponse> deleteuser(opts)
 
 Delete User
 
-Delete a user record 
+Delete a user record. 
 
 ### Examples
 
@@ -184,7 +184,8 @@ opts = {
 
 begin
   # Delete User
-  api_instance.deleteuser(opts)
+  result = api_instance.deleteuser(opts)
+  p result
 rescue KindeSdk::ApiError => e
   puts "Error when calling UsersApi->deleteuser: #{e}"
 end
@@ -192,9 +193,9 @@ end
 
 #### Using the deleteuser_with_http_info variant
 
-This returns an Array which contains the response data (`nil` in this case), status code and headers.
+This returns an Array which contains the response data, status code and headers.
 
-> <Array(nil, Integer, Hash)> deleteuser_with_http_info(opts)
+> <Array(<SuccessResponse>, Integer, Hash)> deleteuser_with_http_info(opts)
 
 ```ruby
 begin
@@ -202,7 +203,7 @@ begin
   data, status_code, headers = api_instance.deleteuser_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => nil
+  p data # => <SuccessResponse>
 rescue KindeSdk::ApiError => e
   puts "Error when calling UsersApi->deleteuser_with_http_info: #{e}"
 end
@@ -216,7 +217,7 @@ end
 
 ### Return type
 
-nil (empty response body)
+[**SuccessResponse**](SuccessResponse.md)
 
 ### Authorization
 
@@ -225,16 +226,16 @@ nil (empty response body)
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: Not defined
+- **Accept**: application/json
 
 
 ## get_organization_users
 
-> <OrganizationUser> get_organization_users(opts)
+> <GetOrganizationUsers200Response> get_organization_users(opts)
 
 List Organization Users
 
-Get users in an organizaiton.
+Get users in an organization.
 
 ### Examples
 
@@ -268,7 +269,7 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<OrganizationUser>, Integer, Hash)> get_organization_users_with_http_info(opts)
+> <Array(<GetOrganizationUsers200Response>, Integer, Hash)> get_organization_users_with_http_info(opts)
 
 ```ruby
 begin
@@ -276,7 +277,7 @@ begin
   data, status_code, headers = api_instance.get_organization_users_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <OrganizationUser>
+  p data # => <GetOrganizationUsers200Response>
 rescue KindeSdk::ApiError => e
   puts "Error when calling UsersApi->get_organization_users_with_http_info: #{e}"
 end
@@ -293,7 +294,7 @@ end
 
 ### Return type
 
-[**OrganizationUser**](OrganizationUser.md)
+[**GetOrganizationUsers200Response**](GetOrganizationUsers200Response.md)
 
 ### Authorization
 
@@ -305,13 +306,13 @@ end
 - **Accept**: application/json
 
 
-## get_user
+## get_user_data
 
-> <User> get_user(opts)
+> <User> get_user_data(opts)
 
 Get User
 
-Retrieve a user record 
+Retrieve a user record. 
 
 ### Examples
 
@@ -331,28 +332,28 @@ opts = {
 
 begin
   # Get User
-  result = api_instance.get_user(opts)
+  result = api_instance.get_user_data(opts)
   p result
 rescue KindeSdk::ApiError => e
-  puts "Error when calling UsersApi->get_user: #{e}"
+  puts "Error when calling UsersApi->get_user_data: #{e}"
 end
 ```
 
-#### Using the get_user_with_http_info variant
+#### Using the get_user_data_with_http_info variant
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<User>, Integer, Hash)> get_user_with_http_info(opts)
+> <Array(<User>, Integer, Hash)> get_user_data_with_http_info(opts)
 
 ```ruby
 begin
   # Get User
-  data, status_code, headers = api_instance.get_user_with_http_info(opts)
+  data, status_code, headers = api_instance.get_user_data_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
   p data # => <User>
 rescue KindeSdk::ApiError => e
-  puts "Error when calling UsersApi->get_user_with_http_info: #{e}"
+  puts "Error when calling UsersApi->get_user_data_with_http_info: #{e}"
 end
 ```
 
@@ -378,7 +379,7 @@ end
 
 ## get_users
 
-> <Array<User>> get_users(opts)
+> <GetUsers200Response> get_users(opts)
 
 List Users
 
@@ -399,7 +400,7 @@ api_instance = KindeSdk::UsersApi.new
 opts = {
   sort: 'name_asc', # String | Field and order to sort the result by.
   page_size: 56, # Integer | Number of results per page. Defaults to 10 if parameter not sent.
-  user_id: 56, # Integer | ID of the user to filter by.
+  user_id: 'user_id_example', # String | ID of the user to filter by.
   next_token: 'next_token_example' # String | A string to get the next page of results if there are more results.
 }
 
@@ -416,7 +417,7 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<Array<User>>, Integer, Hash)> get_users_with_http_info(opts)
+> <Array(<GetUsers200Response>, Integer, Hash)> get_users_with_http_info(opts)
 
 ```ruby
 begin
@@ -424,7 +425,7 @@ begin
   data, status_code, headers = api_instance.get_users_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <Array<User>>
+  p data # => <GetUsers200Response>
 rescue KindeSdk::ApiError => e
   puts "Error when calling UsersApi->get_users_with_http_info: #{e}"
 end
@@ -436,12 +437,12 @@ end
 | ---- | ---- | ----------- | ----- |
 | **sort** | **String** | Field and order to sort the result by. | [optional] |
 | **page_size** | **Integer** | Number of results per page. Defaults to 10 if parameter not sent. | [optional] |
-| **user_id** | **Integer** | ID of the user to filter by. | [optional] |
+| **user_id** | **String** | ID of the user to filter by. | [optional] |
 | **next_token** | **String** | A string to get the next page of results if there are more results. | [optional] |
 
 ### Return type
 
-[**Array&lt;User&gt;**](User.md)
+[**GetUsers200Response**](GetUsers200Response.md)
 
 ### Authorization
 
@@ -532,7 +533,7 @@ end
 
 Update User
 
-Update a user record 
+Update a user record. 
 
 ### Examples
 
