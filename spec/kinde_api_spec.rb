@@ -3,12 +3,14 @@ require 'spec_helper'
 describe KindeApi do
   let(:domain) { "http://example.com" }
   let(:client_id) { "client_id" }
+  let(:client_secret) { "client_secret" }
   let(:callback_url) { "http://localhost:3000/callback" }
 
   before do
     KindeApi.configure do |c|
       c.domain = domain
       c.client_id = client_id
+      c.client_secret = client_secret
       c.callback_url = callback_url
     end
   end
@@ -24,6 +26,33 @@ describe KindeApi do
   describe "#api_client" do
     it "returns initialized api_client instance of KindeSdk" do
       expect(described_class.api_client("bearer-token")).to be_instance_of(KindeSdk::ApiClient)
+    end
+  end
+
+  describe "#client_credentials_access" do
+    let(:audience) { "#{domain}/api" }
+    let(:request_body) do
+      "grant_type=client_credentials&client_id=#{client_id}&client_secret=#{client_secret}&audience=#{audience}"
+    end
+    let(:response_body) do
+      { "access_token" => "eyJhbGciO", "expires_in" => 86399, "scope" => "", "token_type" => "bearer" }.to_json
+    end
+    before { stub_request(:post, "#{domain}/oauth2/token").with(body: request_body).to_return(body: response_body) }
+
+    it "calls oauth2/token url with configured credentials" do
+      expect(described_class.client_credentials_access).to eq(response_body)
+    end
+
+    context "with params override" do
+      let(:client_id) { 'other_id' }
+      let(:client_secret) { 'other_secret' }
+      let(:audience) { 'some-audience' }
+
+      it "calls oauth2/token url with passed credentials" do
+        expect(described_class.client_credentials_access(
+                 client_id: client_id, client_secret: client_secret, audience: audience
+        )).to eq(response_body)
+      end
     end
   end
 
