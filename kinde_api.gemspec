@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.summary     = "Kinde Management API Ruby Gem"
   s.description = "Provides API to easy management your Kinde Businesses"
   s.license     = "MIT"
-  s.required_ruby_version = ">= 2.4"
+  s.required_ruby_version = ">= 2.6"
 
   s.add_runtime_dependency "typhoeus", "~> 1.0", ">= 1.0.1"
   s.add_runtime_dependency "oauth2", "~> 2.0"
