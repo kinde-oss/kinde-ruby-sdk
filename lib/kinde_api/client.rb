@@ -14,7 +14,7 @@ module KindeApi
       KindeApi.logout(bearer_token, sdk_api_client)
     end
 
-    ::KindeSdk.constants.filter { |klass| klass.end_with?("Api") }.each do |klass|
+    ::KindeSdk.constants.filter { |klass| klass.to_s.end_with?("Api") }.each do |klass|
       api_klass = Kernel.const_get("KindeSdk::#{klass}")
 
       define_method(klass.to_s.downcase.split("api")[0]) { init_instance_api(api_klass) }
