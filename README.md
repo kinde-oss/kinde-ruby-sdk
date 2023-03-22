@@ -168,6 +168,59 @@ KindeApi.refresh_token(session[:kinde_auth]) # => {"access_token" => "qwe...", "
 ```
 `KindeApi#refresh_token` returns new token hash, so it needs to be updated in your storage.
 
+#### Audience
+An `audience` is the intended recipient of an access token - for example the API for your application.
+The audience argument can be passed to the Kinde `#auth_url` method to request an audience be added to the provided token:
+```ruby
+KindeApi.auth_url(audience: "https://your-app.kinde.com/api")
+```
+For details on how to connect, see [Register an API](https://kinde.com/docs/developer-tools/register-an-api/)
+
+#### Overriding scope
+By default `KindeSdk` requests the following scopes:
+
+- profile
+- email
+- offline
+- openid
+
+You are able to change it - by configuring as mentioned at [Integration](#integration) or by direct param passing into `auth_url` method:
+```ruby
+KindeApi.auth_url(scope: "openid offline")
+```
+
+#### Getting claims
+We have provided a helper to grab any claim from your id or access tokens. The helper defaults to access tokens:
+```ruby
+client = KindeApi.client(session[:kinde_auth]["access_token"])
+client.get_claim("aud") #=> ['api.yourapp.com']
+client.get_claim("scp") #=> ["openid", "offline"]
+```
+
+#### User permissions
+After a user signs in and they are verified, the token return includes permissions for that user. 
+[User permissions](https://kinde.com/docs/user-management/user-permissions) are set in Kinde, 
+but you must also configure your application to unlock these functions.
+```
+permissions" => [
+    "create:todos",
+    "update:todos",
+    "read:todos",
+    "delete:todos",
+    "create:tasks",
+    "update:tasks",
+    "read:tasks",
+    "delete:tasks",
+]
+```
+We provide helper functions to more easily access permissions:
+```ruby
+client = KindeApi.client(session[:kinde_auth]["access_token"])
+client.get_permission("create:todos") # => {org_code: "org_1234", is_granted: true}
+client.permission_granted?("create:todos") # => true
+client.permission_granted?("create:orders") # => false
+```
+
 #### Client usage
 SDK part for API usage is mounted in the `KindeApi::Client` instance, so the short usage is just simple as:
 ```ruby
@@ -195,6 +248,50 @@ then clear your session or storage (delete your token) and redirect wherever you
 If you configured logout redirect url correct (e.g. added in the admin panel allowed logout redirect), you can receive 
 a logout callback. Use it if it needs to perform some clean-ups or any other jobs.
 
+### Organizations
+#### Create an organization
+To have a new organization created within your application, you will need to run something like:
+```ruby
+client.organizations.create_organization(create_organization_request: {name: "new_org"})
+# or `client.organizations.create_organization` without name
+```
+
+### Sign up and sign in to organizations
+Kinde has a unique code for every organization. 
+If you want a user to sign into a particular organization, call the `#auth_url` method with `org_code` param passing:
+```ruby
+KindeApi.auth_url(org_code: "org_1234", start_page: "registration") # to enforce new user creation form
+KindeApi.auth_url(org_code: "org_1234") # to login by default
+```
+
+Following authentication, Kinde provides a json web token (jwt) to your application. 
+Along with the standard information we also include the `org_code` and the permissions for that organization (this is important as a user can belong to multiple organizations and have different permissions for each).
+
+Example of a returned token:
+```ruby
+[
+  {
+    "aud" => [],
+    "exp" => 1658475930,
+    "iat" => 1658472329,
+    "iss" => "https://your_subdomain.kinde.com",
+    "jti" => "123457890",
+    "org_code" => "org_1234",
+    "permissions" => ["read:todos", "create:todos"],
+    "scp" => [
+      "openid",
+      "profile",
+      "email",
+      "offline"
+    ],
+    "sub" => "kp:123457890"
+  }
+]
+```
+The `id_token` will also contain an array of organizations that a user belongs to - this is useful if you wanted to build out an organization switcher for example:
+```ruby
+client.get_claim("org_codes") # => ["org_1234", "org_5462"]
+```
 
 ### API reference
 Detailed API reference described in [KindeSDK README](kinde-sdk/README.md) and underlying description docs.
@@ -207,8 +304,8 @@ KindeApi.client(session[:kinde_auth]["access_token"]).oauth.get_user
 # => {id: ..., preferred_email: ..., provided_id: ..., last_name: ..., first_name: ...}
 ```
 
-#### Handling with organizations
-This is a part of management API. It should be configured first at your Kinde account
+#### Management API
+These sections below are part of management API. It should be configured first at your Kinde account
 [Here is detailed note about it](https://kinde.notion.site/Management-API-via-client_credentials-240e6fa548c144828d4981ddbaa0f6b2),
 you need to add `Machine to Machine` (M2M) application and use another grant type for authorization:
 ```ruby
@@ -218,14 +315,28 @@ result = KindeApi.client_credentials_access(
 )
 # as an example of usage redis to save access token:
 $redis.set("kinde_m2m_token", result["access_token"], ex: result["expires_in"].to_i)
+```
 
-# .......
-
+##### Organizations handling
+```ruby
 client = KindeApi.client($redis.get("kinde_m2m_token"))
 # get organizations list:
 client.organizations.get_orgainzations
 # => {"code": "OK", "message": "Success", "next_token": "qweqweqwe", "organizations": [{"code": "org_casda123c", "name": "Default Organization", "is_default": true}]}
 
 # create new organization:
-client.organizations.create_organization(create_organization_request: KindeSdk::CreateOrganizationRequest.new(name: new_org_name))
+client.organizations.create_organization(create_organization_request: {name: "new_org"})
+# this variant for more strict input params validation:
+# client.organizations.create_organization(create_organization_request: KindeSdk::CreateOrganizationRequest.new(name: new_org_name))
+```
+
+#### Create new user
+```ruby
+client.users.create_user
+```
+
+#### Add organization users
+
+```ruby
+client.organizations.add_organization_users(code: "org_1111", users: ["kp:12311...."])
 ```

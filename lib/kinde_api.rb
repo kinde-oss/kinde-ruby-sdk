@@ -24,12 +24,12 @@ module KindeApi
     # receive url for authorization in Kinde itself
     #
     # @return [Hash]
-    def auth_url
+    def auth_url(**kwargs)
       params = {
         redirect_uri: @config.callback_url,
         state: SecureRandom.hex,
         scope: @config.scope
-      }
+      }.merge(**kwargs)
       return { url: @config.oauth_client.auth_code.authorize_url(params) } unless @config.pkce_enabled
 
       pkce_challenge = PkceChallenge.challenge(char_length: 128)
