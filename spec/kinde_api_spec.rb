@@ -56,20 +56,50 @@ describe KindeApi do
     end
   end
 
-  describe "api instances" do
-    let(:bearer) { 'some-bearer' }
-    let(:client) { described_class.client(bearer) }
+  describe "client" do
+    let(:hash_to_encode) do
+      { "aud" => [],
+       "azp" => "19ebb687cd2f405c9f2daf645a8db895",
+       "exp" => 1679600554,
+       "feature_flags" => nil,
+       "iat" => 1679514154,
+       "iss" => "https://qwv2.kinde.com",
+       "jti" => "22c48b2c-da46-4661-a7ff-425c23eceab5",
+       "org_code" => "org_cb4544175bc",
+       "permissions" => ["read:todos", "create:todos"],
+       "scp" => ["openid", "offline"],
+       "sub" => "kp:b17adf719f7d4b87b611d1a88a09fd15" }
+    end
+    let(:token) { JWT.encode(hash_to_encode, nil, "none") }
+    let(:client) { described_class.client(token) }
 
-    it 'initializes client by passing the bearer' do
-      expect(client).to be_instance_of(KindeApi::Client)
+    it "returns requested claim from bearer", :aggregate_failures do
+      expect(client.get_claim("scp")).to eq(hash_to_encode["scp"])
+      expect(client.get_claim("aaa")).to be_nil
     end
 
-    it "initializes oauth instance api" do
-      expect(client.oauth).to be_instance_of(KindeSdk::OAuthApi)
+    it "returns permissions from bearer", :aggregate_failures do
+      expect(client.get_permissions).to eq(hash_to_encode["permissions"])
+      expect(client.get_permission(hash_to_encode["permissions"][0]))
+        .to eq({ org_code: hash_to_encode["org_code"], is_granted: true })
+      expect(client.permission_granted?(hash_to_encode["permissions"][0])).to be(true)
+      expect(client.get_permission("asd"))
+        .to eq({ org_code: hash_to_encode["org_code"], is_granted: false })
+      expect(client.permission_granted?("asd")).to be(false)
     end
 
-    it "initializes users instance api" do
-      expect(client.users).to be_instance_of(KindeSdk::UsersApi)
+    describe "api instances" do
+      it 'initializes client by passing the bearer' do
+        expect(client).to be_instance_of(KindeApi::Client)
+      end
+
+      it "initializes oauth instance api" do
+        expect(client.oauth).to be_instance_of(KindeSdk::OAuthApi)
+      end
+
+      it "initializes users instance api" do
+        expect(client.users).to be_instance_of(KindeSdk::UsersApi)
+      end
     end
   end
 end

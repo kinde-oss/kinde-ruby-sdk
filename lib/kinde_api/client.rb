@@ -8,6 +8,26 @@ module KindeApi
     def initialize(sdk_api_client, bearer_token)
       @sdk_api_client = sdk_api_client
       @bearer_token = bearer_token
+      @decoded_token = JWT.decode(bearer_token, nil, false)
+    end
+
+    def get_claim(*args)
+      @decoded_token[0].dig(*args)
+    end
+
+    def get_permissions
+      get_claim("permissions")
+    end
+
+    def get_permission(permission)
+      {
+        org_code: get_claim("org_code"),
+        is_granted: permission_granted?(permission)
+      }
+    end
+
+    def permission_granted?(permission)
+      get_claim("permissions").include?(permission)
     end
 
     def logout
