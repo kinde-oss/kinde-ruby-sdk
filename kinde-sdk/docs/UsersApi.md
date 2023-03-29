@@ -253,7 +253,8 @@ opts = {
   sort: 'name_asc', # String | Field and order to sort the result by.
   page_size: 56, # Integer | Number of results per page. Defaults to 10 if parameter not sent.
   next_token: 'next_token_example', # String | A string to get the next page of results if there are more results.
-  code: 'code_example' # String | The organization's code.
+  code: 'code_example', # String | The organization's code.
+  permissions: 'permissions_example' # String | Filter by user permissions
 }
 
 begin
@@ -291,6 +292,7 @@ end
 | **page_size** | **Integer** | Number of results per page. Defaults to 10 if parameter not sent. | [optional] |
 | **next_token** | **String** | A string to get the next page of results if there are more results. | [optional] |
 | **code** | **String** | The organization&#39;s code. | [optional] |
+| **permissions** | **String** | Filter by user permissions | [optional] |
 
 ### Return type
 

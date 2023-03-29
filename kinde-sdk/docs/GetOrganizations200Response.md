@@ -1,4 +1,4 @@
-# KindeSdk::GetOrgainzations200Response
+# KindeSdk::GetOrganizations200Response
 
 ## Properties
 
@@ -14,7 +14,7 @@
 ```ruby
 require 'kinde_sdk'
 
-instance = KindeSdk::GetOrgainzations200Response.new(
+instance = KindeSdk::GetOrganizations200Response.new(
   code: null,
   message: null,
   organizations: null,

@@ -21,11 +21,15 @@ module KindeSdk
     # User's last name.
     attr_accessor :family_name
 
+    # Whether the user is currently suspended or not.
+    attr_accessor :is_suspended
+
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
         :'given_name' => :'given_name',
-        :'family_name' => :'family_name'
+        :'family_name' => :'family_name',
+        :'is_suspended' => :'is_suspended'
       }
     end
 
@@ -38,7 +42,8 @@ module KindeSdk
     def self.openapi_types
       {
         :'given_name' => :'String',
-        :'family_name' => :'String'
+        :'family_name' => :'String',
+        :'is_suspended' => :'Boolean'
       }
     end
 
@@ -70,6 +75,10 @@ module KindeSdk
       if attributes.key?(:'family_name')
         self.family_name = attributes[:'family_name']
       end
+
+      if attributes.key?(:'is_suspended')
+        self.is_suspended = attributes[:'is_suspended']
+      end
     end
 
     # Show invalid properties with the reasons. Usually used together with valid?
@@ -91,7 +100,8 @@ module KindeSdk
       return true if self.equal?(o)
       self.class == o.class &&
           given_name == o.given_name &&
-          family_name == o.family_name
+          family_name == o.family_name &&
+          is_suspended == o.is_suspended
     end
 
     # @see the `==` method
@@ -103,7 +113,7 @@ module KindeSdk
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [given_name, family_name].hash
+      [given_name, family_name, is_suspended].hash
     end
 
     # Builds the object from hash

@@ -47,9 +47,9 @@ Class | Method | HTTP request | Description
 *KindeSdk::OrganizationsApi* | [**create_organization**](docs/OrganizationsApi.md#create_organization) | **POST** /api/v1/organization | Create Organization
 *KindeSdk::OrganizationsApi* | [**delete_organization_feature_flag_override**](docs/OrganizationsApi.md#delete_organization_feature_flag_override) | **DELETE** /api/v1/organizations/{org_code}/feature_flags/{feature_flag_key} | Delete organization feature flag override
 *KindeSdk::OrganizationsApi* | [**delete_organization_feature_flag_overrides**](docs/OrganizationsApi.md#delete_organization_feature_flag_overrides) | **DELETE** /api/v1/organizations/{org_code}/feature_flags | Delete all organization feature flag overrides
-*KindeSdk::OrganizationsApi* | [**get_orgainzations**](docs/OrganizationsApi.md#get_orgainzations) | **GET** /api/v1/organizations | List Organizations
 *KindeSdk::OrganizationsApi* | [**get_organization**](docs/OrganizationsApi.md#get_organization) | **GET** /api/v1/organization | Get Organization
 *KindeSdk::OrganizationsApi* | [**get_organization_users**](docs/OrganizationsApi.md#get_organization_users) | **GET** /api/v1/organization/users | List Organization Users
+*KindeSdk::OrganizationsApi* | [**get_organizations**](docs/OrganizationsApi.md#get_organizations) | **GET** /api/v1/organizations | List Organizations
 *KindeSdk::OrganizationsApi* | [**remove_organization_users**](docs/OrganizationsApi.md#remove_organization_users) | **PATCH** /api/v1/organization/users | Remove Users from an Organization
 *KindeSdk::OrganizationsApi* | [**update_organization_feature_flag_override**](docs/OrganizationsApi.md#update_organization_feature_flag_override) | **PATCH** /api/v1/organizations/{org_code}/feature_flags/{feature_flag_key} | Update organization feature flag override
 *KindeSdk::UsersApi* | [**add_organization_users**](docs/UsersApi.md#add_organization_users) | **POST** /api/v1/organization/users | Assign Users to an Organization
@@ -77,8 +77,8 @@ Class | Method | HTTP request | Description
  - [KindeSdk::CreateUserRequestProfile](docs/CreateUserRequestProfile.md)
  - [KindeSdk::Error](docs/Error.md)
  - [KindeSdk::ErrorResponse](docs/ErrorResponse.md)
- - [KindeSdk::GetOrgainzations200Response](docs/GetOrgainzations200Response.md)
  - [KindeSdk::GetOrganizationUsers200Response](docs/GetOrganizationUsers200Response.md)
+ - [KindeSdk::GetOrganizations200Response](docs/GetOrganizations200Response.md)
  - [KindeSdk::GetUsers200Response](docs/GetUsers200Response.md)
  - [KindeSdk::Organization](docs/Organization.md)
  - [KindeSdk::OrganizationUser](docs/OrganizationUser.md)
