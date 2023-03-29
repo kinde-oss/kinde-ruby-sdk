@@ -217,6 +217,7 @@ module KindeSdk
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
     # @option opts [String] :code The organization&#39;s code.
+    # @option opts [String] :permissions Filter by user permissions
     # @return [GetOrganizationUsers200Response]
     def get_organization_users(opts = {})
       data, _status_code, _headers = get_organization_users_with_http_info(opts)
@@ -230,6 +231,7 @@ module KindeSdk
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
     # @option opts [String] :code The organization&#39;s code.
+    # @option opts [String] :permissions Filter by user permissions
     # @return [Array<(GetOrganizationUsers200Response, Integer, Hash)>] GetOrganizationUsers200Response data, response status code and response headers
     def get_organization_users_with_http_info(opts = {})
       if @api_client.config.debugging
@@ -248,6 +250,7 @@ module KindeSdk
       query_params[:'page_size'] = opts[:'page_size'] if !opts[:'page_size'].nil?
       query_params[:'next_token'] = opts[:'next_token'] if !opts[:'next_token'].nil?
       query_params[:'code'] = opts[:'code'] if !opts[:'code'].nil?
+      query_params[:'permissions'] = opts[:'permissions'] if !opts[:'permissions'].nil?
 
       # header parameters
       header_params = opts[:header_params] || {}

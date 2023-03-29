@@ -8,9 +8,9 @@ All URIs are relative to *https://app.kinde.com*
 | [**create_organization**](OrganizationsApi.md#create_organization) | **POST** /api/v1/organization | Create Organization |
 | [**delete_organization_feature_flag_override**](OrganizationsApi.md#delete_organization_feature_flag_override) | **DELETE** /api/v1/organizations/{org_code}/feature_flags/{feature_flag_key} | Delete organization feature flag override |
 | [**delete_organization_feature_flag_overrides**](OrganizationsApi.md#delete_organization_feature_flag_overrides) | **DELETE** /api/v1/organizations/{org_code}/feature_flags | Delete all organization feature flag overrides |
-| [**get_orgainzations**](OrganizationsApi.md#get_orgainzations) | **GET** /api/v1/organizations | List Organizations |
 | [**get_organization**](OrganizationsApi.md#get_organization) | **GET** /api/v1/organization | Get Organization |
 | [**get_organization_users**](OrganizationsApi.md#get_organization_users) | **GET** /api/v1/organization/users | List Organization Users |
+| [**get_organizations**](OrganizationsApi.md#get_organizations) | **GET** /api/v1/organizations | List Organizations |
 | [**remove_organization_users**](OrganizationsApi.md#remove_organization_users) | **PATCH** /api/v1/organization/users | Remove Users from an Organization |
 | [**update_organization_feature_flag_override**](OrganizationsApi.md#update_organization_feature_flag_override) | **PATCH** /api/v1/organizations/{org_code}/feature_flags/{feature_flag_key} | Update organization feature flag override |
 
@@ -298,81 +298,6 @@ end
 - **Accept**: application/json
 
 
-## get_orgainzations
-
-> <GetOrgainzations200Response> get_orgainzations(opts)
-
-List Organizations
-
-Get a list of organizations. 
-
-### Examples
-
-```ruby
-require 'time'
-require 'kinde_sdk'
-# setup authorization
-KindeSdk.configure do |config|
-  # Configure Bearer authorization (JWT): kindeBearerAuth
-  config.access_token = 'YOUR_BEARER_TOKEN'
-end
-
-api_instance = KindeSdk::OrganizationsApi.new
-opts = {
-  sort: 'name_asc', # String | Field and order to sort the result by.
-  page_size: 56, # Integer | Number of results per page. Defaults to 10 if parameter not sent.
-  next_token: 'next_token_example' # String | A string to get the next page of results if there are more results.
-}
-
-begin
-  # List Organizations
-  result = api_instance.get_orgainzations(opts)
-  p result
-rescue KindeSdk::ApiError => e
-  puts "Error when calling OrganizationsApi->get_orgainzations: #{e}"
-end
-```
-
-#### Using the get_orgainzations_with_http_info variant
-
-This returns an Array which contains the response data, status code and headers.
-
-> <Array(<GetOrgainzations200Response>, Integer, Hash)> get_orgainzations_with_http_info(opts)
-
-```ruby
-begin
-  # List Organizations
-  data, status_code, headers = api_instance.get_orgainzations_with_http_info(opts)
-  p status_code # => 2xx
-  p headers # => { ... }
-  p data # => <GetOrgainzations200Response>
-rescue KindeSdk::ApiError => e
-  puts "Error when calling OrganizationsApi->get_orgainzations_with_http_info: #{e}"
-end
-```
-
-### Parameters
-
-| Name | Type | Description | Notes |
-| ---- | ---- | ----------- | ----- |
-| **sort** | **String** | Field and order to sort the result by. | [optional] |
-| **page_size** | **Integer** | Number of results per page. Defaults to 10 if parameter not sent. | [optional] |
-| **next_token** | **String** | A string to get the next page of results if there are more results. | [optional] |
-
-### Return type
-
-[**GetOrgainzations200Response**](GetOrgainzations200Response.md)
-
-### Authorization
-
-[kindeBearerAuth](../README.md#kindeBearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: application/json
-
-
 ## get_organization
 
 > <Organization> get_organization(opts)
@@ -468,7 +393,8 @@ opts = {
   sort: 'name_asc', # String | Field and order to sort the result by.
   page_size: 56, # Integer | Number of results per page. Defaults to 10 if parameter not sent.
   next_token: 'next_token_example', # String | A string to get the next page of results if there are more results.
-  code: 'code_example' # String | The organization's code.
+  code: 'code_example', # String | The organization's code.
+  permissions: 'permissions_example' # String | Filter by user permissions
 }
 
 begin
@@ -506,10 +432,86 @@ end
 | **page_size** | **Integer** | Number of results per page. Defaults to 10 if parameter not sent. | [optional] |
 | **next_token** | **String** | A string to get the next page of results if there are more results. | [optional] |
 | **code** | **String** | The organization&#39;s code. | [optional] |
+| **permissions** | **String** | Filter by user permissions | [optional] |
 
 ### Return type
 
 [**GetOrganizationUsers200Response**](GetOrganizationUsers200Response.md)
+
+### Authorization
+
+[kindeBearerAuth](../README.md#kindeBearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+
+## get_organizations
+
+> <GetOrganizations200Response> get_organizations(opts)
+
+List Organizations
+
+Get a list of organizations. 
+
+### Examples
+
+```ruby
+require 'time'
+require 'kinde_sdk'
+# setup authorization
+KindeSdk.configure do |config|
+  # Configure Bearer authorization (JWT): kindeBearerAuth
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = KindeSdk::OrganizationsApi.new
+opts = {
+  sort: 'name_asc', # String | Field and order to sort the result by.
+  page_size: 56, # Integer | Number of results per page. Defaults to 10 if parameter not sent.
+  next_token: 'next_token_example' # String | A string to get the next page of results if there are more results.
+}
+
+begin
+  # List Organizations
+  result = api_instance.get_organizations(opts)
+  p result
+rescue KindeSdk::ApiError => e
+  puts "Error when calling OrganizationsApi->get_organizations: #{e}"
+end
+```
+
+#### Using the get_organizations_with_http_info variant
+
+This returns an Array which contains the response data, status code and headers.
+
+> <Array(<GetOrganizations200Response>, Integer, Hash)> get_organizations_with_http_info(opts)
+
+```ruby
+begin
+  # List Organizations
+  data, status_code, headers = api_instance.get_organizations_with_http_info(opts)
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => <GetOrganizations200Response>
+rescue KindeSdk::ApiError => e
+  puts "Error when calling OrganizationsApi->get_organizations_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+| Name | Type | Description | Notes |
+| ---- | ---- | ----------- | ----- |
+| **sort** | **String** | Field and order to sort the result by. | [optional] |
+| **page_size** | **Integer** | Number of results per page. Defaults to 10 if parameter not sent. | [optional] |
+| **next_token** | **String** | A string to get the next page of results if there are more results. | [optional] |
+
+### Return type
+
+[**GetOrganizations200Response**](GetOrganizations200Response.md)
 
 ### Authorization
 

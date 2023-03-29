@@ -82,20 +82,6 @@ describe 'OrganizationsApi' do
     end
   end
 
-  # unit tests for get_orgainzations
-  # List Organizations
-  # Get a list of organizations. 
-  # @param [Hash] opts the optional parameters
-  # @option opts [String] :sort Field and order to sort the result by.
-  # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
-  # @option opts [String] :next_token A string to get the next page of results if there are more results.
-  # @return [GetOrgainzations200Response]
-  describe 'get_orgainzations test' do
-    it 'should work' do
-      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
-    end
-  end
-
   # unit tests for get_organization
   # Get Organization
   # Gets an organization given the organization&#39;s code. 
@@ -116,8 +102,23 @@ describe 'OrganizationsApi' do
   # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
   # @option opts [String] :next_token A string to get the next page of results if there are more results.
   # @option opts [String] :code The organization&#39;s code.
+  # @option opts [String] :permissions Filter by user permissions
   # @return [GetOrganizationUsers200Response]
   describe 'get_organization_users test' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
+  # unit tests for get_organizations
+  # List Organizations
+  # Get a list of organizations. 
+  # @param [Hash] opts the optional parameters
+  # @option opts [String] :sort Field and order to sort the result by.
+  # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
+  # @option opts [String] :next_token A string to get the next page of results if there are more results.
+  # @return [GetOrganizations200Response]
+  describe 'get_organizations test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
     end

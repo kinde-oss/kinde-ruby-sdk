@@ -282,76 +282,6 @@ module KindeSdk
       return data, status_code, headers
     end
 
-    # List Organizations
-    # Get a list of organizations. 
-    # @param [Hash] opts the optional parameters
-    # @option opts [String] :sort Field and order to sort the result by.
-    # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
-    # @option opts [String] :next_token A string to get the next page of results if there are more results.
-    # @return [GetOrgainzations200Response]
-    def get_orgainzations(opts = {})
-      data, _status_code, _headers = get_orgainzations_with_http_info(opts)
-      data
-    end
-
-    # List Organizations
-    # Get a list of organizations. 
-    # @param [Hash] opts the optional parameters
-    # @option opts [String] :sort Field and order to sort the result by.
-    # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
-    # @option opts [String] :next_token A string to get the next page of results if there are more results.
-    # @return [Array<(GetOrgainzations200Response, Integer, Hash)>] GetOrgainzations200Response data, response status code and response headers
-    def get_orgainzations_with_http_info(opts = {})
-      if @api_client.config.debugging
-        @api_client.config.logger.debug 'Calling API: OrganizationsApi.get_orgainzations ...'
-      end
-      allowable_values = ["name_asc", "name_desc", "email_asc", "email_desc"]
-      if @api_client.config.client_side_validation && opts[:'sort'] && !allowable_values.include?(opts[:'sort'])
-        fail ArgumentError, "invalid value for \"sort\", must be one of #{allowable_values}"
-      end
-      # resource path
-      local_var_path = '/api/v1/organizations'
-
-      # query parameters
-      query_params = opts[:query_params] || {}
-      query_params[:'sort'] = opts[:'sort'] if !opts[:'sort'].nil?
-      query_params[:'page_size'] = opts[:'page_size'] if !opts[:'page_size'].nil?
-      query_params[:'next_token'] = opts[:'next_token'] if !opts[:'next_token'].nil?
-
-      # header parameters
-      header_params = opts[:header_params] || {}
-      # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
-
-      # form parameters
-      form_params = opts[:form_params] || {}
-
-      # http body (model)
-      post_body = opts[:debug_body]
-
-      # return_type
-      return_type = opts[:debug_return_type] || 'GetOrgainzations200Response'
-
-      # auth_names
-      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
-
-      new_options = opts.merge(
-        :operation => :"OrganizationsApi.get_orgainzations",
-        :header_params => header_params,
-        :query_params => query_params,
-        :form_params => form_params,
-        :body => post_body,
-        :auth_names => auth_names,
-        :return_type => return_type
-      )
-
-      data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
-      if @api_client.config.debugging
-        @api_client.config.logger.debug "API called: OrganizationsApi#get_orgainzations\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
-      end
-      return data, status_code, headers
-    end
-
     # Get Organization
     # Gets an organization given the organization's code. 
     # @param [Hash] opts the optional parameters
@@ -419,6 +349,7 @@ module KindeSdk
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
     # @option opts [String] :code The organization&#39;s code.
+    # @option opts [String] :permissions Filter by user permissions
     # @return [GetOrganizationUsers200Response]
     def get_organization_users(opts = {})
       data, _status_code, _headers = get_organization_users_with_http_info(opts)
@@ -432,6 +363,7 @@ module KindeSdk
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
     # @option opts [String] :code The organization&#39;s code.
+    # @option opts [String] :permissions Filter by user permissions
     # @return [Array<(GetOrganizationUsers200Response, Integer, Hash)>] GetOrganizationUsers200Response data, response status code and response headers
     def get_organization_users_with_http_info(opts = {})
       if @api_client.config.debugging
@@ -450,6 +382,7 @@ module KindeSdk
       query_params[:'page_size'] = opts[:'page_size'] if !opts[:'page_size'].nil?
       query_params[:'next_token'] = opts[:'next_token'] if !opts[:'next_token'].nil?
       query_params[:'code'] = opts[:'code'] if !opts[:'code'].nil?
+      query_params[:'permissions'] = opts[:'permissions'] if !opts[:'permissions'].nil?
 
       # header parameters
       header_params = opts[:header_params] || {}
@@ -481,6 +414,76 @@ module KindeSdk
       data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
       if @api_client.config.debugging
         @api_client.config.logger.debug "API called: OrganizationsApi#get_organization_users\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
+    # List Organizations
+    # Get a list of organizations. 
+    # @param [Hash] opts the optional parameters
+    # @option opts [String] :sort Field and order to sort the result by.
+    # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
+    # @option opts [String] :next_token A string to get the next page of results if there are more results.
+    # @return [GetOrganizations200Response]
+    def get_organizations(opts = {})
+      data, _status_code, _headers = get_organizations_with_http_info(opts)
+      data
+    end
+
+    # List Organizations
+    # Get a list of organizations. 
+    # @param [Hash] opts the optional parameters
+    # @option opts [String] :sort Field and order to sort the result by.
+    # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
+    # @option opts [String] :next_token A string to get the next page of results if there are more results.
+    # @return [Array<(GetOrganizations200Response, Integer, Hash)>] GetOrganizations200Response data, response status code and response headers
+    def get_organizations_with_http_info(opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: OrganizationsApi.get_organizations ...'
+      end
+      allowable_values = ["name_asc", "name_desc", "email_asc", "email_desc"]
+      if @api_client.config.client_side_validation && opts[:'sort'] && !allowable_values.include?(opts[:'sort'])
+        fail ArgumentError, "invalid value for \"sort\", must be one of #{allowable_values}"
+      end
+      # resource path
+      local_var_path = '/api/v1/organizations'
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+      query_params[:'sort'] = opts[:'sort'] if !opts[:'sort'].nil?
+      query_params[:'page_size'] = opts[:'page_size'] if !opts[:'page_size'].nil?
+      query_params[:'next_token'] = opts[:'next_token'] if !opts[:'next_token'].nil?
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body]
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'GetOrganizations200Response'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
+
+      new_options = opts.merge(
+        :operation => :"OrganizationsApi.get_organizations",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: OrganizationsApi#get_organizations\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
       end
       return data, status_code, headers
     end

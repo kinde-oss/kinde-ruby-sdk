@@ -226,7 +226,7 @@ SDK part for API usage is mounted in the `KindeApi::Client` instance, so the sho
 ```ruby
 client.oauth.get_user
 client.users.create_user(args)
-client.organizations.get_orgainzations
+client.organizations.get_organizations
 ```
 The method name will be the same as API module from sdk without `-Api` part in the end.
 Alternatively, you can initialize each API module by yourself:
@@ -321,7 +321,7 @@ $redis.set("kinde_m2m_token", result["access_token"], ex: result["expires_in"].t
 ```ruby
 client = KindeApi.client($redis.get("kinde_m2m_token"))
 # get organizations list:
-client.organizations.get_orgainzations
+client.organizations.get_organizations
 # => {"code": "OK", "message": "Success", "next_token": "qweqweqwe", "organizations": [{"code": "org_casda123c", "name": "Default Organization", "is_default": true}]}
 
 # create new organization:

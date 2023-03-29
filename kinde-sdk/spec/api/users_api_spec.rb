@@ -77,6 +77,7 @@ describe 'UsersApi' do
   # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
   # @option opts [String] :next_token A string to get the next page of results if there are more results.
   # @option opts [String] :code The organization&#39;s code.
+  # @option opts [String] :permissions Filter by user permissions
   # @return [GetOrganizationUsers200Response]
   describe 'get_organization_users test' do
     it 'should work' do
