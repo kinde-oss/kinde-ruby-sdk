@@ -22,6 +22,7 @@ KindeSdk.autoload :AddOrganizationUsersRequest, 'kinde_sdk/models/add_organizati
 KindeSdk.autoload :ApiResult, 'kinde_sdk/models/api_result'
 KindeSdk.autoload :ConnectedAppsAccessToken, 'kinde_sdk/models/connected_apps_access_token'
 KindeSdk.autoload :ConnectedAppsAuthUrl, 'kinde_sdk/models/connected_apps_auth_url'
+KindeSdk.autoload :CreateOrganization201Response, 'kinde_sdk/models/create_organization201_response'
 KindeSdk.autoload :CreateOrganizationRequest, 'kinde_sdk/models/create_organization_request'
 KindeSdk.autoload :CreateUser200Response, 'kinde_sdk/models/create_user200_response'
 KindeSdk.autoload :CreateUserRequest, 'kinde_sdk/models/create_user_request'

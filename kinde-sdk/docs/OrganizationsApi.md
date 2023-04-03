@@ -90,7 +90,7 @@ end
 
 ## create_organization
 
-> create_organization(opts)
+> <CreateOrganization201Response> create_organization(opts)
 
 Create Organization
 
@@ -114,7 +114,8 @@ opts = {
 
 begin
   # Create Organization
-  api_instance.create_organization(opts)
+  result = api_instance.create_organization(opts)
+  p result
 rescue KindeSdk::ApiError => e
   puts "Error when calling OrganizationsApi->create_organization: #{e}"
 end
@@ -122,9 +123,9 @@ end
 
 #### Using the create_organization_with_http_info variant
 
-This returns an Array which contains the response data (`nil` in this case), status code and headers.
+This returns an Array which contains the response data, status code and headers.
 
-> <Array(nil, Integer, Hash)> create_organization_with_http_info(opts)
+> <Array(<CreateOrganization201Response>, Integer, Hash)> create_organization_with_http_info(opts)
 
 ```ruby
 begin
@@ -132,7 +133,7 @@ begin
   data, status_code, headers = api_instance.create_organization_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => nil
+  p data # => <CreateOrganization201Response>
 rescue KindeSdk::ApiError => e
   puts "Error when calling OrganizationsApi->create_organization_with_http_info: #{e}"
 end
@@ -146,7 +147,7 @@ end
 
 ### Return type
 
-nil (empty response body)
+[**CreateOrganization201Response**](CreateOrganization201Response.md)
 
 ### Authorization
 
