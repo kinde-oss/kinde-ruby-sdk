@@ -50,7 +50,7 @@ describe 'OrganizationsApi' do
   # Create an organization.
   # @param [Hash] opts the optional parameters
   # @option opts [CreateOrganizationRequest] :create_organization_request Organization details.
-  # @return [nil]
+  # @return [CreateOrganization201Response]
   describe 'create_organization test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers

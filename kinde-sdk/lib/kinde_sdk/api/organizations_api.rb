@@ -90,17 +90,17 @@ module KindeSdk
     # Create an organization.
     # @param [Hash] opts the optional parameters
     # @option opts [CreateOrganizationRequest] :create_organization_request Organization details.
-    # @return [nil]
+    # @return [CreateOrganization201Response]
     def create_organization(opts = {})
-      create_organization_with_http_info(opts)
-      nil
+      data, _status_code, _headers = create_organization_with_http_info(opts)
+      data
     end
 
     # Create Organization
     # Create an organization.
     # @param [Hash] opts the optional parameters
     # @option opts [CreateOrganizationRequest] :create_organization_request Organization details.
-    # @return [Array<(nil, Integer, Hash)>] nil, response status code and response headers
+    # @return [Array<(CreateOrganization201Response, Integer, Hash)>] CreateOrganization201Response data, response status code and response headers
     def create_organization_with_http_info(opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: OrganizationsApi.create_organization ...'
@@ -128,7 +128,7 @@ module KindeSdk
       post_body = opts[:debug_body] || @api_client.object_to_http_body(opts[:'create_organization_request'])
 
       # return_type
-      return_type = opts[:debug_return_type]
+      return_type = opts[:debug_return_type] || 'CreateOrganization201Response'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']

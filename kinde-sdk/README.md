@@ -69,6 +69,7 @@ Class | Method | HTTP request | Description
  - [KindeSdk::ApiResult](docs/ApiResult.md)
  - [KindeSdk::ConnectedAppsAccessToken](docs/ConnectedAppsAccessToken.md)
  - [KindeSdk::ConnectedAppsAuthUrl](docs/ConnectedAppsAuthUrl.md)
+ - [KindeSdk::CreateOrganization201Response](docs/CreateOrganization201Response.md)
  - [KindeSdk::CreateOrganizationRequest](docs/CreateOrganizationRequest.md)
  - [KindeSdk::CreateUser200Response](docs/CreateUser200Response.md)
  - [KindeSdk::CreateUserRequest](docs/CreateUserRequest.md)
