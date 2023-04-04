@@ -202,11 +202,15 @@ module KindeSdk
     #   application/json
     #   application/json; charset=UTF8
     #   APPLICATION/JSON
+    #   text/plain
+    #   text/plain; charset=utf-8
     #   */*
     # @param [String] mime MIME
     # @return [Boolean] True if the MIME is application/json
     def json_mime?(mime)
-      (mime == '*/*') || !(mime =~ /Application\/.*json(?!p)(;.*)?/i).nil?
+      prepared_mime = mime.to_s.downcase.strip.split(";")[0]
+      result = %w[*/* application/json text/plain].find { |i| i == prepared_mime }
+      result != nil
     end
 
     # Deserialize the response to the given return type.

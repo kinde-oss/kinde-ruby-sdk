@@ -172,9 +172,10 @@ describe KindeSdk::ApiClient do
       expect(api_client.json_mime?('application/json')).to eq true
       expect(api_client.json_mime?('application/json; charset=UTF8')).to eq true
       expect(api_client.json_mime?('APPLICATION/JSON')).to eq true
+      expect(api_client.json_mime?('text/plain')).to eq true
+      expect(api_client.json_mime?('text/plain; charset=utf-8')).to eq true
 
       expect(api_client.json_mime?('application/xml')).to eq false
-      expect(api_client.json_mime?('text/plain')).to eq false
       expect(api_client.json_mime?('application/jsonp')).to eq false
     end
   end
