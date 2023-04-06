@@ -14,7 +14,7 @@ You need a Kinde domain to get started, e.g. yourapp.kinde.com.
 
 Add this line into your Gemfile and run bundler:
 ```
-gem 'kinde_api', git: 'https://github.com/kinde-oss/kinde-ruby-sdk.git', branch: 'main'
+gem 'kinde_sdk', git: 'https://github.com/kinde-oss/kinde-ruby-sdk.git', branch: 'main'
 ```
 or install manually through gem command.
 
