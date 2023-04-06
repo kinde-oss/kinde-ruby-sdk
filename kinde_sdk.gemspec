@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-SDK_PATH = "kinde-sdk"
+SDK_PATH = "kinde_api"
 
 $LOAD_PATH.push File.expand_path("lib", __dir__)
 $LOAD_PATH.push File.expand_path("#{SDK_PATH}/lib", __dir__)
 
-require "kinde_api/version"
+require "kinde_sdk/version"
 
 Gem::Specification.new do |s|
   s.name        = "kinde_sdk"
-  s.version     = KindeApi::VERSION
+  s.version     = KindeSdk::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Kinde Australia Pty Ltd"]
   s.email       = ["support@kinde.com"]

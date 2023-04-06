@@ -54,7 +54,7 @@ configured through initializer file:
 ```ruby
 # domain, client_id/secret and callback defined somewhere in your settings
 
-KindeApi.configure do |c|
+KindeSdk.configure do |c|
  c.domain = domain
  c.client_id = client_id
  c.client_secret = client_secret
@@ -100,7 +100,7 @@ KINDE_LOGOUT_URL=http://localhost:3000/logout_callback
 
 can be used as:
 ```ruby
-KindeApi.configure do |c|
+KindeSdk.configure do |c|
  c.domain = ENV['KINDE_DOMAIN']
  c.client_id = ENV['KINDE_CLIENT_ID']
  # ....
@@ -111,7 +111,7 @@ end
 The next step is to authorize you in the Kinde.
 For this, you need to acquire auth url by calling:
 ```ruby
-KindeApi.auth_url
+KindeSdk.auth_url
 # => 
 {
  url: "https://<domain>/oauth2/auth?client_id=<client_id>&code_challenge=<generated code>&code_challenge_method=S256&redirect_uri=<redirect_uri>&response_type=code&scope=openid+offline+email+profile&state=<random string>",
@@ -121,9 +121,9 @@ KindeApi.auth_url
 By default, gem uses PKCE verification flow - this means that in your auth url will be added special `code challenge` 
 param and the method returns verification string for the code, which should be used later in token acquiring request.
 You are free to disable PKCE by setting `pkce_enabled` to false in your configuration. 
-In this case, `KindeApi.auth_url` will return only url itself:
+In this case, `KindeSdk.auth_url` will return only url itself:
 ```ruby
-KindeApi.auth_url
+KindeSdk.auth_url
 # => {url: ......}
 ```
 If you are about to use PCKE, our recommendation to save code verifier output somewhere near your later tokens output.
@@ -139,7 +139,7 @@ Callback will be triggered with body, where will be code present. You are free t
 Next, it needs to be exchanged for the access and refresh tokens.
 `code` is the parameter which received in the callback endpoint, `code_verifier` (if PKCE enabled) should be used from previous step:  
 ```ruby
-KindeApi.fetch_tokens(code, code_verifier)
+KindeSdk.fetch_tokens(code, code_verifier)
 # => 
 {"access_token"=>"eyJhbGciOiJSUzI1NiIsIm...",                                
  "expires_in"=>86399,                             
@@ -154,25 +154,25 @@ This is your tokens - save the whole hash in your session, redis or any other st
 # In case of preventing cookie overflow, you need to limit what exactly your are saving.
 # Here is the required minimum of params. But in general you are able save it wherever you want to. 
 # For example, in database, without any limiting.
-session[:kinde_auth] = KindeApi.fetch_tokens(code).slice(:access_token, :refresh_token, :expires_at)
+session[:kinde_auth] = KindeSdk.fetch_tokens(code).slice(:access_token, :refresh_token, :expires_at)
 # ...
-client = KindeApi.client(session[:kinde_auth]["access_token"]) # => #<KindeApi::Client:0x00007faf31e5ecb8> 
+client = KindeSdk.client(session[:kinde_auth]["access_token"]) # => #<KindeSdk::Client:0x00007faf31e5ecb8> 
 ```
 
 #### Token expiration and refreshing
 For proper refreshing you'll need to use `access_token`, `refresh_token` and probably `expires_in` if you want to know is your access token still actual.
 Use these two methods to work with refreshing:
 ```ruby
-KindeApi.token_expired?(session[:kinde_auth]) # => false
-KindeApi.refresh_token(session[:kinde_auth]) # => {"access_token" => "qwe...", "refresh_token" => "fqw...", .....}
+KindeSdk.token_expired?(session[:kinde_auth]) # => false
+KindeSdk.refresh_token(session[:kinde_auth]) # => {"access_token" => "qwe...", "refresh_token" => "fqw...", .....}
 ```
-`KindeApi#refresh_token` returns new token hash, so it needs to be updated in your storage.
+`KindeSdk#refresh_token` returns new token hash, so it needs to be updated in your storage.
 
 #### Audience
 An `audience` is the intended recipient of an access token - for example the API for your application.
 The audience argument can be passed to the Kinde `#auth_url` method to request an audience be added to the provided token:
 ```ruby
-KindeApi.auth_url(audience: "https://your-app.kinde.com/api")
+KindeSdk.auth_url(audience: "https://your-app.kinde.com/api")
 ```
 For details on how to connect, see [Register an API](https://kinde.com/docs/developer-tools/register-an-api/)
 
@@ -186,13 +186,13 @@ By default `KindeSdk` requests the following scopes:
 
 You are able to change it - by configuring as mentioned at [Integration](#integration) or by direct param passing into `auth_url` method:
 ```ruby
-KindeApi.auth_url(scope: "openid offline")
+KindeSdk.auth_url(scope: "openid offline")
 ```
 
 #### Getting claims
 We have provided a helper to grab any claim from your id or access tokens. The helper defaults to access tokens:
 ```ruby
-client = KindeApi.client(session[:kinde_auth]["access_token"])
+client = KindeSdk.client(session[:kinde_auth]["access_token"])
 client.get_claim("aud") #=> ['api.yourapp.com']
 client.get_claim("scp") #=> ["openid", "offline"]
 ```
@@ -215,14 +215,14 @@ permissions" => [
 ```
 We provide helper functions to more easily access permissions:
 ```ruby
-client = KindeApi.client(session[:kinde_auth]["access_token"])
+client = KindeSdk.client(session[:kinde_auth]["access_token"])
 client.get_permission("create:todos") # => {org_code: "org_1234", is_granted: true}
 client.permission_granted?("create:todos") # => true
 client.permission_granted?("create:orders") # => false
 ```
 
 #### Client usage
-SDK part for API usage is mounted in the `KindeApi::Client` instance, so the short usage is just simple as:
+API part is mounted in the `KindeSdk::Client` instance, so the short usage is just simple as:
 ```ruby
 client.oauth.get_user
 client.users.create_user(args)
@@ -232,8 +232,8 @@ The method name will be the same as API module from sdk without `-Api` part in t
 Alternatively, you can initialize each API module by yourself:
 ```ruby
 # use initialized and configured api client
-api_client = KindeApi.api_client(access_token)
-instance_client = KindeSdk::UsersApi.new(api_client)
+api_client = KindeSdk.api_client(access_token)
+instance_client = KindeApi::UsersApi.new(api_client)
 instance_client.create_user(args)
 ```
 
@@ -242,7 +242,7 @@ For logout you need to call:
 ```ruby
 instance_client.logout
 # or
-KindeApi.logout(access_token)
+KindeSdk.logout(access_token)
 ```
 then clear your session or storage (delete your token) and redirect wherever you want to.
 If you configured logout redirect url correct (e.g. added in the admin panel allowed logout redirect), you can receive 
@@ -260,8 +260,8 @@ client.organizations.create_organization(create_organization_request: {name: "ne
 Kinde has a unique code for every organization. 
 If you want a user to sign into a particular organization, call the `#auth_url` method with `org_code` param passing:
 ```ruby
-KindeApi.auth_url(org_code: "org_1234", start_page: "registration") # to enforce new user creation form
-KindeApi.auth_url(org_code: "org_1234") # to login by default
+KindeSdk.auth_url(org_code: "org_1234", start_page: "registration") # to enforce new user creation form
+KindeSdk.auth_url(org_code: "org_1234") # to login by default
 ```
 
 Following authentication, Kinde provides a json web token (jwt) to your application. 
@@ -300,7 +300,7 @@ Here are some selected examples of usage.
 #### Getting user info
 
 ```ruby
-KindeApi.client(session[:kinde_auth]["access_token"]).oauth.get_user
+KindeSdk.client(session[:kinde_auth]["access_token"]).oauth.get_user
 # => {id: ..., preferred_email: ..., provided_id: ..., last_name: ..., first_name: ...}
 ```
 
@@ -309,7 +309,7 @@ These sections below are part of management API. It should be configured first a
 [Here is detailed note about it](https://kinde.notion.site/Management-API-via-client_credentials-240e6fa548c144828d4981ddbaa0f6b2),
 you need to add `Machine to Machine` (M2M) application and use another grant type for authorization:
 ```ruby
-result = KindeApi.client_credentials_access(
+result = KindeSdk.client_credentials_access(
   client_id: ENV["KINDE_MANAGEMENT_CLIENT_ID"],
   client_secret: ENV["KINDE_MANAGEMENT_CLIENT_SECRET"]
 )
@@ -319,7 +319,7 @@ $redis.set("kinde_m2m_token", result["access_token"], ex: result["expires_in"].t
 
 ##### Organizations handling
 ```ruby
-client = KindeApi.client($redis.get("kinde_m2m_token"))
+client = KindeSdk.client($redis.get("kinde_m2m_token"))
 # get organizations list:
 client.organizations.get_organizations
 # => {"code": "OK", "message": "Success", "next_token": "qweqweqwe", "organizations": [{"code": "org_casda123c", "name": "Default Organization", "is_default": true}]}
@@ -327,7 +327,7 @@ client.organizations.get_organizations
 # create new organization:
 client.organizations.create_organization(create_organization_request: {name: "new_org"})
 # this variant for more strict input params validation:
-# client.organizations.create_organization(create_organization_request: KindeSdk::CreateOrganizationRequest.new(name: new_org_name))
+# client.organizations.create_organization(create_organization_request: KindeApi::CreateOrganizationRequest.new(name: new_org_name))
 ```
 
 #### Create new user
