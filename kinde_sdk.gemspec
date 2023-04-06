@@ -8,7 +8,7 @@ $LOAD_PATH.push File.expand_path("#{SDK_PATH}/lib", __dir__)
 require "kinde_api/version"
 
 Gem::Specification.new do |s|
-  s.name        = "kinde_api"
+  s.name        = "kinde_sdk"
   s.version     = KindeApi::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Kinde Australia Pty Ltd"]
@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.summary     = "Kinde Management API Ruby Gem"
   s.description = "Provides API to easy management your Kinde Businesses"
   s.license     = "MIT"
-  s.required_ruby_version = ">= 2.6"
+  s.required_ruby_version = ">= 2.7"
 
   s.add_runtime_dependency "typhoeus", "~> 1.0", ">= 1.0.1"
   s.add_runtime_dependency "oauth2", "~> 2.0"
