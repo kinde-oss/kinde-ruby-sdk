@@ -17,7 +17,7 @@ All URIs are relative to *https://app.kinde.com*
 
 ## add_organization_users
 
-> <AddOrganizationUsers200Response> add_organization_users(opts)
+> <AddOrganizationUsersResponse> add_organization_users(opts)
 
 Assign Users to an Organization
 
@@ -53,7 +53,7 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<AddOrganizationUsers200Response>, Integer, Hash)> add_organization_users_with_http_info(opts)
+> <Array(<AddOrganizationUsersResponse>, Integer, Hash)> add_organization_users_with_http_info(opts)
 
 ```ruby
 begin
@@ -61,7 +61,7 @@ begin
   data, status_code, headers = api_instance.add_organization_users_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <AddOrganizationUsers200Response>
+  p data # => <AddOrganizationUsersResponse>
 rescue KindeApi::ApiError => e
   puts "Error when calling OrganizationsApi->add_organization_users_with_http_info: #{e}"
 end
@@ -76,7 +76,7 @@ end
 
 ### Return type
 
-[**AddOrganizationUsers200Response**](AddOrganizationUsers200Response.md)
+[**AddOrganizationUsersResponse**](AddOrganizationUsersResponse.md)
 
 ### Authorization
 
@@ -85,12 +85,12 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## create_organization
 
-> <CreateOrganization201Response> create_organization(opts)
+> create_organization(opts)
 
 Create Organization
 
@@ -114,8 +114,7 @@ opts = {
 
 begin
   # Create Organization
-  result = api_instance.create_organization(opts)
-  p result
+  api_instance.create_organization(opts)
 rescue KindeApi::ApiError => e
   puts "Error when calling OrganizationsApi->create_organization: #{e}"
 end
@@ -123,9 +122,9 @@ end
 
 #### Using the create_organization_with_http_info variant
 
-This returns an Array which contains the response data, status code and headers.
+This returns an Array which contains the response data (`nil` in this case), status code and headers.
 
-> <Array(<CreateOrganization201Response>, Integer, Hash)> create_organization_with_http_info(opts)
+> <Array(nil, Integer, Hash)> create_organization_with_http_info(opts)
 
 ```ruby
 begin
@@ -133,7 +132,7 @@ begin
   data, status_code, headers = api_instance.create_organization_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <CreateOrganization201Response>
+  p data # => nil
 rescue KindeApi::ApiError => e
   puts "Error when calling OrganizationsApi->create_organization_with_http_info: #{e}"
 end
@@ -147,7 +146,7 @@ end
 
 ### Return type
 
-[**CreateOrganization201Response**](CreateOrganization201Response.md)
+nil (empty response body)
 
 ### Authorization
 
@@ -156,7 +155,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## delete_organization_feature_flag_override
@@ -227,7 +226,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## delete_organization_feature_flag_overrides
@@ -296,7 +295,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## get_organization
@@ -367,12 +366,12 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## get_organization_users
 
-> <GetOrganizationUsers200Response> get_organization_users(opts)
+> <GetOrganizationsUsersResponse> get_organization_users(opts)
 
 List Organization Users
 
@@ -411,7 +410,7 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<GetOrganizationUsers200Response>, Integer, Hash)> get_organization_users_with_http_info(opts)
+> <Array(<GetOrganizationsUsersResponse>, Integer, Hash)> get_organization_users_with_http_info(opts)
 
 ```ruby
 begin
@@ -419,7 +418,7 @@ begin
   data, status_code, headers = api_instance.get_organization_users_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <GetOrganizationUsers200Response>
+  p data # => <GetOrganizationsUsersResponse>
 rescue KindeApi::ApiError => e
   puts "Error when calling OrganizationsApi->get_organization_users_with_http_info: #{e}"
 end
@@ -437,7 +436,7 @@ end
 
 ### Return type
 
-[**GetOrganizationUsers200Response**](GetOrganizationUsers200Response.md)
+[**GetOrganizationsUsersResponse**](GetOrganizationsUsersResponse.md)
 
 ### Authorization
 
@@ -446,12 +445,12 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## get_organizations
 
-> <GetOrganizations200Response> get_organizations(opts)
+> <GetOrganizationsResponse> get_organizations(opts)
 
 List Organizations
 
@@ -488,7 +487,7 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<GetOrganizations200Response>, Integer, Hash)> get_organizations_with_http_info(opts)
+> <Array(<GetOrganizationsResponse>, Integer, Hash)> get_organizations_with_http_info(opts)
 
 ```ruby
 begin
@@ -496,7 +495,7 @@ begin
   data, status_code, headers = api_instance.get_organizations_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <GetOrganizations200Response>
+  p data # => <GetOrganizationsResponse>
 rescue KindeApi::ApiError => e
   puts "Error when calling OrganizationsApi->get_organizations_with_http_info: #{e}"
 end
@@ -512,7 +511,7 @@ end
 
 ### Return type
 
-[**GetOrganizations200Response**](GetOrganizations200Response.md)
+[**GetOrganizationsResponse**](GetOrganizationsResponse.md)
 
 ### Authorization
 
@@ -521,12 +520,12 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## remove_organization_users
 
-> <RemoveOrganizationUsers200Response> remove_organization_users(opts)
+> <RemoveOrganizationUsersResponse> remove_organization_users(opts)
 
 Remove Users from an Organization
 
@@ -562,7 +561,7 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<RemoveOrganizationUsers200Response>, Integer, Hash)> remove_organization_users_with_http_info(opts)
+> <Array(<RemoveOrganizationUsersResponse>, Integer, Hash)> remove_organization_users_with_http_info(opts)
 
 ```ruby
 begin
@@ -570,7 +569,7 @@ begin
   data, status_code, headers = api_instance.remove_organization_users_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <RemoveOrganizationUsers200Response>
+  p data # => <RemoveOrganizationUsersResponse>
 rescue KindeApi::ApiError => e
   puts "Error when calling OrganizationsApi->remove_organization_users_with_http_info: #{e}"
 end
@@ -585,7 +584,7 @@ end
 
 ### Return type
 
-[**RemoveOrganizationUsers200Response**](RemoveOrganizationUsers200Response.md)
+[**RemoveOrganizationUsersResponse**](RemoveOrganizationUsersResponse.md)
 
 ### Authorization
 
@@ -594,7 +593,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## update_organization_feature_flag_override
@@ -667,5 +666,5 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 

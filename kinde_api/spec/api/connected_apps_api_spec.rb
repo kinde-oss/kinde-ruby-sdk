@@ -62,7 +62,7 @@ describe 'ConnectedAppsApi' do
   # Revoke the tokens linked to the connected app session.
   # @param session_id The unique sesssion id reprensenting the login session of a user.
   # @param [Hash] opts the optional parameters
-  # @return [ApiResult]
+  # @return [SuccessResponse]
   describe 'revoke_connected_app_token test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers

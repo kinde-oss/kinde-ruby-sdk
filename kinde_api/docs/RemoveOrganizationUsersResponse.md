@@ -1,11 +1,10 @@
-# KindeApi::AddOrganizationUsers200Response
+# KindeApi::RemoveOrganizationUsersResponse
 
 ## Properties
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **code** | **String** | Response code. | [optional] |
-| **message** | **String** | Response message. | [optional] |
+| **message** | **String** |  | [optional] |
 | **users_added** | **Array&lt;String&gt;** |  | [optional] |
 
 ## Example
@@ -13,8 +12,7 @@
 ```ruby
 require 'kinde_api'
 
-instance = KindeApi::AddOrganizationUsers200Response.new(
-  code: null,
+instance = KindeApi::RemoveOrganizationUsersResponse.new(
   message: null,
   users_added: null
 )

@@ -14,21 +14,25 @@ require 'date'
 require 'time'
 
 module KindeApi
-  class AddOrganizationUsers200Response
+  class UsersResponse
     # Response code.
     attr_accessor :code
 
     # Response message.
     attr_accessor :message
 
-    attr_accessor :users_added
+    attr_accessor :users
+
+    # Pagination token.
+    attr_accessor :next_token
 
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
         :'code' => :'code',
         :'message' => :'message',
-        :'users_added' => :'users_added'
+        :'users' => :'users',
+        :'next_token' => :'next_token'
       }
     end
 
@@ -42,7 +46,8 @@ module KindeApi
       {
         :'code' => :'String',
         :'message' => :'String',
-        :'users_added' => :'Array<String>'
+        :'users' => :'Array<User>',
+        :'next_token' => :'String'
       }
     end
 
@@ -56,13 +61,13 @@ module KindeApi
     # @param [Hash] attributes Model attributes in the form of hash
     def initialize(attributes = {})
       if (!attributes.is_a?(Hash))
-        fail ArgumentError, "The input argument (attributes) must be a hash in `KindeApi::AddOrganizationUsers200Response` initialize method"
+        fail ArgumentError, "The input argument (attributes) must be a hash in `KindeApi::UsersResponse` initialize method"
       end
 
       # check to see if the attribute exists and convert string to symbol for hash key
       attributes = attributes.each_with_object({}) { |(k, v), h|
         if (!self.class.attribute_map.key?(k.to_sym))
-          fail ArgumentError, "`#{k}` is not a valid attribute in `KindeApi::AddOrganizationUsers200Response`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
+          fail ArgumentError, "`#{k}` is not a valid attribute in `KindeApi::UsersResponse`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
         end
         h[k.to_sym] = v
       }
@@ -75,10 +80,14 @@ module KindeApi
         self.message = attributes[:'message']
       end
 
-      if attributes.key?(:'users_added')
-        if (value = attributes[:'users_added']).is_a?(Array)
-          self.users_added = value
+      if attributes.key?(:'users')
+        if (value = attributes[:'users']).is_a?(Array)
+          self.users = value
         end
+      end
+
+      if attributes.key?(:'next_token')
+        self.next_token = attributes[:'next_token']
       end
     end
 
@@ -102,7 +111,8 @@ module KindeApi
       self.class == o.class &&
           code == o.code &&
           message == o.message &&
-          users_added == o.users_added
+          users == o.users &&
+          next_token == o.next_token
     end
 
     # @see the `==` method
@@ -114,7 +124,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [code, message, users_added].hash
+      [code, message, users, next_token].hash
     end
 
     # Builds the object from hash

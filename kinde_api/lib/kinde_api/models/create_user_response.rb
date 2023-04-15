@@ -14,16 +14,21 @@ require 'date'
 require 'time'
 
 module KindeApi
-  class RemoveOrganizationUsers200Response
-    attr_accessor :message
+  class CreateUserResponse
+    # Unique id of the user in Kinde.
+    attr_accessor :id
 
-    attr_accessor :users_added
+    # True if the user was successfully created.
+    attr_accessor :created
+
+    attr_accessor :identities
 
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
-        :'message' => :'message',
-        :'users_added' => :'users_added'
+        :'id' => :'id',
+        :'created' => :'created',
+        :'identities' => :'identities'
       }
     end
 
@@ -35,8 +40,9 @@ module KindeApi
     # Attribute type mapping.
     def self.openapi_types
       {
-        :'message' => :'String',
-        :'users_added' => :'Array<String>'
+        :'id' => :'String',
+        :'created' => :'Boolean',
+        :'identities' => :'Array<UserIdentity>'
       }
     end
 
@@ -50,24 +56,28 @@ module KindeApi
     # @param [Hash] attributes Model attributes in the form of hash
     def initialize(attributes = {})
       if (!attributes.is_a?(Hash))
-        fail ArgumentError, "The input argument (attributes) must be a hash in `KindeApi::RemoveOrganizationUsers200Response` initialize method"
+        fail ArgumentError, "The input argument (attributes) must be a hash in `KindeApi::CreateUserResponse` initialize method"
       end
 
       # check to see if the attribute exists and convert string to symbol for hash key
       attributes = attributes.each_with_object({}) { |(k, v), h|
         if (!self.class.attribute_map.key?(k.to_sym))
-          fail ArgumentError, "`#{k}` is not a valid attribute in `KindeApi::RemoveOrganizationUsers200Response`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
+          fail ArgumentError, "`#{k}` is not a valid attribute in `KindeApi::CreateUserResponse`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
         end
         h[k.to_sym] = v
       }
 
-      if attributes.key?(:'message')
-        self.message = attributes[:'message']
+      if attributes.key?(:'id')
+        self.id = attributes[:'id']
       end
 
-      if attributes.key?(:'users_added')
-        if (value = attributes[:'users_added']).is_a?(Array)
-          self.users_added = value
+      if attributes.key?(:'created')
+        self.created = attributes[:'created']
+      end
+
+      if attributes.key?(:'identities')
+        if (value = attributes[:'identities']).is_a?(Array)
+          self.identities = value
         end
       end
     end
@@ -90,8 +100,9 @@ module KindeApi
     def ==(o)
       return true if self.equal?(o)
       self.class == o.class &&
-          message == o.message &&
-          users_added == o.users_added
+          id == o.id &&
+          created == o.created &&
+          identities == o.identities
     end
 
     # @see the `==` method
@@ -103,7 +114,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [message, users_added].hash
+      [id, created, identities].hash
     end
 
     # Builds the object from hash

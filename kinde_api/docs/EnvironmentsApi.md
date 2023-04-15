@@ -75,7 +75,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## delete_environement_feature_flag_overrides
@@ -141,7 +141,7 @@ This endpoint does not need any parameter.
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## update_environement_feature_flag_override
@@ -212,5 +212,5 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 

@@ -38,7 +38,7 @@ describe 'OrganizationsApi' do
   # @param [Hash] opts the optional parameters
   # @option opts [String] :code The organization&#39;s code.
   # @option opts [AddOrganizationUsersRequest] :add_organization_users_request 
-  # @return [AddOrganizationUsers200Response]
+  # @return [AddOrganizationUsersResponse]
   describe 'add_organization_users test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
@@ -50,7 +50,7 @@ describe 'OrganizationsApi' do
   # Create an organization.
   # @param [Hash] opts the optional parameters
   # @option opts [CreateOrganizationRequest] :create_organization_request Organization details.
-  # @return [CreateOrganization201Response]
+  # @return [nil]
   describe 'create_organization test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
@@ -103,7 +103,7 @@ describe 'OrganizationsApi' do
   # @option opts [String] :next_token A string to get the next page of results if there are more results.
   # @option opts [String] :code The organization&#39;s code.
   # @option opts [String] :permissions Filter by user permissions
-  # @return [GetOrganizationUsers200Response]
+  # @return [GetOrganizationsUsersResponse]
   describe 'get_organization_users test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
@@ -117,7 +117,7 @@ describe 'OrganizationsApi' do
   # @option opts [String] :sort Field and order to sort the result by.
   # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
   # @option opts [String] :next_token A string to get the next page of results if there are more results.
-  # @return [GetOrganizations200Response]
+  # @return [GetOrganizationsResponse]
   describe 'get_organizations test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
@@ -130,7 +130,7 @@ describe 'OrganizationsApi' do
   # @param [Hash] opts the optional parameters
   # @option opts [String] :code The organization&#39;s code.
   # @option opts [RemoveOrganizationUsersRequest] :remove_organization_users_request 
-  # @return [RemoveOrganizationUsers200Response]
+  # @return [RemoveOrganizationUsersResponse]
   describe 'remove_organization_users test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers

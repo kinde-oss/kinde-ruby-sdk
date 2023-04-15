@@ -1,4 +1,4 @@
-# KindeApi::CreateUser200Response
+# KindeApi::CreateUserResponse
 
 ## Properties
 
@@ -13,7 +13,7 @@
 ```ruby
 require 'kinde_api'
 
-instance = KindeApi::CreateUser200Response.new(
+instance = KindeApi::CreateUserResponse.new(
   id: null,
   created: null,
   identities: null

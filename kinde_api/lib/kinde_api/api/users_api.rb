@@ -24,7 +24,7 @@ module KindeApi
     # @param [Hash] opts the optional parameters
     # @option opts [String] :code The organization&#39;s code.
     # @option opts [AddOrganizationUsersRequest] :add_organization_users_request 
-    # @return [AddOrganizationUsers200Response]
+    # @return [AddOrganizationUsersResponse]
     def add_organization_users(opts = {})
       data, _status_code, _headers = add_organization_users_with_http_info(opts)
       data
@@ -35,7 +35,7 @@ module KindeApi
     # @param [Hash] opts the optional parameters
     # @option opts [String] :code The organization&#39;s code.
     # @option opts [AddOrganizationUsersRequest] :add_organization_users_request 
-    # @return [Array<(AddOrganizationUsers200Response, Integer, Hash)>] AddOrganizationUsers200Response data, response status code and response headers
+    # @return [Array<(AddOrganizationUsersResponse, Integer, Hash)>] AddOrganizationUsersResponse data, response status code and response headers
     def add_organization_users_with_http_info(opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: UsersApi.add_organization_users ...'
@@ -50,7 +50,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
       # HTTP header 'Content-Type'
       content_type = @api_client.select_header_content_type(['application/json'])
       if !content_type.nil?
@@ -64,7 +64,7 @@ module KindeApi
       post_body = opts[:debug_body] || @api_client.object_to_http_body(opts[:'add_organization_users_request'])
 
       # return_type
-      return_type = opts[:debug_return_type] || 'AddOrganizationUsers200Response'
+      return_type = opts[:debug_return_type] || 'AddOrganizationUsersResponse'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
@@ -90,7 +90,7 @@ module KindeApi
     # Creates a user record and optionally zero or more identities for the user. An example identity could be the email address of the user. 
     # @param [Hash] opts the optional parameters
     # @option opts [CreateUserRequest] :create_user_request The details of the user to create.
-    # @return [CreateUser200Response]
+    # @return [CreateUserResponse]
     def create_user(opts = {})
       data, _status_code, _headers = create_user_with_http_info(opts)
       data
@@ -100,7 +100,7 @@ module KindeApi
     # Creates a user record and optionally zero or more identities for the user. An example identity could be the email address of the user. 
     # @param [Hash] opts the optional parameters
     # @option opts [CreateUserRequest] :create_user_request The details of the user to create.
-    # @return [Array<(CreateUser200Response, Integer, Hash)>] CreateUser200Response data, response status code and response headers
+    # @return [Array<(CreateUserResponse, Integer, Hash)>] CreateUserResponse data, response status code and response headers
     def create_user_with_http_info(opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: UsersApi.create_user ...'
@@ -114,7 +114,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
       # HTTP header 'Content-Type'
       content_type = @api_client.select_header_content_type(['application/json'])
       if !content_type.nil?
@@ -128,7 +128,7 @@ module KindeApi
       post_body = opts[:debug_body] || @api_client.object_to_http_body(opts[:'create_user_request'])
 
       # return_type
-      return_type = opts[:debug_return_type] || 'CreateUser200Response'
+      return_type = opts[:debug_return_type] || 'CreateUserResponse'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
@@ -179,7 +179,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
 
       # form parameters
       form_params = opts[:form_params] || {}
@@ -218,7 +218,7 @@ module KindeApi
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
     # @option opts [String] :code The organization&#39;s code.
     # @option opts [String] :permissions Filter by user permissions
-    # @return [GetOrganizationUsers200Response]
+    # @return [GetOrganizationsUsersResponse]
     def get_organization_users(opts = {})
       data, _status_code, _headers = get_organization_users_with_http_info(opts)
       data
@@ -232,7 +232,7 @@ module KindeApi
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
     # @option opts [String] :code The organization&#39;s code.
     # @option opts [String] :permissions Filter by user permissions
-    # @return [Array<(GetOrganizationUsers200Response, Integer, Hash)>] GetOrganizationUsers200Response data, response status code and response headers
+    # @return [Array<(GetOrganizationsUsersResponse, Integer, Hash)>] GetOrganizationsUsersResponse data, response status code and response headers
     def get_organization_users_with_http_info(opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: UsersApi.get_organization_users ...'
@@ -255,7 +255,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
 
       # form parameters
       form_params = opts[:form_params] || {}
@@ -264,7 +264,7 @@ module KindeApi
       post_body = opts[:debug_body]
 
       # return_type
-      return_type = opts[:debug_return_type] || 'GetOrganizationUsers200Response'
+      return_type = opts[:debug_return_type] || 'GetOrganizationsUsersResponse'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
@@ -315,7 +315,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
 
       # form parameters
       form_params = opts[:form_params] || {}
@@ -353,7 +353,7 @@ module KindeApi
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :user_id ID of the user to filter by.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
-    # @return [GetUsers200Response]
+    # @return [UsersResponse]
     def get_users(opts = {})
       data, _status_code, _headers = get_users_with_http_info(opts)
       data
@@ -366,7 +366,7 @@ module KindeApi
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :user_id ID of the user to filter by.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
-    # @return [Array<(GetUsers200Response, Integer, Hash)>] GetUsers200Response data, response status code and response headers
+    # @return [Array<(UsersResponse, Integer, Hash)>] UsersResponse data, response status code and response headers
     def get_users_with_http_info(opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: UsersApi.get_users ...'
@@ -388,7 +388,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
 
       # form parameters
       form_params = opts[:form_params] || {}
@@ -397,7 +397,7 @@ module KindeApi
       post_body = opts[:debug_body]
 
       # return_type
-      return_type = opts[:debug_return_type] || 'GetUsers200Response'
+      return_type = opts[:debug_return_type] || 'UsersResponse'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
@@ -424,7 +424,7 @@ module KindeApi
     # @param [Hash] opts the optional parameters
     # @option opts [String] :code The organization&#39;s code.
     # @option opts [RemoveOrganizationUsersRequest] :remove_organization_users_request 
-    # @return [RemoveOrganizationUsers200Response]
+    # @return [RemoveOrganizationUsersResponse]
     def remove_organization_users(opts = {})
       data, _status_code, _headers = remove_organization_users_with_http_info(opts)
       data
@@ -435,7 +435,7 @@ module KindeApi
     # @param [Hash] opts the optional parameters
     # @option opts [String] :code The organization&#39;s code.
     # @option opts [RemoveOrganizationUsersRequest] :remove_organization_users_request 
-    # @return [Array<(RemoveOrganizationUsers200Response, Integer, Hash)>] RemoveOrganizationUsers200Response data, response status code and response headers
+    # @return [Array<(RemoveOrganizationUsersResponse, Integer, Hash)>] RemoveOrganizationUsersResponse data, response status code and response headers
     def remove_organization_users_with_http_info(opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: UsersApi.remove_organization_users ...'
@@ -450,7 +450,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
       # HTTP header 'Content-Type'
       content_type = @api_client.select_header_content_type(['application/json'])
       if !content_type.nil?
@@ -464,7 +464,7 @@ module KindeApi
       post_body = opts[:debug_body] || @api_client.object_to_http_body(opts[:'remove_organization_users_request'])
 
       # return_type
-      return_type = opts[:debug_return_type] || 'RemoveOrganizationUsers200Response'
+      return_type = opts[:debug_return_type] || 'RemoveOrganizationUsersResponse'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
@@ -521,7 +521,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
       # HTTP header 'Content-Type'
       content_type = @api_client.select_header_content_type(['application/json'])
       if !content_type.nil?

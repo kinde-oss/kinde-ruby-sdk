@@ -16,7 +16,7 @@ All URIs are relative to *https://app.kinde.com*
 
 ## add_organization_users
 
-> <AddOrganizationUsers200Response> add_organization_users(opts)
+> <AddOrganizationUsersResponse> add_organization_users(opts)
 
 Assign Users to an Organization
 
@@ -52,7 +52,7 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<AddOrganizationUsers200Response>, Integer, Hash)> add_organization_users_with_http_info(opts)
+> <Array(<AddOrganizationUsersResponse>, Integer, Hash)> add_organization_users_with_http_info(opts)
 
 ```ruby
 begin
@@ -60,7 +60,7 @@ begin
   data, status_code, headers = api_instance.add_organization_users_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <AddOrganizationUsers200Response>
+  p data # => <AddOrganizationUsersResponse>
 rescue KindeApi::ApiError => e
   puts "Error when calling UsersApi->add_organization_users_with_http_info: #{e}"
 end
@@ -75,7 +75,7 @@ end
 
 ### Return type
 
-[**AddOrganizationUsers200Response**](AddOrganizationUsers200Response.md)
+[**AddOrganizationUsersResponse**](AddOrganizationUsersResponse.md)
 
 ### Authorization
 
@@ -84,12 +84,12 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## create_user
 
-> <CreateUser200Response> create_user(opts)
+> <CreateUserResponse> create_user(opts)
 
 Create User
 
@@ -124,7 +124,7 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<CreateUser200Response>, Integer, Hash)> create_user_with_http_info(opts)
+> <Array(<CreateUserResponse>, Integer, Hash)> create_user_with_http_info(opts)
 
 ```ruby
 begin
@@ -132,7 +132,7 @@ begin
   data, status_code, headers = api_instance.create_user_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <CreateUser200Response>
+  p data # => <CreateUserResponse>
 rescue KindeApi::ApiError => e
   puts "Error when calling UsersApi->create_user_with_http_info: #{e}"
 end
@@ -146,7 +146,7 @@ end
 
 ### Return type
 
-[**CreateUser200Response**](CreateUser200Response.md)
+[**CreateUserResponse**](CreateUserResponse.md)
 
 ### Authorization
 
@@ -155,7 +155,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## deleteuser
@@ -226,12 +226,12 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## get_organization_users
 
-> <GetOrganizationUsers200Response> get_organization_users(opts)
+> <GetOrganizationsUsersResponse> get_organization_users(opts)
 
 List Organization Users
 
@@ -270,7 +270,7 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<GetOrganizationUsers200Response>, Integer, Hash)> get_organization_users_with_http_info(opts)
+> <Array(<GetOrganizationsUsersResponse>, Integer, Hash)> get_organization_users_with_http_info(opts)
 
 ```ruby
 begin
@@ -278,7 +278,7 @@ begin
   data, status_code, headers = api_instance.get_organization_users_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <GetOrganizationUsers200Response>
+  p data # => <GetOrganizationsUsersResponse>
 rescue KindeApi::ApiError => e
   puts "Error when calling UsersApi->get_organization_users_with_http_info: #{e}"
 end
@@ -296,7 +296,7 @@ end
 
 ### Return type
 
-[**GetOrganizationUsers200Response**](GetOrganizationUsers200Response.md)
+[**GetOrganizationsUsersResponse**](GetOrganizationsUsersResponse.md)
 
 ### Authorization
 
@@ -305,7 +305,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## get_user_data
@@ -376,12 +376,12 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## get_users
 
-> <GetUsers200Response> get_users(opts)
+> <UsersResponse> get_users(opts)
 
 List Users
 
@@ -419,7 +419,7 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<GetUsers200Response>, Integer, Hash)> get_users_with_http_info(opts)
+> <Array(<UsersResponse>, Integer, Hash)> get_users_with_http_info(opts)
 
 ```ruby
 begin
@@ -427,7 +427,7 @@ begin
   data, status_code, headers = api_instance.get_users_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <GetUsers200Response>
+  p data # => <UsersResponse>
 rescue KindeApi::ApiError => e
   puts "Error when calling UsersApi->get_users_with_http_info: #{e}"
 end
@@ -444,7 +444,7 @@ end
 
 ### Return type
 
-[**GetUsers200Response**](GetUsers200Response.md)
+[**UsersResponse**](UsersResponse.md)
 
 ### Authorization
 
@@ -453,12 +453,12 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## remove_organization_users
 
-> <RemoveOrganizationUsers200Response> remove_organization_users(opts)
+> <RemoveOrganizationUsersResponse> remove_organization_users(opts)
 
 Remove Users from an Organization
 
@@ -494,7 +494,7 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<RemoveOrganizationUsers200Response>, Integer, Hash)> remove_organization_users_with_http_info(opts)
+> <Array(<RemoveOrganizationUsersResponse>, Integer, Hash)> remove_organization_users_with_http_info(opts)
 
 ```ruby
 begin
@@ -502,7 +502,7 @@ begin
   data, status_code, headers = api_instance.remove_organization_users_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <RemoveOrganizationUsers200Response>
+  p data # => <RemoveOrganizationUsersResponse>
 rescue KindeApi::ApiError => e
   puts "Error when calling UsersApi->remove_organization_users_with_http_info: #{e}"
 end
@@ -517,7 +517,7 @@ end
 
 ### Return type
 
-[**RemoveOrganizationUsers200Response**](RemoveOrganizationUsers200Response.md)
+[**RemoveOrganizationUsersResponse**](RemoveOrganizationUsersResponse.md)
 
 ### Authorization
 
@@ -526,7 +526,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## update_user
@@ -599,5 +599,5 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 

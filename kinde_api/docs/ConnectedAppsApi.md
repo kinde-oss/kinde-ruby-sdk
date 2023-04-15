@@ -30,7 +30,7 @@ end
 
 api_instance = KindeApi::ConnectedAppsApi.new
 key_code_ref = 'key_code_ref_example' # String | The unique key code reference of the connected app to authenticate against.
-user_id = 56 # Integer | The id of the user that needs to authenticate to the third-party connected app.
+user_id = 'user_id_example' # String | The id of the user that needs to authenticate to the third-party connected app.
 
 begin
   # Get Connected App URL
@@ -64,7 +64,7 @@ end
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
 | **key_code_ref** | **String** | The unique key code reference of the connected app to authenticate against. |  |
-| **user_id** | **Integer** | The id of the user that needs to authenticate to the third-party connected app. |  |
+| **user_id** | **String** | The id of the user that needs to authenticate to the third-party connected app. |  |
 
 ### Return type
 
@@ -77,7 +77,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## get_connected_app_token
@@ -146,12 +146,12 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## revoke_connected_app_token
 
-> <ApiResult> revoke_connected_app_token(session_id)
+> <SuccessResponse> revoke_connected_app_token(session_id)
 
 Revoke Connected App Token
 
@@ -184,7 +184,7 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<ApiResult>, Integer, Hash)> revoke_connected_app_token_with_http_info(session_id)
+> <Array(<SuccessResponse>, Integer, Hash)> revoke_connected_app_token_with_http_info(session_id)
 
 ```ruby
 begin
@@ -192,7 +192,7 @@ begin
   data, status_code, headers = api_instance.revoke_connected_app_token_with_http_info(session_id)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <ApiResult>
+  p data # => <SuccessResponse>
 rescue KindeApi::ApiError => e
   puts "Error when calling ConnectedAppsApi->revoke_connected_app_token_with_http_info: #{e}"
 end
@@ -206,7 +206,7 @@ end
 
 ### Return type
 
-[**ApiResult**](ApiResult.md)
+[**SuccessResponse**](SuccessResponse.md)
 
 ### Authorization
 
@@ -215,5 +215,5 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 

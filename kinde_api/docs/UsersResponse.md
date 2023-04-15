@@ -1,4 +1,4 @@
-# KindeApi::GetOrganizationUsers200Response
+# KindeApi::UsersResponse
 
 ## Properties
 
@@ -6,7 +6,7 @@
 | ---- | ---- | ----------- | ----- |
 | **code** | **String** | Response code. | [optional] |
 | **message** | **String** | Response message. | [optional] |
-| **organization_users** | [**Array&lt;OrganizationUser&gt;**](OrganizationUser.md) |  | [optional] |
+| **users** | [**Array&lt;User&gt;**](User.md) |  | [optional] |
 | **next_token** | **String** | Pagination token. | [optional] |
 
 ## Example
@@ -14,10 +14,10 @@
 ```ruby
 require 'kinde_api'
 
-instance = KindeApi::GetOrganizationUsers200Response.new(
+instance = KindeApi::UsersResponse.new(
   code: null,
   message: null,
-  organization_users: null,
+  users: null,
   next_token: null
 )
 ```

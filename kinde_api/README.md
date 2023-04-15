@@ -14,7 +14,7 @@ end
 
 api_instance = KindeApi::ConnectedAppsApi.new
 key_code_ref = 'key_code_ref_example' # String | The unique key code reference of the connected app to authenticate against.
-user_id = 56 # Integer | The id of the user that needs to authenticate to the third-party connected app.
+user_id = 'user_id_example' # String | The id of the user that needs to authenticate to the third-party connected app.
 
 begin
   #Get Connected App URL
@@ -64,27 +64,25 @@ Class | Method | HTTP request | Description
 
 ## Documentation for Models
 
- - [KindeApi::AddOrganizationUsers200Response](docs/AddOrganizationUsers200Response.md)
  - [KindeApi::AddOrganizationUsersRequest](docs/AddOrganizationUsersRequest.md)
+ - [KindeApi::AddOrganizationUsersResponse](docs/AddOrganizationUsersResponse.md)
  - [KindeApi::ApiResult](docs/ApiResult.md)
  - [KindeApi::ConnectedAppsAccessToken](docs/ConnectedAppsAccessToken.md)
  - [KindeApi::ConnectedAppsAuthUrl](docs/ConnectedAppsAuthUrl.md)
- - [KindeApi::CreateOrganization201Response](docs/CreateOrganization201Response.md)
  - [KindeApi::CreateOrganizationRequest](docs/CreateOrganizationRequest.md)
- - [KindeApi::CreateUser200Response](docs/CreateUser200Response.md)
  - [KindeApi::CreateUserRequest](docs/CreateUserRequest.md)
  - [KindeApi::CreateUserRequestIdentitiesInner](docs/CreateUserRequestIdentitiesInner.md)
  - [KindeApi::CreateUserRequestIdentitiesInnerDetails](docs/CreateUserRequestIdentitiesInnerDetails.md)
  - [KindeApi::CreateUserRequestProfile](docs/CreateUserRequestProfile.md)
+ - [KindeApi::CreateUserResponse](docs/CreateUserResponse.md)
  - [KindeApi::Error](docs/Error.md)
  - [KindeApi::ErrorResponse](docs/ErrorResponse.md)
- - [KindeApi::GetOrganizationUsers200Response](docs/GetOrganizationUsers200Response.md)
- - [KindeApi::GetOrganizations200Response](docs/GetOrganizations200Response.md)
- - [KindeApi::GetUsers200Response](docs/GetUsers200Response.md)
+ - [KindeApi::GetOrganizationsResponse](docs/GetOrganizationsResponse.md)
+ - [KindeApi::GetOrganizationsUsersResponse](docs/GetOrganizationsUsersResponse.md)
  - [KindeApi::Organization](docs/Organization.md)
  - [KindeApi::OrganizationUser](docs/OrganizationUser.md)
- - [KindeApi::RemoveOrganizationUsers200Response](docs/RemoveOrganizationUsers200Response.md)
  - [KindeApi::RemoveOrganizationUsersRequest](docs/RemoveOrganizationUsersRequest.md)
+ - [KindeApi::RemoveOrganizationUsersResponse](docs/RemoveOrganizationUsersResponse.md)
  - [KindeApi::SuccessResponse](docs/SuccessResponse.md)
  - [KindeApi::UpdateUserRequest](docs/UpdateUserRequest.md)
  - [KindeApi::User](docs/User.md)
@@ -92,6 +90,7 @@ Class | Method | HTTP request | Description
  - [KindeApi::UserIdentityResult](docs/UserIdentityResult.md)
  - [KindeApi::UserProfile](docs/UserProfile.md)
  - [KindeApi::UserProfileV2](docs/UserProfileV2.md)
+ - [KindeApi::UsersResponse](docs/UsersResponse.md)
 
 
 ## Documentation for Authorization
