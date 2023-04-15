@@ -41,7 +41,38 @@ describe KindeSdk do
 
   describe "#api_client" do
     it "returns initialized api_client instance of KindeApi" do
-      expect(described_class.api_client("bearer-token")).to be_instance_of(KindeApi::ApiClient)
+      expect(described_class.api_client({ "access_token": "bearer-token" }))
+        .to be_instance_of(KindeApi::ApiClient)
+    end
+  end
+
+  describe "#fetch_tokens" do
+    let(:code) { "some-code" }
+    before do
+      stub_request(:post, "#{domain}/oauth2/token")
+        .with(
+          body: {
+            "code" => code,
+            "grant_type" => "authorization_code",
+            "redirect_uri" => callback_url
+          },
+          headers: {
+            'Accept' => '*/*',
+            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+            'Authorization' => 'Basic Y2xpZW50X2lkOmNsaWVudF9zZWNyZXQ=',
+            'Content-Type' => 'application/x-www-form-urlencoded',
+            'User-Agent' => "Kinde-SDK: Ruby/#{KindeSdk::VERSION}"
+          }
+        )
+        .to_return(
+          status: 200,
+          body: { "access_token": "eyJ", "expires_in": 86399, "scope": "", "token_type": "bearer" }.to_json,
+          headers: { "content-type" => "application/json;charset=UTF-8" }
+        )
+    end
+
+    it "calls /token url with proper body and headers" do
+      expect(described_class.fetch_tokens(code).keys).to eq(%w[scope token_type access_token refresh_token expires_at])
     end
   end
 
@@ -87,10 +118,11 @@ describe KindeSdk do
         "sub" => "kp:b17adf719f7d4b87b611d1a88a09fd15" }
     end
     let(:token) { JWT.encode(hash_to_encode, nil, "none") }
-    let(:client) { described_class.client(token) }
+    let(:client) { described_class.client({ "access_token": token }) }
 
     it "returns requested claim from bearer", :aggregate_failures do
-      expect(client.get_claim("scp")).to eq(hash_to_encode["scp"])
+      expect(client.get_claim("scp")).to eq({ name: "scp", value: hash_to_encode["scp"] })
+      expect(client.get_claim("scp", :id_token)).to be_nil
       expect(client.get_claim("aaa")).to be_nil
     end
 
@@ -105,7 +137,7 @@ describe KindeSdk do
     end
 
     describe "api instances" do
-      it 'initializes client by passing the bearer' do
+      it 'initializes client by passing the tokens_hash' do
         expect(client).to be_instance_of(KindeSdk::Client)
       end
 

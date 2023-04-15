@@ -45,15 +45,26 @@ module KindeSdk
     # @return [Hash]
     def fetch_tokens(params_or_code, code_verifier = nil)
       code = params_or_code.kind_of?(Hash) ? params.fetch("code") : params_or_code
-      params = { redirect_uri: @config.callback_url }
+      params = {
+        redirect_uri: @config.callback_url,
+        headers: { 'User-Agent' => "Kinde-SDK: Ruby/#{KindeSdk::VERSION}" }
+      }
       params[:code_verifier] = code_verifier if code_verifier
       @config.oauth_client.auth_code.get_token(code.to_s, params).to_hash
     end
 
+    # tokens_hash #=>
+    # {"access_token"=>"eyJhbGciOiJSUzI1NiIsIm...",
+    #  "expires_in"=>86399,
+    #  "id_token"=>"eyJhbGciOiJSUz",
+    #  "refresh_token"=>"eyJhbGciOiJSUz",
+    #  "scope"=>"openid offline email profile",
+    #  "token_type"=>"bearer"}
+    #
     # @return [KindeSdk::Client]
-    def client(bearer_token)
-      sdk_api_client = api_client(bearer_token)
-      KindeSdk::Client.new(sdk_api_client, bearer_token)
+    def client(tokens_hash)
+      sdk_api_client = api_client(tokens_hash["access_token"])
+      KindeSdk::Client.new(sdk_api_client, tokens_hash)
     end
 
     def logout_url
