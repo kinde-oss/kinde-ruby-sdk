@@ -49,6 +49,32 @@ module KindeSdk
 
     private
 
+    def flag_getter_wrapper(name, type, default_value = nil)
+      v = get_flag(name, { default_value: default_value }, type)[:value]
+      raise ArgumentError, "Flag #{name} value type is different from requested type" unless check_type(v, type)
+
+      v
+    end
+
+    def try_default_flag(flag_type, name, opts)
+      default_value = opts[:default_value]
+      raise StandardError, "This flag was not found, and no default value has been provided" if default_value == nil
+
+      if flag_type && !check_type(default_value, flag_type)
+        raise ArgumentError, "Flag #{name} value type is different from requested type"
+      end
+
+      {
+        "code": name,
+        "value": default_value,
+        "is_default": true
+      }
+    end
+
+    def check_type(value, type)
+      type == "s" && value.is_a?(String) || type == "b" && (value == false || value == true) || type == "i" && value.is_a?(Integer)
+    end
+
     def init_instance_api(api_klass)
       api_klass.new(kinde_api_client)
     end

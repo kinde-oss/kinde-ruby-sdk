@@ -108,7 +108,11 @@ describe KindeSdk do
       { "aud" => [],
         "azp" => "19ebb687cd2f405c9f2daf645a8db895",
         "exp" => 1679600554,
-        "feature_flags" => nil,
+        "feature_flags" => {
+          "asd" => { "t" => "b", "v" => true },
+          "eeeeee" => { "t" => "i", "v" => 111 },
+          "qqq" => { "t" => "s", "v" => "aa" }
+        },
         "iat" => 1679514154,
         "iss" => "https://example.kinde.com",
         "jti" => "22c48b2c-da46-4661-a7ff-425c23eceab5",
@@ -119,6 +123,67 @@ describe KindeSdk do
     end
     let(:token) { JWT.encode(hash_to_encode, nil, "none") }
     let(:client) { described_class.client({ "access_token": token }) }
+
+    context "with feature flags" do
+      it "returns existing flags", :aggregate_failures do
+        expect(client.get_flag("asd")).to eq({ code: "asd", is_default: false, type: "boolean", value: true })
+        expect(client.get_flag("eeeeee")).to eq({ code: "eeeeee", is_default: false, type: "integer", value: 111 })
+        expect(client.get_flag("qqq")).to eq({ code: "qqq", is_default: false, type: "string", value: "aa" })
+
+        expect { client.get_flag("undefined") }
+          .to raise_error(StandardError, "This flag was not found, and no default value has been provided")
+      end
+
+      it "returns fallbacks if no flag present", :aggregate_failures do
+        expect(client.get_flag("undefined", { default_value: true }))
+          .to eq({ code: "undefined", is_default: true, value: true })
+
+        expect(client.get_flag("undefined", { default_value: true }, "b")[:value]).to eq(true)
+        expect(client.get_flag("undefined", { default_value: "true" }, "s")[:value]).to eq("true")
+        expect(client.get_flag("undefined", { default_value: 111 }, "i")[:value]).to eq(111)
+      end
+
+      it "raises argument error when no value type match", :aggregate_failures do
+        expect { client.get_flag("undefined", { default_value: true }, "s") }
+          .to raise_error(ArgumentError, "Flag undefined value type is different from requested type")
+
+        expect { client.get_flag("undefined", { default_value: true }, "i") }
+          .to raise_error(ArgumentError, "Flag undefined value type is different from requested type")
+
+        expect { client.get_flag("undefined", { default_value: "true" }, "b") }
+          .to raise_error(ArgumentError, "Flag undefined value type is different from requested type")
+      end
+
+      it "behaves the same way for boolean flag wrapper getter", :aggregate_failures do
+        expect { client.get_boolean_flag("eeeeee") }
+          .to raise_error(ArgumentError, "Flag eeeeee value type is different from requested type")
+        expect(client.get_boolean_flag("asd")).to eq(true)
+        expect(client.get_boolean_flag("undefined", false)).to eq(false)
+
+        expect { client.get_boolean_flag("undefined", "true") }
+          .to raise_error(ArgumentError, "Flag undefined value type is different from requested type")
+      end
+
+      it "behaves the same way for integer flag wrapper getter", :aggregate_failures do
+        expect { client.get_integer_flag("asd") }
+          .to raise_error(ArgumentError, "Flag asd value type is different from requested type")
+        expect(client.get_integer_flag("eeeeee")).to eq(111)
+        expect(client.get_integer_flag("undefined", 111)).to eq(111)
+
+        expect { client.get_integer_flag("undefined", "true") }
+          .to raise_error(ArgumentError, "Flag undefined value type is different from requested type")
+      end
+
+      it "behaves the same way for string flag wrapper getter", :aggregate_failures do
+        expect { client.get_string_flag("asd") }
+          .to raise_error(ArgumentError, "Flag asd value type is different from requested type")
+        expect(client.get_string_flag("qqq")).to eq("aa")
+        expect(client.get_string_flag("undefined", "111")).to eq("111")
+
+        expect { client.get_string_flag("undefined", true) }
+          .to raise_error(ArgumentError, "Flag undefined value type is different from requested type")
+      end
+    end
 
     it "returns requested claim from bearer", :aggregate_failures do
       expect(client.get_claim("scp")).to eq({ name: "scp", value: hash_to_encode["scp"] })
