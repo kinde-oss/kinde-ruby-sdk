@@ -122,7 +122,8 @@ describe KindeSdk do
         "sub" => "kp:b17adf719f7d4b87b611d1a88a09fd15" }
     end
     let(:token) { JWT.encode(hash_to_encode, nil, "none") }
-    let(:client) { described_class.client({ "access_token": token }) }
+    let(:expires_at) { Time.now.to_i + 10000000 }
+    let(:client) { described_class.client({ "access_token": token, "expires_at": expires_at }) }
 
     context "with feature flags" do
       it "returns existing flags", :aggregate_failures do
@@ -199,6 +200,16 @@ describe KindeSdk do
       expect(client.get_permission("asd"))
         .to eq({ org_code: hash_to_encode["org_code"], is_granted: false })
       expect(client.permission_granted?("asd")).to be(false)
+    end
+
+    context "with expiration check" do
+      it { expect(client.token_expired?).to be(false) }
+
+      context "when token expired" do
+        let(:expires_at) { Time.now.to_i - 1 }
+
+        it { expect(client.token_expired?).to be(true) }
+      end
     end
 
     describe "api instances" do
