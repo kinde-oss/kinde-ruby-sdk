@@ -15,8 +15,11 @@ require 'time'
 
 module KindeApi
   class UserProfileV2
-    # Unique id of the user in Kinde.
+    # Unique id of the user in Kinde (deprecated).
     attr_accessor :id
+
+    # Unique id of the user in Kinde.
+    attr_accessor :sub
 
     # Value of the user's id in a third-party system when the user is imported into Kinde.
     attr_accessor :provided_id
@@ -40,6 +43,7 @@ module KindeApi
     def self.attribute_map
       {
         :'id' => :'id',
+        :'sub' => :'sub',
         :'provided_id' => :'provided_id',
         :'name' => :'name',
         :'given_name' => :'given_name',
@@ -58,6 +62,7 @@ module KindeApi
     def self.openapi_types
       {
         :'id' => :'String',
+        :'sub' => :'String',
         :'provided_id' => :'String',
         :'name' => :'String',
         :'given_name' => :'String',
@@ -91,6 +96,10 @@ module KindeApi
 
       if attributes.key?(:'id')
         self.id = attributes[:'id']
+      end
+
+      if attributes.key?(:'sub')
+        self.sub = attributes[:'sub']
       end
 
       if attributes.key?(:'provided_id')
@@ -137,6 +146,7 @@ module KindeApi
       return true if self.equal?(o)
       self.class == o.class &&
           id == o.id &&
+          sub == o.sub &&
           provided_id == o.provided_id &&
           name == o.name &&
           given_name == o.given_name &&
@@ -154,7 +164,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [id, provided_id, name, given_name, family_name, updated_at, email].hash
+      [id, sub, provided_id, name, given_name, family_name, updated_at, email].hash
     end
 
     # Builds the object from hash
