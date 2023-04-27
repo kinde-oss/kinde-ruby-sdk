@@ -63,7 +63,7 @@ describe KindeSdk do
        "exp" => 1679600554,
        "feature_flags" => nil,
        "iat" => 1679514154,
-       "iss" => "https://qwv2.kinde.com",
+       "iss" => "https://example.kinde.com",
        "jti" => "22c48b2c-da46-4661-a7ff-425c23eceab5",
        "org_code" => "org_cb4544175bc",
        "permissions" => ["read:todos", "create:todos"],
