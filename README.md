@@ -155,9 +155,9 @@ This is your tokens - save the whole hash in your session, redis or any other st
 # In case of preventing cookie overflow, you need to limit what exactly your are saving.
 # Here is the required minimum of params. But in general you are able save it wherever you want to. 
 # For example, in database, without any limiting.
-session[:kinde_auth] = KindeSdk.fetch_tokens(code).slice(:access_token, :refresh_token, :expires_at)
+session[:kinde_auth] = KindeSdk.fetch_tokens(code).slice(:access_token, :id_token, :refresh_token, :expires_at)
 # ...
-client = KindeSdk.client(session[:kinde_auth]["access_token"]) # => #<KindeSdk::Client:0x00007faf31e5ecb8> 
+client = KindeSdk.client(session[:kinde_auth]) # => #<KindeSdk::Client:0x00007faf31e5ecb8> 
 ```
 
 #### Token expiration and refreshing
@@ -167,7 +167,13 @@ Use these two methods to work with refreshing:
 KindeSdk.token_expired?(session[:kinde_auth]) # => false
 KindeSdk.refresh_token(session[:kinde_auth]) # => {"access_token" => "qwe...", "refresh_token" => "fqw...", .....}
 ```
-`KindeSdk#refresh_token` returns new token hash, so it needs to be updated in your storage.
+or from your client instance:
+```ruby
+client.token_expired? # => false
+client.refresh_token # => {"access_token" => "qwe...", ....}
+```
+If you are calling `#refresh_token` on a client instance, the instance token data will be automatically updated.
+If you are calling `KindeSdk#refresh_token`, you'll need to store new token data in your configured storage (redis/session/etc).
 
 #### Audience
 An `audience` is the intended recipient of an access token - for example the API for your application.
@@ -193,9 +199,13 @@ KindeSdk.auth_url(scope: "openid offline")
 #### Getting claims
 We have provided a helper to grab any claim from your id or access tokens. The helper defaults to access tokens:
 ```ruby
-client = KindeSdk.client(session[:kinde_auth]["access_token"])
-client.get_claim("aud") #=> ['api.yourapp.com']
-client.get_claim("scp") #=> ["openid", "offline"]
+client = KindeSdk.client(session[:kinde_auth])
+client.get_claim("aud") #=> {name: "aud", value: ['api.yourapp.com']}
+client.get_claim("scp") #=> {name: "scp", value: ["openid", "offline"]}
+```
+By default claim data fetched from access_token, but you can also do it with id_token as well:
+```ruby
+client.get_claim("some-claim", :id_token) # => {name: "some-claim", value: "some-data"}
 ```
 
 #### User permissions
@@ -216,10 +226,58 @@ permissions" => [
 ```
 We provide helper functions to more easily access permissions:
 ```ruby
-client = KindeSdk.client(session[:kinde_auth]["access_token"])
+client = KindeSdk.client(session[:kinde_auth])
 client.get_permission("create:todos") # => {org_code: "org_1234", is_granted: true}
 client.permission_granted?("create:todos") # => true
 client.permission_granted?("create:orders") # => false
+```
+
+#### Feature flags
+Kinde itself provides feature flag functionality - more [here](https://kinde.com/feature-flags/).
+So, the SDK provides methods to work with them.
+For example, you have data like below:
+```json
+{
+  "asd": { "t": "b", "v": true },
+  "eeeeee": { "t": "i", "v": 111 },
+  "qqq": { "t": "s", "v": "aa" }
+}
+```
+where `t` refers to type (`b` - boolean, `i` - integer, `s` - string) and `v` refers to value.
+You can fetch these flags with methods below:
+```ruby
+client.get_flag("asd") # => { code: "asd", is_default: false, type: "boolean", value: true }
+client.get_flag("eeeeee") # => { code: "eeeeee", is_default: false, type: "integer", value: 111 }
+client.get_flag("qqq") # => { code: "qqq", is_default: false, type: "string", value: "aa" }
+```
+Note that trying to call undefined flag leads to exception.
+
+In addition to fetch existing flags, you can use fallbacks. For example:
+```ruby
+client.get_flag("undefined", { default_value: true }) # => { code: "undefined", is_default: true, value: true }
+```
+
+and with setting the type explicitly (output omitted except value):
+```ruby
+client.get_flag("undefined_bool", { default_value: true }, "b") # => value = true
+client.get_flag("undefined_string", { default_value: "true" }, "s") # => value = "true"
+client.get_flag("undefined_int", { default_value: 111 }, "i") # => value = 111
+```
+In the example above if you try to set default_value of different type (for example: `get_flag("flag", {default_value: 1}, "s")`), you'll get an exception.
+
+Also you have wrapper methods, for example:
+```ruby
+client.get_boolean_flag("eeeeee") # => leads to exception "Flag eeeeee value type is different from requested type"
+client.get_boolean_flag("asd") # => true
+client.get_boolean_flag("undefined", false) # => false
+
+client.get_integer_flag("asd") # => exception "Flag asd value type is different from requested type"
+client.get_integer_flag("undefined", "true") # => exception "Flag undefined value type is different from requested type"
+client.get_integer_flag("eeeeee") # => 111
+client.get_integer_flag("undefined", 123) # => 123
+
+client.get_string_flag("qqq") # => "aa"
+client.get_string_flag("undefined", "111") # => "111"
 ```
 
 #### Client usage
@@ -293,13 +351,18 @@ Example of a returned token:
       "email",
       "offline"
     ],
-    "sub" => "kp:123457890"
+    "sub" => "kp:123457890",
+    "feature_flags" => {
+      "asd" => { "t" => "b", "v" => true },
+      "eeeeee" => { "t" => "i", "v" => 111 },
+      "qqq" => { "t" => "s", "v" => "aa" }
+    }
   }
 ]
 ```
 The `id_token` will also contain an array of organizations that a user belongs to - this is useful if you wanted to build out an organization switcher for example:
 ```ruby
-client.get_claim("org_codes") # => ["org_1234", "org_5462"]
+client.get_claim("org_codes", :id_token) # => {name: "org_codes", value: ["org_1234", "org_5462"]}
 ```
 
 ### API reference
@@ -309,7 +372,7 @@ Here are some selected examples of usage.
 #### Getting user info
 
 ```ruby
-KindeSdk.client(session[:kinde_auth]["access_token"]).oauth.get_user
+KindeSdk.client(session[:kinde_auth]).oauth.get_user
 # => {id: ..., preferred_email: ..., provided_id: ..., last_name: ..., first_name: ...}
 ```
 
@@ -328,7 +391,7 @@ $redis.set("kinde_m2m_token", result["access_token"], ex: result["expires_in"].t
 
 ##### Organizations handling
 ```ruby
-client = KindeSdk.client($redis.get("kinde_m2m_token"))
+client = KindeSdk.client({"access_token" => $redis.get("kinde_m2m_token")})
 # get organizations list:
 client.organizations.get_organizations
 # => {"code": "OK", "message": "Success", "next_token": "qweqweqwe", "organizations": [{"code": "org_casda123c", "name": "Default Organization", "is_default": true}]}
