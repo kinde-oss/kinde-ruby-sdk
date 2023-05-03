@@ -56,13 +56,10 @@ module KindeSdk
       KindeSdk::Client.new(sdk_api_client, bearer_token)
     end
 
-    def logout(bearer_token, sdk_api_client = nil)
-      (sdk_api_client || api_client(bearer_token))
-        .call_api(
-          :get, '/logout',
-          query_params: { 'redirect' => @config.logout_url },
-          header_params: { 'Authorization' => "Bearer #{bearer_token}" }
-        )
+    def logout_url
+      query = @config.logout_url ? URI.encode_www_form(redirect: @config.logout_url) : nil
+      host = URI::parse(@config.domain).host
+      URI::HTTP.build(host: host, path: '/logout', query: query).to_s
     end
 
     def client_credentials_access(

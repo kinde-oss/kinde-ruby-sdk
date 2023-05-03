@@ -5,6 +5,7 @@ describe KindeSdk do
   let(:client_id) { "client_id" }
   let(:client_secret) { "client_secret" }
   let(:callback_url) { "http://localhost:3000/callback" }
+  let(:logout_url) { "http://localhost/logout-callback" }
 
   before do
     KindeSdk.configure do |c|
@@ -12,6 +13,7 @@ describe KindeSdk do
       c.client_id = client_id
       c.client_secret = client_secret
       c.callback_url = callback_url
+      c.logout_url = logout_url
     end
   end
 
@@ -20,6 +22,20 @@ describe KindeSdk do
       auth_obj = described_class.auth_url
       expect(auth_obj[:code_verifier]).not_to be_nil
       expect(auth_obj[:url]).to start_with("#{domain}/oauth2/auth?client_id=#{client_id}&")
+    end
+  end
+
+  describe "#logout_url" do
+    it "returns logout url" do
+      expect(described_class.logout_url)
+        .to eq("http://example.com/logout?redirect=http%3A%2F%2Flocalhost%2Flogout-callback")
+    end
+
+    context "when logout url not set" do
+      let(:logout_url) { nil }
+      it "returns logout url without redirect query" do
+        expect(described_class.logout_url).to eq("http://example.com/logout")
+      end
     end
   end
 
@@ -59,16 +75,16 @@ describe KindeSdk do
   describe "client" do
     let(:hash_to_encode) do
       { "aud" => [],
-       "azp" => "19ebb687cd2f405c9f2daf645a8db895",
-       "exp" => 1679600554,
-       "feature_flags" => nil,
-       "iat" => 1679514154,
-       "iss" => "https://example.kinde.com",
-       "jti" => "22c48b2c-da46-4661-a7ff-425c23eceab5",
-       "org_code" => "org_cb4544175bc",
-       "permissions" => ["read:todos", "create:todos"],
-       "scp" => ["openid", "offline"],
-       "sub" => "kp:b17adf719f7d4b87b611d1a88a09fd15" }
+        "azp" => "19ebb687cd2f405c9f2daf645a8db895",
+        "exp" => 1679600554,
+        "feature_flags" => nil,
+        "iat" => 1679514154,
+        "iss" => "https://example.kinde.com",
+        "jti" => "22c48b2c-da46-4661-a7ff-425c23eceab5",
+        "org_code" => "org_cb4544175bc",
+        "permissions" => ["read:todos", "create:todos"],
+        "scp" => ["openid", "offline"],
+        "sub" => "kp:b17adf719f7d4b87b611d1a88a09fd15" }
     end
     let(:token) { JWT.encode(hash_to_encode, nil, "none") }
     let(:client) { described_class.client(token) }
