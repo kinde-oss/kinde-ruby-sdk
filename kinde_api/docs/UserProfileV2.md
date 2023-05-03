@@ -12,6 +12,7 @@
 | **family_name** | **String** | User&#39;s last name. | [optional] |
 | **updated_at** | **Integer** | Date the user was last updated at (In Unix time). | [optional] |
 | **email** | **String** | User&#39;s email address if available. | [optional] |
+| **picture** | **String** | URL that point&#39;s to the user&#39;s picture or avatar | [optional] |
 
 ## Example
 
@@ -26,7 +27,8 @@ instance = KindeApi::UserProfileV2.new(
   given_name: null,
   family_name: null,
   updated_at: null,
-  email: null
+  email: null,
+  picture: null
 )
 ```
 

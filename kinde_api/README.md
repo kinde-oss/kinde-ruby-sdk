@@ -51,6 +51,7 @@ Class | Method | HTTP request | Description
 *KindeApi::OrganizationsApi* | [**get_organization_users**](docs/OrganizationsApi.md#get_organization_users) | **GET** /api/v1/organization/users | List Organization Users
 *KindeApi::OrganizationsApi* | [**get_organizations**](docs/OrganizationsApi.md#get_organizations) | **GET** /api/v1/organizations | List Organizations
 *KindeApi::OrganizationsApi* | [**remove_organization_users**](docs/OrganizationsApi.md#remove_organization_users) | **PATCH** /api/v1/organization/users | Remove Users from an Organization
+*KindeApi::OrganizationsApi* | [**update_organization**](docs/OrganizationsApi.md#update_organization) | **PATCH** /api/v1/organizations/{org_code} | Update Organization
 *KindeApi::OrganizationsApi* | [**update_organization_feature_flag_override**](docs/OrganizationsApi.md#update_organization_feature_flag_override) | **PATCH** /api/v1/organizations/{org_code}/feature_flags/{feature_flag_key} | Update organization feature flag override
 *KindeApi::UsersApi* | [**add_organization_users**](docs/UsersApi.md#add_organization_users) | **POST** /api/v1/organization/users | Assign Users to an Organization
 *KindeApi::UsersApi* | [**create_user**](docs/UsersApi.md#create_user) | **POST** /api/v1/user | Create User
@@ -70,6 +71,7 @@ Class | Method | HTTP request | Description
  - [KindeApi::ConnectedAppsAccessToken](docs/ConnectedAppsAccessToken.md)
  - [KindeApi::ConnectedAppsAuthUrl](docs/ConnectedAppsAuthUrl.md)
  - [KindeApi::CreateOrganizationRequest](docs/CreateOrganizationRequest.md)
+ - [KindeApi::CreateOrganizationResponse](docs/CreateOrganizationResponse.md)
  - [KindeApi::CreateUserRequest](docs/CreateUserRequest.md)
  - [KindeApi::CreateUserRequestIdentitiesInner](docs/CreateUserRequestIdentitiesInner.md)
  - [KindeApi::CreateUserRequestIdentitiesInnerDetails](docs/CreateUserRequestIdentitiesInnerDetails.md)
@@ -84,6 +86,7 @@ Class | Method | HTTP request | Description
  - [KindeApi::RemoveOrganizationUsersRequest](docs/RemoveOrganizationUsersRequest.md)
  - [KindeApi::RemoveOrganizationUsersResponse](docs/RemoveOrganizationUsersResponse.md)
  - [KindeApi::SuccessResponse](docs/SuccessResponse.md)
+ - [KindeApi::UpdateOrganizationRequest](docs/UpdateOrganizationRequest.md)
  - [KindeApi::UpdateUserRequest](docs/UpdateUserRequest.md)
  - [KindeApi::User](docs/User.md)
  - [KindeApi::UserIdentity](docs/UserIdentity.md)

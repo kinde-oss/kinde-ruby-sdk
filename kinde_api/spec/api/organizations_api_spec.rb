@@ -50,7 +50,7 @@ describe 'OrganizationsApi' do
   # Create an organization.
   # @param [Hash] opts the optional parameters
   # @option opts [CreateOrganizationRequest] :create_organization_request Organization details.
-  # @return [nil]
+  # @return [CreateOrganizationResponse]
   describe 'create_organization test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
@@ -132,6 +132,18 @@ describe 'OrganizationsApi' do
   # @option opts [RemoveOrganizationUsersRequest] :remove_organization_users_request 
   # @return [RemoveOrganizationUsersResponse]
   describe 'remove_organization_users test' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
+  # unit tests for update_organization
+  # Update Organization
+  # Update an organization.
+  # @param [Hash] opts the optional parameters
+  # @option opts [UpdateOrganizationRequest] :update_organization_request Organization details.
+  # @return [nil]
+  describe 'update_organization test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
     end

@@ -14,34 +14,14 @@ require 'date'
 require 'time'
 
 module KindeApi
-  class UserProfile
-    # Unique id of the user in Kinde.
-    attr_accessor :id
-
-    # Default email address of the user in Kinde.
-    attr_accessor :preferred_email
-
-    # Value of the user's id in a third-party system when the user is imported into Kinde.
-    attr_accessor :provided_id
-
-    # User's last name.
-    attr_accessor :last_name
-
-    # User's first name.
-    attr_accessor :first_name
-
-    # URL that point's to the user's picture or avatar
-    attr_accessor :picture
+  class CreateOrganizationResponse
+    # The organization's code.
+    attr_accessor :code
 
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
-        :'id' => :'id',
-        :'preferred_email' => :'preferred_email',
-        :'provided_id' => :'provided_id',
-        :'last_name' => :'last_name',
-        :'first_name' => :'first_name',
-        :'picture' => :'picture'
+        :'code' => :'code'
       }
     end
 
@@ -53,19 +33,13 @@ module KindeApi
     # Attribute type mapping.
     def self.openapi_types
       {
-        :'id' => :'String',
-        :'preferred_email' => :'String',
-        :'provided_id' => :'String',
-        :'last_name' => :'String',
-        :'first_name' => :'String',
-        :'picture' => :'String'
+        :'code' => :'String'
       }
     end
 
     # List of attributes with nullable: true
     def self.openapi_nullable
       Set.new([
-        :'provided_id',
       ])
     end
 
@@ -73,39 +47,19 @@ module KindeApi
     # @param [Hash] attributes Model attributes in the form of hash
     def initialize(attributes = {})
       if (!attributes.is_a?(Hash))
-        fail ArgumentError, "The input argument (attributes) must be a hash in `KindeApi::UserProfile` initialize method"
+        fail ArgumentError, "The input argument (attributes) must be a hash in `KindeApi::CreateOrganizationResponse` initialize method"
       end
 
       # check to see if the attribute exists and convert string to symbol for hash key
       attributes = attributes.each_with_object({}) { |(k, v), h|
         if (!self.class.attribute_map.key?(k.to_sym))
-          fail ArgumentError, "`#{k}` is not a valid attribute in `KindeApi::UserProfile`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
+          fail ArgumentError, "`#{k}` is not a valid attribute in `KindeApi::CreateOrganizationResponse`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
         end
         h[k.to_sym] = v
       }
 
-      if attributes.key?(:'id')
-        self.id = attributes[:'id']
-      end
-
-      if attributes.key?(:'preferred_email')
-        self.preferred_email = attributes[:'preferred_email']
-      end
-
-      if attributes.key?(:'provided_id')
-        self.provided_id = attributes[:'provided_id']
-      end
-
-      if attributes.key?(:'last_name')
-        self.last_name = attributes[:'last_name']
-      end
-
-      if attributes.key?(:'first_name')
-        self.first_name = attributes[:'first_name']
-      end
-
-      if attributes.key?(:'picture')
-        self.picture = attributes[:'picture']
+      if attributes.key?(:'code')
+        self.code = attributes[:'code']
       end
     end
 
@@ -127,12 +81,7 @@ module KindeApi
     def ==(o)
       return true if self.equal?(o)
       self.class == o.class &&
-          id == o.id &&
-          preferred_email == o.preferred_email &&
-          provided_id == o.provided_id &&
-          last_name == o.last_name &&
-          first_name == o.first_name &&
-          picture == o.picture
+          code == o.code
     end
 
     # @see the `==` method
@@ -144,7 +93,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [id, preferred_email, provided_id, last_name, first_name, picture].hash
+      [code].hash
     end
 
     # Builds the object from hash

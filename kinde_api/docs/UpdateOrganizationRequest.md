@@ -1,11 +1,10 @@
-# KindeApi::CreateOrganizationRequest
+# KindeApi::UpdateOrganizationRequest
 
 ## Properties
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
 | **name** | **String** | The organization&#39;s name. | [optional] |
-| **feature_flags** | **Hash&lt;String, String&gt;** | The organization&#39;s feature flag settings. | [optional] |
 | **external_id** | **String** | The organization&#39;s ID. | [optional] |
 | **background_color** | **String** | The organization&#39;s brand settings - background color. | [optional] |
 | **button_color** | **String** | The organization&#39;s brand settings - button color. | [optional] |
@@ -17,9 +16,8 @@
 ```ruby
 require 'kinde_api'
 
-instance = KindeApi::CreateOrganizationRequest.new(
+instance = KindeApi::UpdateOrganizationRequest.new(
   name: null,
-  feature_flags: null,
   external_id: null,
   background_color: null,
   button_color: null,

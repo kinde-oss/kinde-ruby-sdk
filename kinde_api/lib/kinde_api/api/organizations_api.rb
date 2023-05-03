@@ -90,17 +90,17 @@ module KindeApi
     # Create an organization.
     # @param [Hash] opts the optional parameters
     # @option opts [CreateOrganizationRequest] :create_organization_request Organization details.
-    # @return [nil]
+    # @return [CreateOrganizationResponse]
     def create_organization(opts = {})
-      create_organization_with_http_info(opts)
-      nil
+      data, _status_code, _headers = create_organization_with_http_info(opts)
+      data
     end
 
     # Create Organization
     # Create an organization.
     # @param [Hash] opts the optional parameters
     # @option opts [CreateOrganizationRequest] :create_organization_request Organization details.
-    # @return [Array<(nil, Integer, Hash)>] nil, response status code and response headers
+    # @return [Array<(CreateOrganizationResponse, Integer, Hash)>] CreateOrganizationResponse data, response status code and response headers
     def create_organization_with_http_info(opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: OrganizationsApi.create_organization ...'
@@ -128,7 +128,7 @@ module KindeApi
       post_body = opts[:debug_body] || @api_client.object_to_http_body(opts[:'create_organization_request'])
 
       # return_type
-      return_type = opts[:debug_return_type]
+      return_type = opts[:debug_return_type] || 'CreateOrganizationResponse'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
@@ -551,6 +551,70 @@ module KindeApi
       data, status_code, headers = @api_client.call_api(:PATCH, local_var_path, new_options)
       if @api_client.config.debugging
         @api_client.config.logger.debug "API called: OrganizationsApi#remove_organization_users\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
+    # Update Organization
+    # Update an organization.
+    # @param [Hash] opts the optional parameters
+    # @option opts [UpdateOrganizationRequest] :update_organization_request Organization details.
+    # @return [nil]
+    def update_organization(opts = {})
+      update_organization_with_http_info(opts)
+      nil
+    end
+
+    # Update Organization
+    # Update an organization.
+    # @param [Hash] opts the optional parameters
+    # @option opts [UpdateOrganizationRequest] :update_organization_request Organization details.
+    # @return [Array<(nil, Integer, Hash)>] nil, response status code and response headers
+    def update_organization_with_http_info(opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: OrganizationsApi.update_organization ...'
+      end
+      # resource path
+      local_var_path = '/api/v1/organizations/{org_code}'
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
+      # HTTP header 'Content-Type'
+      content_type = @api_client.select_header_content_type(['application/json'])
+      if !content_type.nil?
+        header_params['Content-Type'] = content_type
+      end
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body] || @api_client.object_to_http_body(opts[:'update_organization_request'])
+
+      # return_type
+      return_type = opts[:debug_return_type]
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
+
+      new_options = opts.merge(
+        :operation => :"OrganizationsApi.update_organization",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:PATCH, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: OrganizationsApi#update_organization\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
       end
       return data, status_code, headers
     end

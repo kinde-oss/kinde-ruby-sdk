@@ -12,6 +12,7 @@ All URIs are relative to *https://app.kinde.com*
 | [**get_organization_users**](OrganizationsApi.md#get_organization_users) | **GET** /api/v1/organization/users | List Organization Users |
 | [**get_organizations**](OrganizationsApi.md#get_organizations) | **GET** /api/v1/organizations | List Organizations |
 | [**remove_organization_users**](OrganizationsApi.md#remove_organization_users) | **PATCH** /api/v1/organization/users | Remove Users from an Organization |
+| [**update_organization**](OrganizationsApi.md#update_organization) | **PATCH** /api/v1/organizations/{org_code} | Update Organization |
 | [**update_organization_feature_flag_override**](OrganizationsApi.md#update_organization_feature_flag_override) | **PATCH** /api/v1/organizations/{org_code}/feature_flags/{feature_flag_key} | Update organization feature flag override |
 
 
@@ -90,7 +91,7 @@ end
 
 ## create_organization
 
-> create_organization(opts)
+> <CreateOrganizationResponse> create_organization(opts)
 
 Create Organization
 
@@ -114,7 +115,8 @@ opts = {
 
 begin
   # Create Organization
-  api_instance.create_organization(opts)
+  result = api_instance.create_organization(opts)
+  p result
 rescue KindeApi::ApiError => e
   puts "Error when calling OrganizationsApi->create_organization: #{e}"
 end
@@ -122,9 +124,9 @@ end
 
 #### Using the create_organization_with_http_info variant
 
-This returns an Array which contains the response data (`nil` in this case), status code and headers.
+This returns an Array which contains the response data, status code and headers.
 
-> <Array(nil, Integer, Hash)> create_organization_with_http_info(opts)
+> <Array(<CreateOrganizationResponse>, Integer, Hash)> create_organization_with_http_info(opts)
 
 ```ruby
 begin
@@ -132,7 +134,7 @@ begin
   data, status_code, headers = api_instance.create_organization_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => nil
+  p data # => <CreateOrganizationResponse>
 rescue KindeApi::ApiError => e
   puts "Error when calling OrganizationsApi->create_organization_with_http_info: #{e}"
 end
@@ -146,7 +148,7 @@ end
 
 ### Return type
 
-nil (empty response body)
+[**CreateOrganizationResponse**](CreateOrganizationResponse.md)
 
 ### Authorization
 
@@ -585,6 +587,76 @@ end
 ### Return type
 
 [**RemoveOrganizationUsersResponse**](RemoveOrganizationUsersResponse.md)
+
+### Authorization
+
+[kindeBearerAuth](../README.md#kindeBearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
+
+
+## update_organization
+
+> update_organization(opts)
+
+Update Organization
+
+Update an organization.
+
+### Examples
+
+```ruby
+require 'time'
+require 'kinde_api'
+# setup authorization
+KindeApi.configure do |config|
+  # Configure Bearer authorization (JWT): kindeBearerAuth
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = KindeApi::OrganizationsApi.new
+opts = {
+  update_organization_request: KindeApi::UpdateOrganizationRequest.new # UpdateOrganizationRequest | Organization details.
+}
+
+begin
+  # Update Organization
+  api_instance.update_organization(opts)
+rescue KindeApi::ApiError => e
+  puts "Error when calling OrganizationsApi->update_organization: #{e}"
+end
+```
+
+#### Using the update_organization_with_http_info variant
+
+This returns an Array which contains the response data (`nil` in this case), status code and headers.
+
+> <Array(nil, Integer, Hash)> update_organization_with_http_info(opts)
+
+```ruby
+begin
+  # Update Organization
+  data, status_code, headers = api_instance.update_organization_with_http_info(opts)
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => nil
+rescue KindeApi::ApiError => e
+  puts "Error when calling OrganizationsApi->update_organization_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+| Name | Type | Description | Notes |
+| ---- | ---- | ----------- | ----- |
+| **update_organization_request** | [**UpdateOrganizationRequest**](UpdateOrganizationRequest.md) | Organization details. | [optional] |
+
+### Return type
+
+nil (empty response body)
 
 ### Authorization
 
