@@ -30,10 +30,6 @@ module KindeSdk
       get_claim("permissions").include?(permission)
     end
 
-    def logout
-      KindeSdk.logout(bearer_token, kinde_api_client)
-    end
-
     ::KindeApi.constants.filter { |klass| klass.to_s.end_with?("Api") }.each do |klass|
       api_klass = Kernel.const_get("KindeApi::#{klass}")
 

@@ -239,15 +239,23 @@ instance_client.create_user(args)
 ```
 
 #### Logout
-For logout you need to call:
+For logout you need to call (in case of rails app) in your controller:
 ```ruby
-instance_client.logout
-# or
-KindeSdk.logout(access_token)
+redirect_to KindeSdk.logout_url, allow_other_host: true
 ```
-then clear your session or storage (delete your token) and redirect wherever you want to.
+Your app should handle logout callback url (which was configured separately).
+After calling redirect to logout_url (if set), Kinde redirect it back to logout callback path, where you need to clear your session:
+```ruby
+  # .......
+  def logout_callback
+    Rails.logger.info("logout callback successfully received")
+    reset_session
+    redirect_to root_path
+  end
+  # ......
+```
 If you configured logout redirect url correct (e.g. added in the admin panel allowed logout redirect), you can receive 
-a logout callback. Use it if it needs to perform some clean-ups or any other jobs.
+a logout callback. Otherwise Kinde logout message will be shown.
 
 ### Organizations
 #### Create an organization
