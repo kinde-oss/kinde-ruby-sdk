@@ -224,6 +224,10 @@ describe KindeSdk do
       it "initializes users instance api" do
         expect(client.users).to be_instance_of(KindeApi::UsersApi)
       end
+
+      it "initializes feature flags instance api" do
+        expect(client.feature_flags).to be_instance_of(KindeApi::FeatureFlagsApi)
+      end
     end
   end
 end

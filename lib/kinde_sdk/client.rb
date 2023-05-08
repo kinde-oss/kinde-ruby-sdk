@@ -35,14 +35,12 @@ module KindeSdk
       { name: claim, value: value }
     end
 
-    def logout
-      KindeSdk.logout(bearer_token, kinde_api_client)
-    end
-
     ::KindeApi.constants.filter { |klass| klass.to_s.end_with?("Api") }.each do |klass|
       api_klass = Kernel.const_get("KindeApi::#{klass}")
 
-      define_method(klass.to_s.downcase.split("api")[0]) { init_instance_api(api_klass) }
+      define_method(klass.to_s.gsub(/([a-z\d])([A-Z])/) { "#{$1}_#{$2}" }.downcase.split("_api")[0]) do
+        init_instance_api(api_klass)
+      end
     end
 
     private
