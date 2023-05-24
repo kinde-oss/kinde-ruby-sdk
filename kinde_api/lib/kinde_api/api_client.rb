@@ -300,7 +300,7 @@ module KindeApi
     def build_request_url(path, opts = {})
       # Add leading and trailing slashes to path
       path = "/#{path}".gsub(/\/+/, '/')
-      @config.base_url(opts[:operation]) + path
+      @config.base_url + path
     end
 
     # Update header and query params based on authentication settings.

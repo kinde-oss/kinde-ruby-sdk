@@ -6,6 +6,7 @@ require 'securerandom'
 require 'oauth2'
 require 'pkce_challenge'
 require 'faraday/follow_redirects'
+require 'uri'
 
 module KindeSdk
   class << self
@@ -98,6 +99,7 @@ module KindeSdk
         c.host = @config.domain
         c.debugging = @config.debugging
         c.logger = @config.logger
+        c.scheme = url_scheme(c.scheme)
       end
 
       KindeApi::ApiClient.new(config)
@@ -109,6 +111,13 @@ module KindeSdk
       # from https://example.kinde.com fetches `example`
       # from https://example-chamois.au.kinde.com fetches `example-chamois.au`
       @config.business_name || @config.domain.split("//")[1].split(".")[0..-3].join(".")
+    end
+
+    def url_scheme(default_scheme)
+      parsed_url = URI.parse(@config.domain.to_s)
+      parsed_url.scheme || default_scheme
+    rescue URI::InvalidURIError
+      default_scheme
     end
   end
 end
