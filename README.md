@@ -165,12 +165,12 @@ For proper refreshing you'll need to use `access_token`, `refresh_token` and pro
 Use these two methods to work with refreshing:
 ```ruby
 KindeSdk.token_expired?(session[:kinde_auth]) # => false
-KindeSdk.refresh_token(session[:kinde_auth]) # => {"access_token" => "qwe...", "refresh_token" => "fqw...", .....}
+KindeSdk.refresh_token(session[:kinde_auth]) # => {"access_token" => "qwe...", "refresh_token" => "fqw...", "expires_at"=>1685474405}
 ```
 or from your client instance:
 ```ruby
 client.token_expired? # => false
-client.refresh_token # => {"access_token" => "qwe...", ....}
+client.refresh_token # => {"access_token" => "qwe...", ...., "expires_at"=>1685474405}
 ```
 If you are calling `#refresh_token` on a client instance, the instance token data will be automatically updated.
 If you are calling `KindeSdk#refresh_token`, you'll need to store new token data in your configured storage (redis/session/etc).

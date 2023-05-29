@@ -19,6 +19,8 @@ module KindeSdk
     def refresh_token
       new_tokens_hash = KindeSdk.refresh_token(tokens_hash)
       set_hash_related_data(new_tokens_hash)
+      @kinde_api_client = KindeSdk.api_client(tokens_hash["access_token"])
+      new_tokens_hash
     end
 
     # token_type is one of: :access_token, :id_token
