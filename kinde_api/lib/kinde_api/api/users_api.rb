@@ -19,73 +19,6 @@ module KindeApi
     def initialize(api_client = ApiClient.default)
       @api_client = api_client
     end
-    # Assign Users to an Organization
-    # Add existing users to an organization.
-    # @param [Hash] opts the optional parameters
-    # @option opts [String] :code The organization&#39;s code.
-    # @option opts [AddOrganizationUsersRequest] :add_organization_users_request 
-    # @return [AddOrganizationUsersResponse]
-    def add_organization_users(opts = {})
-      data, _status_code, _headers = add_organization_users_with_http_info(opts)
-      data
-    end
-
-    # Assign Users to an Organization
-    # Add existing users to an organization.
-    # @param [Hash] opts the optional parameters
-    # @option opts [String] :code The organization&#39;s code.
-    # @option opts [AddOrganizationUsersRequest] :add_organization_users_request 
-    # @return [Array<(AddOrganizationUsersResponse, Integer, Hash)>] AddOrganizationUsersResponse data, response status code and response headers
-    def add_organization_users_with_http_info(opts = {})
-      if @api_client.config.debugging
-        @api_client.config.logger.debug 'Calling API: UsersApi.add_organization_users ...'
-      end
-      # resource path
-      local_var_path = '/api/v1/organization/users'
-
-      # query parameters
-      query_params = opts[:query_params] || {}
-      query_params[:'code'] = opts[:'code'] if !opts[:'code'].nil?
-
-      # header parameters
-      header_params = opts[:header_params] || {}
-      # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
-      # HTTP header 'Content-Type'
-      content_type = @api_client.select_header_content_type(['application/json'])
-      if !content_type.nil?
-        header_params['Content-Type'] = content_type
-      end
-
-      # form parameters
-      form_params = opts[:form_params] || {}
-
-      # http body (model)
-      post_body = opts[:debug_body] || @api_client.object_to_http_body(opts[:'add_organization_users_request'])
-
-      # return_type
-      return_type = opts[:debug_return_type] || 'AddOrganizationUsersResponse'
-
-      # auth_names
-      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
-
-      new_options = opts.merge(
-        :operation => :"UsersApi.add_organization_users",
-        :header_params => header_params,
-        :query_params => query_params,
-        :form_params => form_params,
-        :body => post_body,
-        :auth_names => auth_names,
-        :return_type => return_type
-      )
-
-      data, status_code, headers = @api_client.call_api(:POST, local_var_path, new_options)
-      if @api_client.config.debugging
-        @api_client.config.logger.debug "API called: UsersApi#add_organization_users\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
-      end
-      return data, status_code, headers
-    end
-
     # Create User
     # Creates a user record and optionally zero or more identities for the user. An example identity could be the email address of the user. 
     # @param [Hash] opts the optional parameters
@@ -155,8 +88,8 @@ module KindeApi
     # @param [Hash] opts the optional parameters
     # @option opts [String] :id The user&#39;s id.
     # @return [SuccessResponse]
-    def deleteuser(opts = {})
-      data, _status_code, _headers = deleteuser_with_http_info(opts)
+    def delete_user(opts = {})
+      data, _status_code, _headers = delete_user_with_http_info(opts)
       data
     end
 
@@ -165,9 +98,9 @@ module KindeApi
     # @param [Hash] opts the optional parameters
     # @option opts [String] :id The user&#39;s id.
     # @return [Array<(SuccessResponse, Integer, Hash)>] SuccessResponse data, response status code and response headers
-    def deleteuser_with_http_info(opts = {})
+    def delete_user_with_http_info(opts = {})
       if @api_client.config.debugging
-        @api_client.config.logger.debug 'Calling API: UsersApi.deleteuser ...'
+        @api_client.config.logger.debug 'Calling API: UsersApi.delete_user ...'
       end
       # resource path
       local_var_path = '/api/v1/user'
@@ -194,7 +127,7 @@ module KindeApi
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
 
       new_options = opts.merge(
-        :operation => :"UsersApi.deleteuser",
+        :operation => :"UsersApi.delete_user",
         :header_params => header_params,
         :query_params => query_params,
         :form_params => form_params,
@@ -205,83 +138,7 @@ module KindeApi
 
       data, status_code, headers = @api_client.call_api(:DELETE, local_var_path, new_options)
       if @api_client.config.debugging
-        @api_client.config.logger.debug "API called: UsersApi#deleteuser\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
-      end
-      return data, status_code, headers
-    end
-
-    # List Organization Users
-    # Get users in an organization.
-    # @param [Hash] opts the optional parameters
-    # @option opts [String] :sort Field and order to sort the result by.
-    # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
-    # @option opts [String] :next_token A string to get the next page of results if there are more results.
-    # @option opts [String] :code The organization&#39;s code.
-    # @option opts [String] :permissions Filter by user permissions
-    # @return [GetOrganizationsUsersResponse]
-    def get_organization_users(opts = {})
-      data, _status_code, _headers = get_organization_users_with_http_info(opts)
-      data
-    end
-
-    # List Organization Users
-    # Get users in an organization.
-    # @param [Hash] opts the optional parameters
-    # @option opts [String] :sort Field and order to sort the result by.
-    # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
-    # @option opts [String] :next_token A string to get the next page of results if there are more results.
-    # @option opts [String] :code The organization&#39;s code.
-    # @option opts [String] :permissions Filter by user permissions
-    # @return [Array<(GetOrganizationsUsersResponse, Integer, Hash)>] GetOrganizationsUsersResponse data, response status code and response headers
-    def get_organization_users_with_http_info(opts = {})
-      if @api_client.config.debugging
-        @api_client.config.logger.debug 'Calling API: UsersApi.get_organization_users ...'
-      end
-      allowable_values = ["name_asc", "name_desc", "email_asc", "email_desc"]
-      if @api_client.config.client_side_validation && opts[:'sort'] && !allowable_values.include?(opts[:'sort'])
-        fail ArgumentError, "invalid value for \"sort\", must be one of #{allowable_values}"
-      end
-      # resource path
-      local_var_path = '/api/v1/organization/users'
-
-      # query parameters
-      query_params = opts[:query_params] || {}
-      query_params[:'sort'] = opts[:'sort'] if !opts[:'sort'].nil?
-      query_params[:'page_size'] = opts[:'page_size'] if !opts[:'page_size'].nil?
-      query_params[:'next_token'] = opts[:'next_token'] if !opts[:'next_token'].nil?
-      query_params[:'code'] = opts[:'code'] if !opts[:'code'].nil?
-      query_params[:'permissions'] = opts[:'permissions'] if !opts[:'permissions'].nil?
-
-      # header parameters
-      header_params = opts[:header_params] || {}
-      # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
-
-      # form parameters
-      form_params = opts[:form_params] || {}
-
-      # http body (model)
-      post_body = opts[:debug_body]
-
-      # return_type
-      return_type = opts[:debug_return_type] || 'GetOrganizationsUsersResponse'
-
-      # auth_names
-      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
-
-      new_options = opts.merge(
-        :operation => :"UsersApi.get_organization_users",
-        :header_params => header_params,
-        :query_params => query_params,
-        :form_params => form_params,
-        :body => post_body,
-        :auth_names => auth_names,
-        :return_type => return_type
-      )
-
-      data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
-      if @api_client.config.debugging
-        @api_client.config.logger.debug "API called: UsersApi#get_organization_users\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+        @api_client.config.logger.debug "API called: UsersApi#delete_user\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
       end
       return data, status_code, headers
     end
@@ -415,73 +272,6 @@ module KindeApi
       data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
       if @api_client.config.debugging
         @api_client.config.logger.debug "API called: UsersApi#get_users\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
-      end
-      return data, status_code, headers
-    end
-
-    # Remove Users from an Organization
-    # Remove existing users from an organization.
-    # @param [Hash] opts the optional parameters
-    # @option opts [String] :code The organization&#39;s code.
-    # @option opts [RemoveOrganizationUsersRequest] :remove_organization_users_request 
-    # @return [RemoveOrganizationUsersResponse]
-    def remove_organization_users(opts = {})
-      data, _status_code, _headers = remove_organization_users_with_http_info(opts)
-      data
-    end
-
-    # Remove Users from an Organization
-    # Remove existing users from an organization.
-    # @param [Hash] opts the optional parameters
-    # @option opts [String] :code The organization&#39;s code.
-    # @option opts [RemoveOrganizationUsersRequest] :remove_organization_users_request 
-    # @return [Array<(RemoveOrganizationUsersResponse, Integer, Hash)>] RemoveOrganizationUsersResponse data, response status code and response headers
-    def remove_organization_users_with_http_info(opts = {})
-      if @api_client.config.debugging
-        @api_client.config.logger.debug 'Calling API: UsersApi.remove_organization_users ...'
-      end
-      # resource path
-      local_var_path = '/api/v1/organization/users'
-
-      # query parameters
-      query_params = opts[:query_params] || {}
-      query_params[:'code'] = opts[:'code'] if !opts[:'code'].nil?
-
-      # header parameters
-      header_params = opts[:header_params] || {}
-      # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
-      # HTTP header 'Content-Type'
-      content_type = @api_client.select_header_content_type(['application/json'])
-      if !content_type.nil?
-        header_params['Content-Type'] = content_type
-      end
-
-      # form parameters
-      form_params = opts[:form_params] || {}
-
-      # http body (model)
-      post_body = opts[:debug_body] || @api_client.object_to_http_body(opts[:'remove_organization_users_request'])
-
-      # return_type
-      return_type = opts[:debug_return_type] || 'RemoveOrganizationUsersResponse'
-
-      # auth_names
-      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
-
-      new_options = opts.merge(
-        :operation => :"UsersApi.remove_organization_users",
-        :header_params => header_params,
-        :query_params => query_params,
-        :form_params => form_params,
-        :body => post_body,
-        :auth_names => auth_names,
-        :return_type => return_type
-      )
-
-      data, status_code, headers = @api_client.call_api(:PATCH, local_var_path, new_options)
-      if @api_client.config.debugging
-        @api_client.config.logger.debug "API called: UsersApi#remove_organization_users\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
       end
       return data, status_code, headers
     end

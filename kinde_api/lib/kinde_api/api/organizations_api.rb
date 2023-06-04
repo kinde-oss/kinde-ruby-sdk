@@ -19,33 +19,36 @@ module KindeApi
     def initialize(api_client = ApiClient.default)
       @api_client = api_client
     end
-    # Assign Users to an Organization
+    # Add organization users
     # Add existing users to an organization.
+    # @param org_code [String] The organization&#39;s code.
     # @param [Hash] opts the optional parameters
-    # @option opts [String] :code The organization&#39;s code.
     # @option opts [AddOrganizationUsersRequest] :add_organization_users_request 
     # @return [AddOrganizationUsersResponse]
-    def add_organization_users(opts = {})
-      data, _status_code, _headers = add_organization_users_with_http_info(opts)
+    def add_organization_users(org_code, opts = {})
+      data, _status_code, _headers = add_organization_users_with_http_info(org_code, opts)
       data
     end
 
-    # Assign Users to an Organization
+    # Add organization users
     # Add existing users to an organization.
+    # @param org_code [String] The organization&#39;s code.
     # @param [Hash] opts the optional parameters
-    # @option opts [String] :code The organization&#39;s code.
     # @option opts [AddOrganizationUsersRequest] :add_organization_users_request 
     # @return [Array<(AddOrganizationUsersResponse, Integer, Hash)>] AddOrganizationUsersResponse data, response status code and response headers
-    def add_organization_users_with_http_info(opts = {})
+    def add_organization_users_with_http_info(org_code, opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: OrganizationsApi.add_organization_users ...'
       end
+      # verify the required parameter 'org_code' is set
+      if @api_client.config.client_side_validation && org_code.nil?
+        fail ArgumentError, "Missing the required parameter 'org_code' when calling OrganizationsApi.add_organization_users"
+      end
       # resource path
-      local_var_path = '/api/v1/organization/users'
+      local_var_path = '/api/v1/organizations/{org_code}/users'.sub('{' + 'org_code' + '}', CGI.escape(org_code.to_s))
 
       # query parameters
       query_params = opts[:query_params] || {}
-      query_params[:'code'] = opts[:'code'] if !opts[:'code'].nil?
 
       # header parameters
       header_params = opts[:header_params] || {}
@@ -344,44 +347,47 @@ module KindeApi
 
     # List Organization Users
     # Get users in an organization.
+    # @param org_code [String] The organization&#39;s code.
     # @param [Hash] opts the optional parameters
     # @option opts [String] :sort Field and order to sort the result by.
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
-    # @option opts [String] :code The organization&#39;s code.
     # @option opts [String] :permissions Filter by user permissions
     # @return [GetOrganizationsUsersResponse]
-    def get_organization_users(opts = {})
-      data, _status_code, _headers = get_organization_users_with_http_info(opts)
+    def get_organization_users(org_code, opts = {})
+      data, _status_code, _headers = get_organization_users_with_http_info(org_code, opts)
       data
     end
 
     # List Organization Users
     # Get users in an organization.
+    # @param org_code [String] The organization&#39;s code.
     # @param [Hash] opts the optional parameters
     # @option opts [String] :sort Field and order to sort the result by.
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
-    # @option opts [String] :code The organization&#39;s code.
     # @option opts [String] :permissions Filter by user permissions
     # @return [Array<(GetOrganizationsUsersResponse, Integer, Hash)>] GetOrganizationsUsersResponse data, response status code and response headers
-    def get_organization_users_with_http_info(opts = {})
+    def get_organization_users_with_http_info(org_code, opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: OrganizationsApi.get_organization_users ...'
+      end
+      # verify the required parameter 'org_code' is set
+      if @api_client.config.client_side_validation && org_code.nil?
+        fail ArgumentError, "Missing the required parameter 'org_code' when calling OrganizationsApi.get_organization_users"
       end
       allowable_values = ["name_asc", "name_desc", "email_asc", "email_desc"]
       if @api_client.config.client_side_validation && opts[:'sort'] && !allowable_values.include?(opts[:'sort'])
         fail ArgumentError, "invalid value for \"sort\", must be one of #{allowable_values}"
       end
       # resource path
-      local_var_path = '/api/v1/organization/users'
+      local_var_path = '/api/v1/organizations/{org_code}/users'.sub('{' + 'org_code' + '}', CGI.escape(org_code.to_s))
 
       # query parameters
       query_params = opts[:query_params] || {}
       query_params[:'sort'] = opts[:'sort'] if !opts[:'sort'].nil?
       query_params[:'page_size'] = opts[:'page_size'] if !opts[:'page_size'].nil?
       query_params[:'next_token'] = opts[:'next_token'] if !opts[:'next_token'].nil?
-      query_params[:'code'] = opts[:'code'] if !opts[:'code'].nil?
       query_params[:'permissions'] = opts[:'permissions'] if !opts[:'permissions'].nil?
 
       # header parameters
@@ -488,58 +494,60 @@ module KindeApi
       return data, status_code, headers
     end
 
-    # Remove Users from an Organization
-    # Remove existing users from an organization.
+    # Remove organization user
+    # Remove user from an organization.
+    # @param org_code [String] The organization&#39;s code.
+    # @param user_id [String] The user&#39;s id.
     # @param [Hash] opts the optional parameters
-    # @option opts [String] :code The organization&#39;s code.
-    # @option opts [RemoveOrganizationUsersRequest] :remove_organization_users_request 
-    # @return [RemoveOrganizationUsersResponse]
-    def remove_organization_users(opts = {})
-      data, _status_code, _headers = remove_organization_users_with_http_info(opts)
+    # @return [SuccessResponse]
+    def remove_organization_user(org_code, user_id, opts = {})
+      data, _status_code, _headers = remove_organization_user_with_http_info(org_code, user_id, opts)
       data
     end
 
-    # Remove Users from an Organization
-    # Remove existing users from an organization.
+    # Remove organization user
+    # Remove user from an organization.
+    # @param org_code [String] The organization&#39;s code.
+    # @param user_id [String] The user&#39;s id.
     # @param [Hash] opts the optional parameters
-    # @option opts [String] :code The organization&#39;s code.
-    # @option opts [RemoveOrganizationUsersRequest] :remove_organization_users_request 
-    # @return [Array<(RemoveOrganizationUsersResponse, Integer, Hash)>] RemoveOrganizationUsersResponse data, response status code and response headers
-    def remove_organization_users_with_http_info(opts = {})
+    # @return [Array<(SuccessResponse, Integer, Hash)>] SuccessResponse data, response status code and response headers
+    def remove_organization_user_with_http_info(org_code, user_id, opts = {})
       if @api_client.config.debugging
-        @api_client.config.logger.debug 'Calling API: OrganizationsApi.remove_organization_users ...'
+        @api_client.config.logger.debug 'Calling API: OrganizationsApi.remove_organization_user ...'
+      end
+      # verify the required parameter 'org_code' is set
+      if @api_client.config.client_side_validation && org_code.nil?
+        fail ArgumentError, "Missing the required parameter 'org_code' when calling OrganizationsApi.remove_organization_user"
+      end
+      # verify the required parameter 'user_id' is set
+      if @api_client.config.client_side_validation && user_id.nil?
+        fail ArgumentError, "Missing the required parameter 'user_id' when calling OrganizationsApi.remove_organization_user"
       end
       # resource path
-      local_var_path = '/api/v1/organization/users'
+      local_var_path = '/api/v1/organizations/{org_code}/users/{user_id}'.sub('{' + 'org_code' + '}', CGI.escape(org_code.to_s)).sub('{' + 'user_id' + '}', CGI.escape(user_id.to_s))
 
       # query parameters
       query_params = opts[:query_params] || {}
-      query_params[:'code'] = opts[:'code'] if !opts[:'code'].nil?
 
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
       header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
-      # HTTP header 'Content-Type'
-      content_type = @api_client.select_header_content_type(['application/json'])
-      if !content_type.nil?
-        header_params['Content-Type'] = content_type
-      end
 
       # form parameters
       form_params = opts[:form_params] || {}
 
       # http body (model)
-      post_body = opts[:debug_body] || @api_client.object_to_http_body(opts[:'remove_organization_users_request'])
+      post_body = opts[:debug_body]
 
       # return_type
-      return_type = opts[:debug_return_type] || 'RemoveOrganizationUsersResponse'
+      return_type = opts[:debug_return_type] || 'SuccessResponse'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
 
       new_options = opts.merge(
-        :operation => :"OrganizationsApi.remove_organization_users",
+        :operation => :"OrganizationsApi.remove_organization_user",
         :header_params => header_params,
         :query_params => query_params,
         :form_params => form_params,
@@ -548,34 +556,40 @@ module KindeApi
         :return_type => return_type
       )
 
-      data, status_code, headers = @api_client.call_api(:PATCH, local_var_path, new_options)
+      data, status_code, headers = @api_client.call_api(:DELETE, local_var_path, new_options)
       if @api_client.config.debugging
-        @api_client.config.logger.debug "API called: OrganizationsApi#remove_organization_users\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+        @api_client.config.logger.debug "API called: OrganizationsApi#remove_organization_user\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
       end
       return data, status_code, headers
     end
 
     # Update Organization
     # Update an organization.
+    # @param org_code [String] The identifier for the organization.
     # @param [Hash] opts the optional parameters
     # @option opts [UpdateOrganizationRequest] :update_organization_request Organization details.
     # @return [nil]
-    def update_organization(opts = {})
-      update_organization_with_http_info(opts)
+    def update_organization(org_code, opts = {})
+      update_organization_with_http_info(org_code, opts)
       nil
     end
 
     # Update Organization
     # Update an organization.
+    # @param org_code [String] The identifier for the organization.
     # @param [Hash] opts the optional parameters
     # @option opts [UpdateOrganizationRequest] :update_organization_request Organization details.
     # @return [Array<(nil, Integer, Hash)>] nil, response status code and response headers
-    def update_organization_with_http_info(opts = {})
+    def update_organization_with_http_info(org_code, opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: OrganizationsApi.update_organization ...'
       end
+      # verify the required parameter 'org_code' is set
+      if @api_client.config.client_side_validation && org_code.nil?
+        fail ArgumentError, "Missing the required parameter 'org_code' when calling OrganizationsApi.update_organization"
+      end
       # resource path
-      local_var_path = '/api/v1/organizations/{org_code}'
+      local_var_path = '/api/v1/organizations/{org_code}'.sub('{' + 'org_code' + '}', CGI.escape(org_code.to_s))
 
       # query parameters
       query_params = opts[:query_params] || {}
@@ -691,6 +705,76 @@ module KindeApi
       data, status_code, headers = @api_client.call_api(:PATCH, local_var_path, new_options)
       if @api_client.config.debugging
         @api_client.config.logger.debug "API called: OrganizationsApi#update_organization_feature_flag_override\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
+    # Update organization users
+    # Update users that belong to an organization.
+    # @param org_code [String] The organization&#39;s code.
+    # @param [Hash] opts the optional parameters
+    # @option opts [UpdateOrganizationUsersRequest] :update_organization_users_request 
+    # @return [RemoveOrganizationUsersResponse]
+    def update_organization_users(org_code, opts = {})
+      data, _status_code, _headers = update_organization_users_with_http_info(org_code, opts)
+      data
+    end
+
+    # Update organization users
+    # Update users that belong to an organization.
+    # @param org_code [String] The organization&#39;s code.
+    # @param [Hash] opts the optional parameters
+    # @option opts [UpdateOrganizationUsersRequest] :update_organization_users_request 
+    # @return [Array<(RemoveOrganizationUsersResponse, Integer, Hash)>] RemoveOrganizationUsersResponse data, response status code and response headers
+    def update_organization_users_with_http_info(org_code, opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: OrganizationsApi.update_organization_users ...'
+      end
+      # verify the required parameter 'org_code' is set
+      if @api_client.config.client_side_validation && org_code.nil?
+        fail ArgumentError, "Missing the required parameter 'org_code' when calling OrganizationsApi.update_organization_users"
+      end
+      # resource path
+      local_var_path = '/api/v1/organizations/{org_code}/users'.sub('{' + 'org_code' + '}', CGI.escape(org_code.to_s))
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
+      # HTTP header 'Content-Type'
+      content_type = @api_client.select_header_content_type(['application/json'])
+      if !content_type.nil?
+        header_params['Content-Type'] = content_type
+      end
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body] || @api_client.object_to_http_body(opts[:'update_organization_users_request'])
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'RemoveOrganizationUsersResponse'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
+
+      new_options = opts.merge(
+        :operation => :"OrganizationsApi.update_organization_users",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:PATCH, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: OrganizationsApi#update_organization_users\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
       end
       return data, status_code, headers
     end

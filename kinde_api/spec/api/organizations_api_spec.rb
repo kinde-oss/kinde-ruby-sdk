@@ -33,10 +33,10 @@ describe 'OrganizationsApi' do
   end
 
   # unit tests for add_organization_users
-  # Assign Users to an Organization
+  # Add organization users
   # Add existing users to an organization.
+  # @param org_code The organization&#39;s code.
   # @param [Hash] opts the optional parameters
-  # @option opts [String] :code The organization&#39;s code.
   # @option opts [AddOrganizationUsersRequest] :add_organization_users_request 
   # @return [AddOrganizationUsersResponse]
   describe 'add_organization_users test' do
@@ -97,11 +97,11 @@ describe 'OrganizationsApi' do
   # unit tests for get_organization_users
   # List Organization Users
   # Get users in an organization.
+  # @param org_code The organization&#39;s code.
   # @param [Hash] opts the optional parameters
   # @option opts [String] :sort Field and order to sort the result by.
   # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
   # @option opts [String] :next_token A string to get the next page of results if there are more results.
-  # @option opts [String] :code The organization&#39;s code.
   # @option opts [String] :permissions Filter by user permissions
   # @return [GetOrganizationsUsersResponse]
   describe 'get_organization_users test' do
@@ -124,14 +124,14 @@ describe 'OrganizationsApi' do
     end
   end
 
-  # unit tests for remove_organization_users
-  # Remove Users from an Organization
-  # Remove existing users from an organization.
+  # unit tests for remove_organization_user
+  # Remove organization user
+  # Remove user from an organization.
+  # @param org_code The organization&#39;s code.
+  # @param user_id The user&#39;s id.
   # @param [Hash] opts the optional parameters
-  # @option opts [String] :code The organization&#39;s code.
-  # @option opts [RemoveOrganizationUsersRequest] :remove_organization_users_request 
-  # @return [RemoveOrganizationUsersResponse]
-  describe 'remove_organization_users test' do
+  # @return [SuccessResponse]
+  describe 'remove_organization_user test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
     end
@@ -140,6 +140,7 @@ describe 'OrganizationsApi' do
   # unit tests for update_organization
   # Update Organization
   # Update an organization.
+  # @param org_code The identifier for the organization.
   # @param [Hash] opts the optional parameters
   # @option opts [UpdateOrganizationRequest] :update_organization_request Organization details.
   # @return [nil]
@@ -158,6 +159,19 @@ describe 'OrganizationsApi' do
   # @param [Hash] opts the optional parameters
   # @return [SuccessResponse]
   describe 'update_organization_feature_flag_override test' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
+  # unit tests for update_organization_users
+  # Update organization users
+  # Update users that belong to an organization.
+  # @param org_code The organization&#39;s code.
+  # @param [Hash] opts the optional parameters
+  # @option opts [UpdateOrganizationUsersRequest] :update_organization_users_request 
+  # @return [RemoveOrganizationUsersResponse]
+  describe 'update_organization_users test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
     end

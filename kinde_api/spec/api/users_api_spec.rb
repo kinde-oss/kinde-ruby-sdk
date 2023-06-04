@@ -32,19 +32,6 @@ describe 'UsersApi' do
     end
   end
 
-  # unit tests for add_organization_users
-  # Assign Users to an Organization
-  # Add existing users to an organization.
-  # @param [Hash] opts the optional parameters
-  # @option opts [String] :code The organization&#39;s code.
-  # @option opts [AddOrganizationUsersRequest] :add_organization_users_request 
-  # @return [AddOrganizationUsersResponse]
-  describe 'add_organization_users test' do
-    it 'should work' do
-      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
-    end
-  end
-
   # unit tests for create_user
   # Create User
   # Creates a user record and optionally zero or more identities for the user. An example identity could be the email address of the user. 
@@ -57,29 +44,13 @@ describe 'UsersApi' do
     end
   end
 
-  # unit tests for deleteuser
+  # unit tests for delete_user
   # Delete User
   # Delete a user record. 
   # @param [Hash] opts the optional parameters
   # @option opts [String] :id The user&#39;s id.
   # @return [SuccessResponse]
-  describe 'deleteuser test' do
-    it 'should work' do
-      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
-    end
-  end
-
-  # unit tests for get_organization_users
-  # List Organization Users
-  # Get users in an organization.
-  # @param [Hash] opts the optional parameters
-  # @option opts [String] :sort Field and order to sort the result by.
-  # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
-  # @option opts [String] :next_token A string to get the next page of results if there are more results.
-  # @option opts [String] :code The organization&#39;s code.
-  # @option opts [String] :permissions Filter by user permissions
-  # @return [GetOrganizationsUsersResponse]
-  describe 'get_organization_users test' do
+  describe 'delete_user test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
     end
@@ -107,19 +78,6 @@ describe 'UsersApi' do
   # @option opts [String] :next_token A string to get the next page of results if there are more results.
   # @return [UsersResponse]
   describe 'get_users test' do
-    it 'should work' do
-      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
-    end
-  end
-
-  # unit tests for remove_organization_users
-  # Remove Users from an Organization
-  # Remove existing users from an organization.
-  # @param [Hash] opts the optional parameters
-  # @option opts [String] :code The organization&#39;s code.
-  # @option opts [RemoveOrganizationUsersRequest] :remove_organization_users_request 
-  # @return [RemoveOrganizationUsersResponse]
-  describe 'remove_organization_users test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
     end

@@ -14,14 +14,16 @@ require 'date'
 require 'time'
 
 module KindeApi
-  class AddOrganizationUsersRequest
-    # Users to be added to the organization.
-    attr_accessor :users
+  class Application
+    attr_accessor :app_id
+
+    attr_accessor :name
 
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
-        :'users' => :'users'
+        :'app_id' => :'app_id',
+        :'name' => :'name'
       }
     end
 
@@ -33,7 +35,8 @@ module KindeApi
     # Attribute type mapping.
     def self.openapi_types
       {
-        :'users' => :'Array<AddOrganizationUsersRequestUsersInner>'
+        :'app_id' => :'String',
+        :'name' => :'String'
       }
     end
 
@@ -47,21 +50,23 @@ module KindeApi
     # @param [Hash] attributes Model attributes in the form of hash
     def initialize(attributes = {})
       if (!attributes.is_a?(Hash))
-        fail ArgumentError, "The input argument (attributes) must be a hash in `KindeApi::AddOrganizationUsersRequest` initialize method"
+        fail ArgumentError, "The input argument (attributes) must be a hash in `KindeApi::Application` initialize method"
       end
 
       # check to see if the attribute exists and convert string to symbol for hash key
       attributes = attributes.each_with_object({}) { |(k, v), h|
         if (!self.class.attribute_map.key?(k.to_sym))
-          fail ArgumentError, "`#{k}` is not a valid attribute in `KindeApi::AddOrganizationUsersRequest`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
+          fail ArgumentError, "`#{k}` is not a valid attribute in `KindeApi::Application`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
         end
         h[k.to_sym] = v
       }
 
-      if attributes.key?(:'users')
-        if (value = attributes[:'users']).is_a?(Array)
-          self.users = value
-        end
+      if attributes.key?(:'app_id')
+        self.app_id = attributes[:'app_id']
+      end
+
+      if attributes.key?(:'name')
+        self.name = attributes[:'name']
       end
     end
 
@@ -83,7 +88,8 @@ module KindeApi
     def ==(o)
       return true if self.equal?(o)
       self.class == o.class &&
-          users == o.users
+          app_id == o.app_id &&
+          name == o.name
     end
 
     # @see the `==` method
@@ -95,7 +101,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [users].hash
+      [app_id, name].hash
     end
 
     # Builds the object from hash

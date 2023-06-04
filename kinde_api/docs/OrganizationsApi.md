@@ -4,23 +4,24 @@ All URIs are relative to *https://app.kinde.com*
 
 | Method | HTTP request | Description |
 | ------ | ------------ | ----------- |
-| [**add_organization_users**](OrganizationsApi.md#add_organization_users) | **POST** /api/v1/organization/users | Assign Users to an Organization |
+| [**add_organization_users**](OrganizationsApi.md#add_organization_users) | **POST** /api/v1/organizations/{org_code}/users | Add organization users |
 | [**create_organization**](OrganizationsApi.md#create_organization) | **POST** /api/v1/organization | Create Organization |
 | [**delete_organization_feature_flag_override**](OrganizationsApi.md#delete_organization_feature_flag_override) | **DELETE** /api/v1/organizations/{org_code}/feature_flags/{feature_flag_key} | Delete organization feature flag override |
 | [**delete_organization_feature_flag_overrides**](OrganizationsApi.md#delete_organization_feature_flag_overrides) | **DELETE** /api/v1/organizations/{org_code}/feature_flags | Delete all organization feature flag overrides |
 | [**get_organization**](OrganizationsApi.md#get_organization) | **GET** /api/v1/organization | Get Organization |
-| [**get_organization_users**](OrganizationsApi.md#get_organization_users) | **GET** /api/v1/organization/users | List Organization Users |
+| [**get_organization_users**](OrganizationsApi.md#get_organization_users) | **GET** /api/v1/organizations/{org_code}/users | List Organization Users |
 | [**get_organizations**](OrganizationsApi.md#get_organizations) | **GET** /api/v1/organizations | List Organizations |
-| [**remove_organization_users**](OrganizationsApi.md#remove_organization_users) | **PATCH** /api/v1/organization/users | Remove Users from an Organization |
+| [**remove_organization_user**](OrganizationsApi.md#remove_organization_user) | **DELETE** /api/v1/organizations/{org_code}/users/{user_id} | Remove organization user |
 | [**update_organization**](OrganizationsApi.md#update_organization) | **PATCH** /api/v1/organizations/{org_code} | Update Organization |
 | [**update_organization_feature_flag_override**](OrganizationsApi.md#update_organization_feature_flag_override) | **PATCH** /api/v1/organizations/{org_code}/feature_flags/{feature_flag_key} | Update organization feature flag override |
+| [**update_organization_users**](OrganizationsApi.md#update_organization_users) | **PATCH** /api/v1/organizations/{org_code}/users | Update organization users |
 
 
 ## add_organization_users
 
-> <AddOrganizationUsersResponse> add_organization_users(opts)
+> <AddOrganizationUsersResponse> add_organization_users(org_code, opts)
 
-Assign Users to an Organization
+Add organization users
 
 Add existing users to an organization.
 
@@ -36,14 +37,14 @@ KindeApi.configure do |config|
 end
 
 api_instance = KindeApi::OrganizationsApi.new
+org_code = 'org_code_example' # String | The organization's code.
 opts = {
-  code: 'code_example', # String | The organization's code.
   add_organization_users_request: KindeApi::AddOrganizationUsersRequest.new # AddOrganizationUsersRequest | 
 }
 
 begin
-  # Assign Users to an Organization
-  result = api_instance.add_organization_users(opts)
+  # Add organization users
+  result = api_instance.add_organization_users(org_code, opts)
   p result
 rescue KindeApi::ApiError => e
   puts "Error when calling OrganizationsApi->add_organization_users: #{e}"
@@ -54,12 +55,12 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<AddOrganizationUsersResponse>, Integer, Hash)> add_organization_users_with_http_info(opts)
+> <Array(<AddOrganizationUsersResponse>, Integer, Hash)> add_organization_users_with_http_info(org_code, opts)
 
 ```ruby
 begin
-  # Assign Users to an Organization
-  data, status_code, headers = api_instance.add_organization_users_with_http_info(opts)
+  # Add organization users
+  data, status_code, headers = api_instance.add_organization_users_with_http_info(org_code, opts)
   p status_code # => 2xx
   p headers # => { ... }
   p data # => <AddOrganizationUsersResponse>
@@ -72,7 +73,7 @@ end
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **code** | **String** | The organization&#39;s code. | [optional] |
+| **org_code** | **String** | The organization&#39;s code. |  |
 | **add_organization_users_request** | [**AddOrganizationUsersRequest**](AddOrganizationUsersRequest.md) |  | [optional] |
 
 ### Return type
@@ -373,7 +374,7 @@ end
 
 ## get_organization_users
 
-> <GetOrganizationsUsersResponse> get_organization_users(opts)
+> <GetOrganizationsUsersResponse> get_organization_users(org_code, opts)
 
 List Organization Users
 
@@ -391,17 +392,17 @@ KindeApi.configure do |config|
 end
 
 api_instance = KindeApi::OrganizationsApi.new
+org_code = 'org_code_example' # String | The organization's code.
 opts = {
   sort: 'name_asc', # String | Field and order to sort the result by.
   page_size: 56, # Integer | Number of results per page. Defaults to 10 if parameter not sent.
   next_token: 'next_token_example', # String | A string to get the next page of results if there are more results.
-  code: 'code_example', # String | The organization's code.
   permissions: 'permissions_example' # String | Filter by user permissions
 }
 
 begin
   # List Organization Users
-  result = api_instance.get_organization_users(opts)
+  result = api_instance.get_organization_users(org_code, opts)
   p result
 rescue KindeApi::ApiError => e
   puts "Error when calling OrganizationsApi->get_organization_users: #{e}"
@@ -412,12 +413,12 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<GetOrganizationsUsersResponse>, Integer, Hash)> get_organization_users_with_http_info(opts)
+> <Array(<GetOrganizationsUsersResponse>, Integer, Hash)> get_organization_users_with_http_info(org_code, opts)
 
 ```ruby
 begin
   # List Organization Users
-  data, status_code, headers = api_instance.get_organization_users_with_http_info(opts)
+  data, status_code, headers = api_instance.get_organization_users_with_http_info(org_code, opts)
   p status_code # => 2xx
   p headers # => { ... }
   p data # => <GetOrganizationsUsersResponse>
@@ -430,10 +431,10 @@ end
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
+| **org_code** | **String** | The organization&#39;s code. |  |
 | **sort** | **String** | Field and order to sort the result by. | [optional] |
 | **page_size** | **Integer** | Number of results per page. Defaults to 10 if parameter not sent. | [optional] |
 | **next_token** | **String** | A string to get the next page of results if there are more results. | [optional] |
-| **code** | **String** | The organization&#39;s code. | [optional] |
 | **permissions** | **String** | Filter by user permissions | [optional] |
 
 ### Return type
@@ -525,13 +526,13 @@ end
 - **Accept**: application/json, application/json; charset=utf-8
 
 
-## remove_organization_users
+## remove_organization_user
 
-> <RemoveOrganizationUsersResponse> remove_organization_users(opts)
+> <SuccessResponse> remove_organization_user(org_code, user_id)
 
-Remove Users from an Organization
+Remove organization user
 
-Remove existing users from an organization.
+Remove user from an organization.
 
 ### Examples
 
@@ -545,35 +546,33 @@ KindeApi.configure do |config|
 end
 
 api_instance = KindeApi::OrganizationsApi.new
-opts = {
-  code: 'code_example', # String | The organization's code.
-  remove_organization_users_request: KindeApi::RemoveOrganizationUsersRequest.new # RemoveOrganizationUsersRequest | 
-}
+org_code = 'org_code_example' # String | The organization's code.
+user_id = 'user_id_example' # String | The user's id.
 
 begin
-  # Remove Users from an Organization
-  result = api_instance.remove_organization_users(opts)
+  # Remove organization user
+  result = api_instance.remove_organization_user(org_code, user_id)
   p result
 rescue KindeApi::ApiError => e
-  puts "Error when calling OrganizationsApi->remove_organization_users: #{e}"
+  puts "Error when calling OrganizationsApi->remove_organization_user: #{e}"
 end
 ```
 
-#### Using the remove_organization_users_with_http_info variant
+#### Using the remove_organization_user_with_http_info variant
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<RemoveOrganizationUsersResponse>, Integer, Hash)> remove_organization_users_with_http_info(opts)
+> <Array(<SuccessResponse>, Integer, Hash)> remove_organization_user_with_http_info(org_code, user_id)
 
 ```ruby
 begin
-  # Remove Users from an Organization
-  data, status_code, headers = api_instance.remove_organization_users_with_http_info(opts)
+  # Remove organization user
+  data, status_code, headers = api_instance.remove_organization_user_with_http_info(org_code, user_id)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <RemoveOrganizationUsersResponse>
+  p data # => <SuccessResponse>
 rescue KindeApi::ApiError => e
-  puts "Error when calling OrganizationsApi->remove_organization_users_with_http_info: #{e}"
+  puts "Error when calling OrganizationsApi->remove_organization_user_with_http_info: #{e}"
 end
 ```
 
@@ -581,12 +580,12 @@ end
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **code** | **String** | The organization&#39;s code. | [optional] |
-| **remove_organization_users_request** | [**RemoveOrganizationUsersRequest**](RemoveOrganizationUsersRequest.md) |  | [optional] |
+| **org_code** | **String** | The organization&#39;s code. |  |
+| **user_id** | **String** | The user&#39;s id. |  |
 
 ### Return type
 
-[**RemoveOrganizationUsersResponse**](RemoveOrganizationUsersResponse.md)
+[**SuccessResponse**](SuccessResponse.md)
 
 ### Authorization
 
@@ -594,13 +593,13 @@ end
 
 ### HTTP request headers
 
-- **Content-Type**: application/json
+- **Content-Type**: Not defined
 - **Accept**: application/json, application/json; charset=utf-8
 
 
 ## update_organization
 
-> update_organization(opts)
+> update_organization(org_code, opts)
 
 Update Organization
 
@@ -618,13 +617,14 @@ KindeApi.configure do |config|
 end
 
 api_instance = KindeApi::OrganizationsApi.new
+org_code = 'org_code_example' # String | The identifier for the organization.
 opts = {
   update_organization_request: KindeApi::UpdateOrganizationRequest.new # UpdateOrganizationRequest | Organization details.
 }
 
 begin
   # Update Organization
-  api_instance.update_organization(opts)
+  api_instance.update_organization(org_code, opts)
 rescue KindeApi::ApiError => e
   puts "Error when calling OrganizationsApi->update_organization: #{e}"
 end
@@ -634,12 +634,12 @@ end
 
 This returns an Array which contains the response data (`nil` in this case), status code and headers.
 
-> <Array(nil, Integer, Hash)> update_organization_with_http_info(opts)
+> <Array(nil, Integer, Hash)> update_organization_with_http_info(org_code, opts)
 
 ```ruby
 begin
   # Update Organization
-  data, status_code, headers = api_instance.update_organization_with_http_info(opts)
+  data, status_code, headers = api_instance.update_organization_with_http_info(org_code, opts)
   p status_code # => 2xx
   p headers # => { ... }
   p data # => nil
@@ -652,6 +652,7 @@ end
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
+| **org_code** | **String** | The identifier for the organization. |  |
 | **update_organization_request** | [**UpdateOrganizationRequest**](UpdateOrganizationRequest.md) | Organization details. | [optional] |
 
 ### Return type
@@ -738,5 +739,78 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
+- **Accept**: application/json, application/json; charset=utf-8
+
+
+## update_organization_users
+
+> <RemoveOrganizationUsersResponse> update_organization_users(org_code, opts)
+
+Update organization users
+
+Update users that belong to an organization.
+
+### Examples
+
+```ruby
+require 'time'
+require 'kinde_api'
+# setup authorization
+KindeApi.configure do |config|
+  # Configure Bearer authorization (JWT): kindeBearerAuth
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = KindeApi::OrganizationsApi.new
+org_code = 'org_code_example' # String | The organization's code.
+opts = {
+  update_organization_users_request: KindeApi::UpdateOrganizationUsersRequest.new # UpdateOrganizationUsersRequest | 
+}
+
+begin
+  # Update organization users
+  result = api_instance.update_organization_users(org_code, opts)
+  p result
+rescue KindeApi::ApiError => e
+  puts "Error when calling OrganizationsApi->update_organization_users: #{e}"
+end
+```
+
+#### Using the update_organization_users_with_http_info variant
+
+This returns an Array which contains the response data, status code and headers.
+
+> <Array(<RemoveOrganizationUsersResponse>, Integer, Hash)> update_organization_users_with_http_info(org_code, opts)
+
+```ruby
+begin
+  # Update organization users
+  data, status_code, headers = api_instance.update_organization_users_with_http_info(org_code, opts)
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => <RemoveOrganizationUsersResponse>
+rescue KindeApi::ApiError => e
+  puts "Error when calling OrganizationsApi->update_organization_users_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+| Name | Type | Description | Notes |
+| ---- | ---- | ----------- | ----- |
+| **org_code** | **String** | The organization&#39;s code. |  |
+| **update_organization_users_request** | [**UpdateOrganizationUsersRequest**](UpdateOrganizationUsersRequest.md) |  | [optional] |
+
+### Return type
+
+[**RemoveOrganizationUsersResponse**](RemoveOrganizationUsersResponse.md)
+
+### Authorization
+
+[kindeBearerAuth](../README.md#kindeBearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
 - **Accept**: application/json, application/json; charset=utf-8
 

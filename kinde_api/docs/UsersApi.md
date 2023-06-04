@@ -4,87 +4,11 @@ All URIs are relative to *https://app.kinde.com*
 
 | Method | HTTP request | Description |
 | ------ | ------------ | ----------- |
-| [**add_organization_users**](UsersApi.md#add_organization_users) | **POST** /api/v1/organization/users | Assign Users to an Organization |
 | [**create_user**](UsersApi.md#create_user) | **POST** /api/v1/user | Create User |
-| [**deleteuser**](UsersApi.md#deleteuser) | **DELETE** /api/v1/user | Delete User |
-| [**get_organization_users**](UsersApi.md#get_organization_users) | **GET** /api/v1/organization/users | List Organization Users |
+| [**delete_user**](UsersApi.md#delete_user) | **DELETE** /api/v1/user | Delete User |
 | [**get_user_data**](UsersApi.md#get_user_data) | **GET** /api/v1/user | Get User |
 | [**get_users**](UsersApi.md#get_users) | **GET** /api/v1/users | List Users |
-| [**remove_organization_users**](UsersApi.md#remove_organization_users) | **PATCH** /api/v1/organization/users | Remove Users from an Organization |
 | [**update_user**](UsersApi.md#update_user) | **PATCH** /api/v1/user | Update User |
-
-
-## add_organization_users
-
-> <AddOrganizationUsersResponse> add_organization_users(opts)
-
-Assign Users to an Organization
-
-Add existing users to an organization.
-
-### Examples
-
-```ruby
-require 'time'
-require 'kinde_api'
-# setup authorization
-KindeApi.configure do |config|
-  # Configure Bearer authorization (JWT): kindeBearerAuth
-  config.access_token = 'YOUR_BEARER_TOKEN'
-end
-
-api_instance = KindeApi::UsersApi.new
-opts = {
-  code: 'code_example', # String | The organization's code.
-  add_organization_users_request: KindeApi::AddOrganizationUsersRequest.new # AddOrganizationUsersRequest | 
-}
-
-begin
-  # Assign Users to an Organization
-  result = api_instance.add_organization_users(opts)
-  p result
-rescue KindeApi::ApiError => e
-  puts "Error when calling UsersApi->add_organization_users: #{e}"
-end
-```
-
-#### Using the add_organization_users_with_http_info variant
-
-This returns an Array which contains the response data, status code and headers.
-
-> <Array(<AddOrganizationUsersResponse>, Integer, Hash)> add_organization_users_with_http_info(opts)
-
-```ruby
-begin
-  # Assign Users to an Organization
-  data, status_code, headers = api_instance.add_organization_users_with_http_info(opts)
-  p status_code # => 2xx
-  p headers # => { ... }
-  p data # => <AddOrganizationUsersResponse>
-rescue KindeApi::ApiError => e
-  puts "Error when calling UsersApi->add_organization_users_with_http_info: #{e}"
-end
-```
-
-### Parameters
-
-| Name | Type | Description | Notes |
-| ---- | ---- | ----------- | ----- |
-| **code** | **String** | The organization&#39;s code. | [optional] |
-| **add_organization_users_request** | [**AddOrganizationUsersRequest**](AddOrganizationUsersRequest.md) |  | [optional] |
-
-### Return type
-
-[**AddOrganizationUsersResponse**](AddOrganizationUsersResponse.md)
-
-### Authorization
-
-[kindeBearerAuth](../README.md#kindeBearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: application/json
-- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## create_user
@@ -158,9 +82,9 @@ end
 - **Accept**: application/json, application/json; charset=utf-8
 
 
-## deleteuser
+## delete_user
 
-> <SuccessResponse> deleteuser(opts)
+> <SuccessResponse> delete_user(opts)
 
 Delete User
 
@@ -184,28 +108,28 @@ opts = {
 
 begin
   # Delete User
-  result = api_instance.deleteuser(opts)
+  result = api_instance.delete_user(opts)
   p result
 rescue KindeApi::ApiError => e
-  puts "Error when calling UsersApi->deleteuser: #{e}"
+  puts "Error when calling UsersApi->delete_user: #{e}"
 end
 ```
 
-#### Using the deleteuser_with_http_info variant
+#### Using the delete_user_with_http_info variant
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<SuccessResponse>, Integer, Hash)> deleteuser_with_http_info(opts)
+> <Array(<SuccessResponse>, Integer, Hash)> delete_user_with_http_info(opts)
 
 ```ruby
 begin
   # Delete User
-  data, status_code, headers = api_instance.deleteuser_with_http_info(opts)
+  data, status_code, headers = api_instance.delete_user_with_http_info(opts)
   p status_code # => 2xx
   p headers # => { ... }
   p data # => <SuccessResponse>
 rescue KindeApi::ApiError => e
-  puts "Error when calling UsersApi->deleteuser_with_http_info: #{e}"
+  puts "Error when calling UsersApi->delete_user_with_http_info: #{e}"
 end
 ```
 
@@ -218,85 +142,6 @@ end
 ### Return type
 
 [**SuccessResponse**](SuccessResponse.md)
-
-### Authorization
-
-[kindeBearerAuth](../README.md#kindeBearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: application/json, application/json; charset=utf-8
-
-
-## get_organization_users
-
-> <GetOrganizationsUsersResponse> get_organization_users(opts)
-
-List Organization Users
-
-Get users in an organization.
-
-### Examples
-
-```ruby
-require 'time'
-require 'kinde_api'
-# setup authorization
-KindeApi.configure do |config|
-  # Configure Bearer authorization (JWT): kindeBearerAuth
-  config.access_token = 'YOUR_BEARER_TOKEN'
-end
-
-api_instance = KindeApi::UsersApi.new
-opts = {
-  sort: 'name_asc', # String | Field and order to sort the result by.
-  page_size: 56, # Integer | Number of results per page. Defaults to 10 if parameter not sent.
-  next_token: 'next_token_example', # String | A string to get the next page of results if there are more results.
-  code: 'code_example', # String | The organization's code.
-  permissions: 'permissions_example' # String | Filter by user permissions
-}
-
-begin
-  # List Organization Users
-  result = api_instance.get_organization_users(opts)
-  p result
-rescue KindeApi::ApiError => e
-  puts "Error when calling UsersApi->get_organization_users: #{e}"
-end
-```
-
-#### Using the get_organization_users_with_http_info variant
-
-This returns an Array which contains the response data, status code and headers.
-
-> <Array(<GetOrganizationsUsersResponse>, Integer, Hash)> get_organization_users_with_http_info(opts)
-
-```ruby
-begin
-  # List Organization Users
-  data, status_code, headers = api_instance.get_organization_users_with_http_info(opts)
-  p status_code # => 2xx
-  p headers # => { ... }
-  p data # => <GetOrganizationsUsersResponse>
-rescue KindeApi::ApiError => e
-  puts "Error when calling UsersApi->get_organization_users_with_http_info: #{e}"
-end
-```
-
-### Parameters
-
-| Name | Type | Description | Notes |
-| ---- | ---- | ----------- | ----- |
-| **sort** | **String** | Field and order to sort the result by. | [optional] |
-| **page_size** | **Integer** | Number of results per page. Defaults to 10 if parameter not sent. | [optional] |
-| **next_token** | **String** | A string to get the next page of results if there are more results. | [optional] |
-| **code** | **String** | The organization&#39;s code. | [optional] |
-| **permissions** | **String** | Filter by user permissions | [optional] |
-
-### Return type
-
-[**GetOrganizationsUsersResponse**](GetOrganizationsUsersResponse.md)
 
 ### Authorization
 
@@ -453,79 +298,6 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json, application/json; charset=utf-8
-
-
-## remove_organization_users
-
-> <RemoveOrganizationUsersResponse> remove_organization_users(opts)
-
-Remove Users from an Organization
-
-Remove existing users from an organization.
-
-### Examples
-
-```ruby
-require 'time'
-require 'kinde_api'
-# setup authorization
-KindeApi.configure do |config|
-  # Configure Bearer authorization (JWT): kindeBearerAuth
-  config.access_token = 'YOUR_BEARER_TOKEN'
-end
-
-api_instance = KindeApi::UsersApi.new
-opts = {
-  code: 'code_example', # String | The organization's code.
-  remove_organization_users_request: KindeApi::RemoveOrganizationUsersRequest.new # RemoveOrganizationUsersRequest | 
-}
-
-begin
-  # Remove Users from an Organization
-  result = api_instance.remove_organization_users(opts)
-  p result
-rescue KindeApi::ApiError => e
-  puts "Error when calling UsersApi->remove_organization_users: #{e}"
-end
-```
-
-#### Using the remove_organization_users_with_http_info variant
-
-This returns an Array which contains the response data, status code and headers.
-
-> <Array(<RemoveOrganizationUsersResponse>, Integer, Hash)> remove_organization_users_with_http_info(opts)
-
-```ruby
-begin
-  # Remove Users from an Organization
-  data, status_code, headers = api_instance.remove_organization_users_with_http_info(opts)
-  p status_code # => 2xx
-  p headers # => { ... }
-  p data # => <RemoveOrganizationUsersResponse>
-rescue KindeApi::ApiError => e
-  puts "Error when calling UsersApi->remove_organization_users_with_http_info: #{e}"
-end
-```
-
-### Parameters
-
-| Name | Type | Description | Notes |
-| ---- | ---- | ----------- | ----- |
-| **code** | **String** | The organization&#39;s code. | [optional] |
-| **remove_organization_users_request** | [**RemoveOrganizationUsersRequest**](RemoveOrganizationUsersRequest.md) |  | [optional] |
-
-### Return type
-
-[**RemoveOrganizationUsersResponse**](RemoveOrganizationUsersResponse.md)
-
-### Authorization
-
-[kindeBearerAuth](../README.md#kindeBearerAuth)
-
-### HTTP request headers
-
-- **Content-Type**: application/json
 - **Accept**: application/json, application/json; charset=utf-8
 
 
