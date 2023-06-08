@@ -56,6 +56,9 @@ Class | Method | HTTP request | Description
 *KindeApi::OrganizationsApi* | [**update_organization**](docs/OrganizationsApi.md#update_organization) | **PATCH** /api/v1/organizations/{org_code} | Update Organization
 *KindeApi::OrganizationsApi* | [**update_organization_feature_flag_override**](docs/OrganizationsApi.md#update_organization_feature_flag_override) | **PATCH** /api/v1/organizations/{org_code}/feature_flags/{feature_flag_key} | Update organization feature flag override
 *KindeApi::OrganizationsApi* | [**update_organization_users**](docs/OrganizationsApi.md#update_organization_users) | **PATCH** /api/v1/organizations/{org_code}/users | Update organization users
+*KindeApi::RolesApi* | [**create_role**](docs/RolesApi.md#create_role) | **POST** /api/v1/role | Create a new role
+*KindeApi::RolesApi* | [**get_roles**](docs/RolesApi.md#get_roles) | **GET** /api/v1/roles | List Roles
+*KindeApi::RolesApi* | [**update_roles**](docs/RolesApi.md#update_roles) | **PATCH** /api/v1/roles/{role_id} | Update a role
 *KindeApi::UsersApi* | [**create_user**](docs/UsersApi.md#create_user) | **POST** /api/v1/user | Create User
 *KindeApi::UsersApi* | [**delete_user**](docs/UsersApi.md#delete_user) | **DELETE** /api/v1/user | Delete User
 *KindeApi::UsersApi* | [**get_user_data**](docs/UsersApi.md#get_user_data) | **GET** /api/v1/user | Get User
@@ -74,6 +77,7 @@ Class | Method | HTTP request | Description
  - [KindeApi::ConnectedAppsAuthUrl](docs/ConnectedAppsAuthUrl.md)
  - [KindeApi::CreateOrganizationRequest](docs/CreateOrganizationRequest.md)
  - [KindeApi::CreateOrganizationResponse](docs/CreateOrganizationResponse.md)
+ - [KindeApi::CreateRoleRequest](docs/CreateRoleRequest.md)
  - [KindeApi::CreateUserRequest](docs/CreateUserRequest.md)
  - [KindeApi::CreateUserRequestIdentitiesInner](docs/CreateUserRequestIdentitiesInner.md)
  - [KindeApi::CreateUserRequestIdentitiesInnerDetails](docs/CreateUserRequestIdentitiesInnerDetails.md)
@@ -89,6 +93,7 @@ Class | Method | HTTP request | Description
  - [KindeApi::OrganizationUser](docs/OrganizationUser.md)
  - [KindeApi::RedirectCallbackUrls](docs/RedirectCallbackUrls.md)
  - [KindeApi::RemoveOrganizationUsersResponse](docs/RemoveOrganizationUsersResponse.md)
+ - [KindeApi::Roles](docs/Roles.md)
  - [KindeApi::SuccessResponse](docs/SuccessResponse.md)
  - [KindeApi::UpdateOrganizationRequest](docs/UpdateOrganizationRequest.md)
  - [KindeApi::UpdateOrganizationUsersRequest](docs/UpdateOrganizationUsersRequest.md)

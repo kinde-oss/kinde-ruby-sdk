@@ -14,40 +14,26 @@ require 'date'
 require 'time'
 
 module KindeApi
-  # The result of the user creation operation.
-  class CreateUserRequestIdentitiesInner
-    # The type of identity to create, for e.g. email.
-    attr_accessor :type
+  class CreateRoleRequest
+    # The role's name.
+    attr_accessor :name
 
-    attr_accessor :details
+    # The role's description.
+    attr_accessor :description
 
-    class EnumAttributeValidator
-      attr_reader :datatype
-      attr_reader :allowable_values
+    # The role identifier to use in code.
+    attr_accessor :key
 
-      def initialize(datatype, allowable_values)
-        @allowable_values = allowable_values.map do |value|
-          case datatype.to_s
-          when /Integer/i
-            value.to_i
-          when /Float/i
-            value.to_f
-          else
-            value
-          end
-        end
-      end
-
-      def valid?(value)
-        !value || allowable_values.include?(value)
-      end
-    end
+    # Set role as default for new users.
+    attr_accessor :is_default_role
 
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
-        :'type' => :'type',
-        :'details' => :'details'
+        :'name' => :'name',
+        :'description' => :'description',
+        :'key' => :'key',
+        :'is_default_role' => :'is_default_role'
       }
     end
 
@@ -59,8 +45,10 @@ module KindeApi
     # Attribute type mapping.
     def self.openapi_types
       {
-        :'type' => :'String',
-        :'details' => :'CreateUserRequestIdentitiesInnerDetails'
+        :'name' => :'String',
+        :'description' => :'String',
+        :'key' => :'String',
+        :'is_default_role' => :'Boolean'
       }
     end
 
@@ -74,23 +62,31 @@ module KindeApi
     # @param [Hash] attributes Model attributes in the form of hash
     def initialize(attributes = {})
       if (!attributes.is_a?(Hash))
-        fail ArgumentError, "The input argument (attributes) must be a hash in `KindeApi::CreateUserRequestIdentitiesInner` initialize method"
+        fail ArgumentError, "The input argument (attributes) must be a hash in `KindeApi::CreateRoleRequest` initialize method"
       end
 
       # check to see if the attribute exists and convert string to symbol for hash key
       attributes = attributes.each_with_object({}) { |(k, v), h|
         if (!self.class.attribute_map.key?(k.to_sym))
-          fail ArgumentError, "`#{k}` is not a valid attribute in `KindeApi::CreateUserRequestIdentitiesInner`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
+          fail ArgumentError, "`#{k}` is not a valid attribute in `KindeApi::CreateRoleRequest`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
         end
         h[k.to_sym] = v
       }
 
-      if attributes.key?(:'type')
-        self.type = attributes[:'type']
+      if attributes.key?(:'name')
+        self.name = attributes[:'name']
       end
 
-      if attributes.key?(:'details')
-        self.details = attributes[:'details']
+      if attributes.key?(:'description')
+        self.description = attributes[:'description']
+      end
+
+      if attributes.key?(:'key')
+        self.key = attributes[:'key']
+      end
+
+      if attributes.key?(:'is_default_role')
+        self.is_default_role = attributes[:'is_default_role']
       end
     end
 
@@ -104,19 +100,7 @@ module KindeApi
     # Check to see if the all the properties in the model are valid
     # @return true if the model is valid
     def valid?
-      type_validator = EnumAttributeValidator.new('String', ["email"])
-      return false unless type_validator.valid?(@type)
       true
-    end
-
-    # Custom attribute writer method checking allowed values (enum).
-    # @param [Object] type Object to be assigned
-    def type=(type)
-      validator = EnumAttributeValidator.new('String', ["email"])
-      unless validator.valid?(type)
-        fail ArgumentError, "invalid value for \"type\", must be one of #{validator.allowable_values}."
-      end
-      @type = type
     end
 
     # Checks equality by comparing each attribute.
@@ -124,8 +108,10 @@ module KindeApi
     def ==(o)
       return true if self.equal?(o)
       self.class == o.class &&
-          type == o.type &&
-          details == o.details
+          name == o.name &&
+          description == o.description &&
+          key == o.key &&
+          is_default_role == o.is_default_role
     end
 
     # @see the `==` method
@@ -137,7 +123,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [type, details].hash
+      [name, description, key, is_default_role].hash
     end
 
     # Builds the object from hash

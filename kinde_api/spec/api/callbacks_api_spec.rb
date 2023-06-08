@@ -50,7 +50,7 @@ describe 'CallbacksApi' do
   # Returns an application&#39;s redirect callback URLs. 
   # @param app_id The identifier for the application.
   # @param [Hash] opts the optional parameters
-  # @return [GetRedirectCallbackUrlsResponse]
+  # @return [RedirectCallbackUrls]
   describe 'get_callback_urls test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers

@@ -91,7 +91,7 @@ module KindeApi
     # Returns an application's redirect callback URLs. 
     # @param app_id [String] The identifier for the application.
     # @param [Hash] opts the optional parameters
-    # @return [GetRedirectCallbackUrlsResponse]
+    # @return [RedirectCallbackUrls]
     def get_callback_urls(app_id, opts = {})
       data, _status_code, _headers = get_callback_urls_with_http_info(app_id, opts)
       data
@@ -101,7 +101,7 @@ module KindeApi
     # Returns an application&#39;s redirect callback URLs. 
     # @param app_id [String] The identifier for the application.
     # @param [Hash] opts the optional parameters
-    # @return [Array<(GetRedirectCallbackUrlsResponse, Integer, Hash)>] GetRedirectCallbackUrlsResponse data, response status code and response headers
+    # @return [Array<(RedirectCallbackUrls, Integer, Hash)>] RedirectCallbackUrls data, response status code and response headers
     def get_callback_urls_with_http_info(app_id, opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: CallbacksApi.get_callback_urls ...'
@@ -128,7 +128,7 @@ module KindeApi
       post_body = opts[:debug_body]
 
       # return_type
-      return_type = opts[:debug_return_type] || 'GetRedirectCallbackUrlsResponse'
+      return_type = opts[:debug_return_type] || 'RedirectCallbackUrls'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']

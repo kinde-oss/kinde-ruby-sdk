@@ -81,7 +81,7 @@ nil (empty response body)
 
 ## get_callback_urls
 
-> <GetRedirectCallbackUrlsResponse> get_callback_urls(app_id)
+> <RedirectCallbackUrls> get_callback_urls(app_id)
 
 List Callback URLs
 
@@ -114,7 +114,7 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<GetRedirectCallbackUrlsResponse>, Integer, Hash)> get_callback_urls_with_http_info(app_id)
+> <Array(<RedirectCallbackUrls>, Integer, Hash)> get_callback_urls_with_http_info(app_id)
 
 ```ruby
 begin
@@ -122,7 +122,7 @@ begin
   data, status_code, headers = api_instance.get_callback_urls_with_http_info(app_id)
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <GetRedirectCallbackUrlsResponse>
+  p data # => <RedirectCallbackUrls>
 rescue KindeApi::ApiError => e
   puts "Error when calling CallbacksApi->get_callback_urls_with_http_info: #{e}"
 end
@@ -136,7 +136,7 @@ end
 
 ### Return type
 
-[**GetRedirectCallbackUrlsResponse**](GetRedirectCallbackUrlsResponse.md)
+[**RedirectCallbackUrls**](RedirectCallbackUrls.md)
 
 ### Authorization
 
