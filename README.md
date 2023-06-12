@@ -404,7 +404,22 @@ client.organizations.create_organization(create_organization_request: {name: "ne
 
 #### Create new user
 ```ruby
-client.users.create_user
+client.users.create_user(
+  create_user_request: {
+    profile: {given_name: "AAAname", family_name: "AAAsurname"}, 
+    identities: [{type: "email", details: {email: "aaexample@asd.com"}}]
+  }
+)
+```
+Alternatively, using model instances:
+```ruby
+request = KindeApi::CreateUserRequest.new(
+  profile: KindeApi::CreateUserRequestProfile.new(given_name: "AAAfirstname1", family_name: "AAAlastname1"), 
+  identities: [
+    KindeApi::CreateUserRequestIdentitiesInner.new(type: "email", details: KindeApi::CreateUserRequestIdentitiesInnerDetails.new(email: "aaaaexample@example.com"))
+  ]
+)
+client.users.create_user(create_user_request: request)
 ```
 
 #### Add organization users
