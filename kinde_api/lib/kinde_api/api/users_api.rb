@@ -145,29 +145,33 @@ module KindeApi
 
     # Get User
     # Retrieve a user record. 
+    # @param id [String] The user&#39;s id.
     # @param [Hash] opts the optional parameters
-    # @option opts [String] :id The user&#39;s id.
     # @return [User]
-    def get_user_data(opts = {})
-      data, _status_code, _headers = get_user_data_with_http_info(opts)
+    def get_user_data(id, opts = {})
+      data, _status_code, _headers = get_user_data_with_http_info(id, opts)
       data
     end
 
     # Get User
     # Retrieve a user record. 
+    # @param id [String] The user&#39;s id.
     # @param [Hash] opts the optional parameters
-    # @option opts [String] :id The user&#39;s id.
     # @return [Array<(User, Integer, Hash)>] User data, response status code and response headers
-    def get_user_data_with_http_info(opts = {})
+    def get_user_data_with_http_info(id, opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: UsersApi.get_user_data ...'
+      end
+      # verify the required parameter 'id' is set
+      if @api_client.config.client_side_validation && id.nil?
+        fail ArgumentError, "Missing the required parameter 'id' when calling UsersApi.get_user_data"
       end
       # resource path
       local_var_path = '/api/v1/user'
 
       # query parameters
       query_params = opts[:query_params] || {}
-      query_params[:'id'] = opts[:'id'] if !opts[:'id'].nil?
+      query_params[:'id'] = id
 
       # header parameters
       header_params = opts[:header_params] || {}
@@ -210,6 +214,7 @@ module KindeApi
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :user_id ID of the user to filter by.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
+    # @option opts [String] :email Filter the results by email address. The query string should be comma separated and url encoded.
     # @return [UsersResponse]
     def get_users(opts = {})
       data, _status_code, _headers = get_users_with_http_info(opts)
@@ -223,6 +228,7 @@ module KindeApi
     # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
     # @option opts [String] :user_id ID of the user to filter by.
     # @option opts [String] :next_token A string to get the next page of results if there are more results.
+    # @option opts [String] :email Filter the results by email address. The query string should be comma separated and url encoded.
     # @return [Array<(UsersResponse, Integer, Hash)>] UsersResponse data, response status code and response headers
     def get_users_with_http_info(opts = {})
       if @api_client.config.debugging
@@ -241,6 +247,7 @@ module KindeApi
       query_params[:'page_size'] = opts[:'page_size'] if !opts[:'page_size'].nil?
       query_params[:'user_id'] = opts[:'user_id'] if !opts[:'user_id'].nil?
       query_params[:'next_token'] = opts[:'next_token'] if !opts[:'next_token'].nil?
+      query_params[:'email'] = opts[:'email'] if !opts[:'email'].nil?
 
       # header parameters
       header_params = opts[:header_params] || {}

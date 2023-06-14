@@ -9,6 +9,7 @@
 | **full_name** | **String** |  | [optional] |
 | **last_name** | **String** |  | [optional] |
 | **first_name** | **String** |  | [optional] |
+| **roles** | **Array&lt;String&gt;** |  | [optional] |
 
 ## Example
 
@@ -20,7 +21,8 @@ instance = KindeApi::OrganizationUser.new(
   email: null,
   full_name: null,
   last_name: null,
-  first_name: null
+  first_name: null,
+  roles: null
 )
 ```
 

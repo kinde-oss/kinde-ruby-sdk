@@ -25,6 +25,8 @@ module KindeApi
 
     attr_accessor :first_name
 
+    attr_accessor :roles
+
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
@@ -32,7 +34,8 @@ module KindeApi
         :'email' => :'email',
         :'full_name' => :'full_name',
         :'last_name' => :'last_name',
-        :'first_name' => :'first_name'
+        :'first_name' => :'first_name',
+        :'roles' => :'roles'
       }
     end
 
@@ -48,7 +51,8 @@ module KindeApi
         :'email' => :'String',
         :'full_name' => :'String',
         :'last_name' => :'String',
-        :'first_name' => :'String'
+        :'first_name' => :'String',
+        :'roles' => :'Array<String>'
       }
     end
 
@@ -92,6 +96,12 @@ module KindeApi
       if attributes.key?(:'first_name')
         self.first_name = attributes[:'first_name']
       end
+
+      if attributes.key?(:'roles')
+        if (value = attributes[:'roles']).is_a?(Array)
+          self.roles = value
+        end
+      end
     end
 
     # Show invalid properties with the reasons. Usually used together with valid?
@@ -116,7 +126,8 @@ module KindeApi
           email == o.email &&
           full_name == o.full_name &&
           last_name == o.last_name &&
-          first_name == o.first_name
+          first_name == o.first_name &&
+          roles == o.roles
     end
 
     # @see the `==` method
@@ -128,7 +139,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [id, email, full_name, last_name, first_name].hash
+      [id, email, full_name, last_name, first_name, roles].hash
     end
 
     # Builds the object from hash

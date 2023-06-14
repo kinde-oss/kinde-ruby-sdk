@@ -155,7 +155,7 @@ end
 
 ## get_user_data
 
-> <User> get_user_data(opts)
+> <User> get_user_data(id)
 
 Get User
 
@@ -173,13 +173,11 @@ KindeApi.configure do |config|
 end
 
 api_instance = KindeApi::UsersApi.new
-opts = {
-  id: 'id_example' # String | The user's id.
-}
+id = 'id_example' # String | The user's id.
 
 begin
   # Get User
-  result = api_instance.get_user_data(opts)
+  result = api_instance.get_user_data(id)
   p result
 rescue KindeApi::ApiError => e
   puts "Error when calling UsersApi->get_user_data: #{e}"
@@ -190,12 +188,12 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<User>, Integer, Hash)> get_user_data_with_http_info(opts)
+> <Array(<User>, Integer, Hash)> get_user_data_with_http_info(id)
 
 ```ruby
 begin
   # Get User
-  data, status_code, headers = api_instance.get_user_data_with_http_info(opts)
+  data, status_code, headers = api_instance.get_user_data_with_http_info(id)
   p status_code # => 2xx
   p headers # => { ... }
   p data # => <User>
@@ -208,7 +206,7 @@ end
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **id** | **String** | The user&#39;s id. | [optional] |
+| **id** | **String** | The user&#39;s id. |  |
 
 ### Return type
 
@@ -248,7 +246,8 @@ opts = {
   sort: 'name_asc', # String | Field and order to sort the result by.
   page_size: 56, # Integer | Number of results per page. Defaults to 10 if parameter not sent.
   user_id: 'user_id_example', # String | ID of the user to filter by.
-  next_token: 'next_token_example' # String | A string to get the next page of results if there are more results.
+  next_token: 'next_token_example', # String | A string to get the next page of results if there are more results.
+  email: 'email_example' # String | Filter the results by email address. The query string should be comma separated and url encoded.
 }
 
 begin
@@ -286,6 +285,7 @@ end
 | **page_size** | **Integer** | Number of results per page. Defaults to 10 if parameter not sent. | [optional] |
 | **user_id** | **String** | ID of the user to filter by. | [optional] |
 | **next_token** | **String** | A string to get the next page of results if there are more results. | [optional] |
+| **email** | **String** | Filter the results by email address. The query string should be comma separated and url encoded. | [optional] |
 
 ### Return type
 

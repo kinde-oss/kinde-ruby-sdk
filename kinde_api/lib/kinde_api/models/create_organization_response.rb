@@ -15,13 +15,18 @@ require 'time'
 
 module KindeApi
   class CreateOrganizationResponse
-    # The organization's code.
+    attr_accessor :message
+
     attr_accessor :code
+
+    attr_accessor :organization
 
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
-        :'code' => :'code'
+        :'message' => :'message',
+        :'code' => :'code',
+        :'organization' => :'organization'
       }
     end
 
@@ -33,7 +38,9 @@ module KindeApi
     # Attribute type mapping.
     def self.openapi_types
       {
-        :'code' => :'String'
+        :'message' => :'String',
+        :'code' => :'String',
+        :'organization' => :'CreateOrganizationResponseOrganization'
       }
     end
 
@@ -58,8 +65,16 @@ module KindeApi
         h[k.to_sym] = v
       }
 
+      if attributes.key?(:'message')
+        self.message = attributes[:'message']
+      end
+
       if attributes.key?(:'code')
         self.code = attributes[:'code']
+      end
+
+      if attributes.key?(:'organization')
+        self.organization = attributes[:'organization']
       end
     end
 
@@ -81,7 +96,9 @@ module KindeApi
     def ==(o)
       return true if self.equal?(o)
       self.class == o.class &&
-          code == o.code
+          message == o.message &&
+          code == o.code &&
+          organization == o.organization
     end
 
     # @see the `==` method
@@ -93,7 +110,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [code].hash
+      [message, code, organization].hash
     end
 
     # Builds the object from hash

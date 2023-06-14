@@ -59,8 +59,8 @@ describe 'UsersApi' do
   # unit tests for get_user_data
   # Get User
   # Retrieve a user record. 
+  # @param id The user&#39;s id.
   # @param [Hash] opts the optional parameters
-  # @option opts [String] :id The user&#39;s id.
   # @return [User]
   describe 'get_user_data test' do
     it 'should work' do
@@ -76,6 +76,7 @@ describe 'UsersApi' do
   # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
   # @option opts [String] :user_id ID of the user to filter by.
   # @option opts [String] :next_token A string to get the next page of results if there are more results.
+  # @option opts [String] :email Filter the results by email address. The query string should be comma separated and url encoded.
   # @return [UsersResponse]
   describe 'get_users test' do
     it 'should work' do

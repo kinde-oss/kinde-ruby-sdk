@@ -4,7 +4,9 @@
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **code** | **String** | The organization&#39;s code. | [optional] |
+| **message** | **String** |  | [optional] |
+| **code** | **String** |  | [optional] |
+| **organization** | [**CreateOrganizationResponseOrganization**](CreateOrganizationResponseOrganization.md) |  | [optional] |
 
 ## Example
 
@@ -12,7 +14,9 @@
 require 'kinde_api'
 
 instance = KindeApi::CreateOrganizationResponse.new(
-  code: null
+  message: null,
+  code: null,
+  organization: null
 )
 ```
 
