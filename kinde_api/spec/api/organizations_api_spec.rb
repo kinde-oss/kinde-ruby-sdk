@@ -122,6 +122,18 @@ describe 'OrganizationsApi' do
     end
   end
 
+  # unit tests for get_organization_feature_flags
+  # List organization feature flags
+  # Get all organization feature flags.
+  # @param org_code The identifier for the organization.
+  # @param [Hash] opts the optional parameters
+  # @return [GetOrganizationFeatureFlagsResponse]
+  describe 'get_organization_feature_flags test' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
   # unit tests for get_organization_user_roles
   # List Organization User Roles
   # Get roles for an organization user.
@@ -211,7 +223,7 @@ describe 'OrganizationsApi' do
   # @param org_code The organization&#39;s code.
   # @param [Hash] opts the optional parameters
   # @option opts [UpdateOrganizationUsersRequest] :update_organization_users_request 
-  # @return [RemoveOrganizationUsersResponse]
+  # @return [UpdateOrganizationUsersResponse]
   describe 'update_organization_users test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers

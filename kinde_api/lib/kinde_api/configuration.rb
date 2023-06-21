@@ -21,18 +21,6 @@ module KindeApi
     # Defines url base path
     attr_accessor :base_path
 
-    # Define server configuration index
-    attr_accessor :server_index
-
-    # Define server operation configuration index
-    attr_accessor :server_operation_index
-
-    # Default server variables
-    attr_accessor :server_variables
-
-    # Default server operation variables
-    attr_accessor :server_operation_variables
-
     # Defines API keys used with API Key authentications.
     #
     # @return [Hash] key: parameter name, value: parameter value (API key)
@@ -138,7 +126,6 @@ module KindeApi
     # https://github.com/typhoeus/ethon/blob/master/lib/ethon/easy/queryable.rb#L96
     attr_accessor :params_encoding
 
-
     attr_accessor :inject_format
 
     attr_accessor :force_ending_format
@@ -147,10 +134,6 @@ module KindeApi
       @scheme = 'https'
       @host = 'app.kinde.com'
       @base_path = ''
-      @server_index = 0
-      @server_operation_index = {}
-      @server_variables = {}
-      @server_operation_variables = {}
       @api_key = {}
       @api_key_prefix = {}
       @client_side_validation = true
@@ -231,62 +214,8 @@ module KindeApi
             format: 'JWT',
             key: 'Authorization',
             value: "Bearer #{access_token_with_refresh}"
-          },
+          }
       }
-    end
-
-    # Returns an array of Server setting
-    def server_settings
-      [
-        {
-          url: "https://{businessName}.kinde.com",
-          description: "No description provided",
-          variables: {
-            businessName: {
-                description: "Business name created in the Kinde admin area.",
-                default_value: "app",
-              }
-            }
-        }
-      ]
-    end
-
-    def operation_server_settings
-      {}
-    end
-
-    # Returns URL based on server settings
-    #
-    # @param index array index of the server settings
-    # @param variables hash of variable and the corresponding value
-    def server_url(index, variables = {}, servers = nil)
-      servers = server_settings if servers == nil
-
-      # check array index out of bound
-      if (index < 0 || index >= servers.size)
-        fail ArgumentError, "Invalid index #{index} when selecting the server. Must be less than #{servers.size}"
-      end
-
-      server = servers[index]
-      url = server[:url]
-
-      return url unless server.key? :variables
-
-      # go through variable and assign a value
-      server[:variables].each do |name, variable|
-        if variables.key?(name)
-          if (!server[:variables][name].key?(:enum_values) || server[:variables][name][:enum_values].include?(variables[name]))
-            url.gsub! "{" + name.to_s + "}", variables[name]
-          else
-            fail ArgumentError, "The variable `#{name}` in the server URL has invalid value #{variables[name]}. Must be #{server[:variables][name][:enum_values]}."
-          end
-        else
-          # use default value
-          url.gsub! "{" + name.to_s + "}", server[:variables][name][:default_value]
-        end
-      end
-
-      url
     end
   end
 end

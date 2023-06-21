@@ -19,14 +19,10 @@ module KindeApi
     # True if the user identity was successfully created.
     attr_accessor :created
 
-    # Unique id of the user's identity in Kinde.
-    attr_accessor :identity_id
-
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
-        :'created' => :'created',
-        :'identity_id' => :'identity_id'
+        :'created' => :'created'
       }
     end
 
@@ -38,8 +34,7 @@ module KindeApi
     # Attribute type mapping.
     def self.openapi_types
       {
-        :'created' => :'Boolean',
-        :'identity_id' => :'Integer'
+        :'created' => :'Boolean'
       }
     end
 
@@ -67,10 +62,6 @@ module KindeApi
       if attributes.key?(:'created')
         self.created = attributes[:'created']
       end
-
-      if attributes.key?(:'identity_id')
-        self.identity_id = attributes[:'identity_id']
-      end
     end
 
     # Show invalid properties with the reasons. Usually used together with valid?
@@ -91,8 +82,7 @@ module KindeApi
     def ==(o)
       return true if self.equal?(o)
       self.class == o.class &&
-          created == o.created &&
-          identity_id == o.identity_id
+          created == o.created
     end
 
     # @see the `==` method
@@ -104,7 +94,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [created, identity_id].hash
+      [created].hash
     end
 
     # Builds the object from hash

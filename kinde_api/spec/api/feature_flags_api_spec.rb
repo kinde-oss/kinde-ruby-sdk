@@ -64,10 +64,9 @@ describe 'FeatureFlagsApi' do
   # unit tests for update_feature_flag
   # Update a feature flag
   # Update feature flag.
-  # @param feature_flag_key The identifier for the feature flag.
+  # @param feature_flag_key The key identifier for the feature flag.
   # @param name The name of the flag.
   # @param description Description of the flag purpose.
-  # @param key The flag identifier to use in code.
   # @param type The variable type
   # @param allow_override_level Allow the flag to be overridden at a different level.
   # @param default_value Default value for the flag used by environments and organizations.

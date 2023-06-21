@@ -39,6 +39,9 @@ module KindeApi
     # User's profile picture URL.
     attr_accessor :picture
 
+    # Whether the user has been asked to reset their password.
+    attr_accessor :is_password_reset_requested
+
     # Total number of user sign ins.
     attr_accessor :total_sign_ins
 
@@ -62,6 +65,7 @@ module KindeApi
         :'full_name' => :'full_name',
         :'is_suspended' => :'is_suspended',
         :'picture' => :'picture',
+        :'is_password_reset_requested' => :'is_password_reset_requested',
         :'total_sign_ins' => :'total_sign_ins',
         :'failed_sign_ins' => :'failed_sign_ins',
         :'last_signed_in' => :'last_signed_in',
@@ -85,6 +89,7 @@ module KindeApi
         :'full_name' => :'String',
         :'is_suspended' => :'Boolean',
         :'picture' => :'String',
+        :'is_password_reset_requested' => :'Boolean',
         :'total_sign_ins' => :'Integer',
         :'failed_sign_ins' => :'Integer',
         :'last_signed_in' => :'String',
@@ -95,7 +100,7 @@ module KindeApi
     # List of attributes with nullable: true
     def self.openapi_nullable
       Set.new([
-        :'picture',
+        :'is_password_reset_requested',
         :'total_sign_ins',
         :'failed_sign_ins',
         :'last_signed_in',
@@ -150,6 +155,10 @@ module KindeApi
         self.picture = attributes[:'picture']
       end
 
+      if attributes.key?(:'is_password_reset_requested')
+        self.is_password_reset_requested = attributes[:'is_password_reset_requested']
+      end
+
       if attributes.key?(:'total_sign_ins')
         self.total_sign_ins = attributes[:'total_sign_ins']
       end
@@ -193,6 +202,7 @@ module KindeApi
           full_name == o.full_name &&
           is_suspended == o.is_suspended &&
           picture == o.picture &&
+          is_password_reset_requested == o.is_password_reset_requested &&
           total_sign_ins == o.total_sign_ins &&
           failed_sign_ins == o.failed_sign_ins &&
           last_signed_in == o.last_signed_in &&
@@ -208,7 +218,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [id, provided_id, email, last_name, first_name, full_name, is_suspended, picture, total_sign_ins, failed_sign_ins, last_signed_in, created_on].hash
+      [id, provided_id, email, last_name, first_name, full_name, is_suspended, picture, is_password_reset_requested, total_sign_ins, failed_sign_ins, last_signed_in, created_on].hash
     end
 
     # Builds the object from hash

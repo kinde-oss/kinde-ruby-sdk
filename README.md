@@ -65,7 +65,6 @@ KindeSdk.configure do |c|
  # c.authorize_url = '/oauth2/auth'         # default value
  # c.token_url = '/oauth2/token'            # default value
  # c.debugging = false                      # default value
- # c.business_name = nil                    # default value
  c.logger = Rails.logger
 end
 ```
@@ -82,10 +81,6 @@ defined in allowed logout urls of your kinde organization's application config
 - `PKCE enabled` is a flag that can turn off PKCE auth flow. By default it is activated to improve your security.
 - `Authorize url` and `Token url` are paths to oauth2 methods in kinde. You don't need to change it.
 - `Debugging` set to true start writing verbose request logs. Might be useful while developing your application.
-- `Business name` is a parameter which is used in requests building. By default it is extracted from your
-`domain` endpoint. For example, if your domain is `https://your-biz.kinde.com`, then business name will be set 
-to `your-biz`, for `https://example-chamois.au.kinde.com` it'll be `example-chamois.au` and so on.
-You don't need to change it in general, but it is possible to override if needed.
 - `Logger` might be set to any kind of loggers you are using. By default it is set to `Rails.logger` if gem is used in
 rails application or `Logger.new(STDOUT)` if it is not a rails app.
 

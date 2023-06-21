@@ -500,6 +500,69 @@ module KindeApi
       return data, status_code, headers
     end
 
+    # List organization feature flags
+    # Get all organization feature flags.
+    # @param org_code [String] The identifier for the organization.
+    # @param [Hash] opts the optional parameters
+    # @return [GetOrganizationFeatureFlagsResponse]
+    def get_organization_feature_flags(org_code, opts = {})
+      data, _status_code, _headers = get_organization_feature_flags_with_http_info(org_code, opts)
+      data
+    end
+
+    # List organization feature flags
+    # Get all organization feature flags.
+    # @param org_code [String] The identifier for the organization.
+    # @param [Hash] opts the optional parameters
+    # @return [Array<(GetOrganizationFeatureFlagsResponse, Integer, Hash)>] GetOrganizationFeatureFlagsResponse data, response status code and response headers
+    def get_organization_feature_flags_with_http_info(org_code, opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: OrganizationsApi.get_organization_feature_flags ...'
+      end
+      # verify the required parameter 'org_code' is set
+      if @api_client.config.client_side_validation && org_code.nil?
+        fail ArgumentError, "Missing the required parameter 'org_code' when calling OrganizationsApi.get_organization_feature_flags"
+      end
+      # resource path
+      local_var_path = '/api/v1/organizations/{org_code}/feature_flags'.sub('{' + 'org_code' + '}', CGI.escape(org_code.to_s))
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body]
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'GetOrganizationFeatureFlagsResponse'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
+
+      new_options = opts.merge(
+        :operation => :"OrganizationsApi.get_organization_feature_flags",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: OrganizationsApi#get_organization_feature_flags\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
     # List Organization User Roles
     # Get roles for an organization user.
     # @param org_code [String] The organization&#39;s code.
@@ -813,7 +876,7 @@ module KindeApi
         fail ArgumentError, "Missing the required parameter 'org_code' when calling OrganizationsApi.update_organization"
       end
       # resource path
-      local_var_path = '/api/v1/organizations/{org_code}'.sub('{' + 'org_code' + '}', CGI.escape(org_code.to_s))
+      local_var_path = '/api/v1/organization/{org_code}'.sub('{' + 'org_code' + '}', CGI.escape(org_code.to_s))
 
       # query parameters
       query_params = opts[:query_params] || {}
@@ -938,7 +1001,7 @@ module KindeApi
     # @param org_code [String] The organization&#39;s code.
     # @param [Hash] opts the optional parameters
     # @option opts [UpdateOrganizationUsersRequest] :update_organization_users_request 
-    # @return [RemoveOrganizationUsersResponse]
+    # @return [UpdateOrganizationUsersResponse]
     def update_organization_users(org_code, opts = {})
       data, _status_code, _headers = update_organization_users_with_http_info(org_code, opts)
       data
@@ -949,7 +1012,7 @@ module KindeApi
     # @param org_code [String] The organization&#39;s code.
     # @param [Hash] opts the optional parameters
     # @option opts [UpdateOrganizationUsersRequest] :update_organization_users_request 
-    # @return [Array<(RemoveOrganizationUsersResponse, Integer, Hash)>] RemoveOrganizationUsersResponse data, response status code and response headers
+    # @return [Array<(UpdateOrganizationUsersResponse, Integer, Hash)>] UpdateOrganizationUsersResponse data, response status code and response headers
     def update_organization_users_with_http_info(org_code, opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: OrganizationsApi.update_organization_users ...'
@@ -981,7 +1044,7 @@ module KindeApi
       post_body = opts[:debug_body] || @api_client.object_to_http_body(opts[:'update_organization_users_request'])
 
       # return_type
-      return_type = opts[:debug_return_type] || 'RemoveOrganizationUsersResponse'
+      return_type = opts[:debug_return_type] || 'UpdateOrganizationUsersResponse'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']

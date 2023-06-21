@@ -14,26 +14,14 @@ require 'date'
 require 'time'
 
 module KindeApi
-  class UpdateUserRequest
-    # User's first name.
-    attr_accessor :given_name
-
-    # User's last name.
-    attr_accessor :family_name
-
-    # Whether the user is currently suspended or not.
-    attr_accessor :is_suspended
-
-    # Prompt the user to change their password on next sign in.
-    attr_accessor :is_password_reset_requested
+  class CreateSubscriberSuccessResponseSubscriber
+    # A unique identifier for the subscriber.
+    attr_accessor :subscriber_id
 
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
-        :'given_name' => :'given_name',
-        :'family_name' => :'family_name',
-        :'is_suspended' => :'is_suspended',
-        :'is_password_reset_requested' => :'is_password_reset_requested'
+        :'subscriber_id' => :'subscriber_id'
       }
     end
 
@@ -45,10 +33,7 @@ module KindeApi
     # Attribute type mapping.
     def self.openapi_types
       {
-        :'given_name' => :'String',
-        :'family_name' => :'String',
-        :'is_suspended' => :'Boolean',
-        :'is_password_reset_requested' => :'Boolean'
+        :'subscriber_id' => :'String'
       }
     end
 
@@ -62,31 +47,19 @@ module KindeApi
     # @param [Hash] attributes Model attributes in the form of hash
     def initialize(attributes = {})
       if (!attributes.is_a?(Hash))
-        fail ArgumentError, "The input argument (attributes) must be a hash in `KindeApi::UpdateUserRequest` initialize method"
+        fail ArgumentError, "The input argument (attributes) must be a hash in `KindeApi::CreateSubscriberSuccessResponseSubscriber` initialize method"
       end
 
       # check to see if the attribute exists and convert string to symbol for hash key
       attributes = attributes.each_with_object({}) { |(k, v), h|
         if (!self.class.attribute_map.key?(k.to_sym))
-          fail ArgumentError, "`#{k}` is not a valid attribute in `KindeApi::UpdateUserRequest`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
+          fail ArgumentError, "`#{k}` is not a valid attribute in `KindeApi::CreateSubscriberSuccessResponseSubscriber`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
         end
         h[k.to_sym] = v
       }
 
-      if attributes.key?(:'given_name')
-        self.given_name = attributes[:'given_name']
-      end
-
-      if attributes.key?(:'family_name')
-        self.family_name = attributes[:'family_name']
-      end
-
-      if attributes.key?(:'is_suspended')
-        self.is_suspended = attributes[:'is_suspended']
-      end
-
-      if attributes.key?(:'is_password_reset_requested')
-        self.is_password_reset_requested = attributes[:'is_password_reset_requested']
+      if attributes.key?(:'subscriber_id')
+        self.subscriber_id = attributes[:'subscriber_id']
       end
     end
 
@@ -108,10 +81,7 @@ module KindeApi
     def ==(o)
       return true if self.equal?(o)
       self.class == o.class &&
-          given_name == o.given_name &&
-          family_name == o.family_name &&
-          is_suspended == o.is_suspended &&
-          is_password_reset_requested == o.is_password_reset_requested
+          subscriber_id == o.subscriber_id
     end
 
     # @see the `==` method
@@ -123,7 +93,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [given_name, family_name, is_suspended, is_password_reset_requested].hash
+      [subscriber_id].hash
     end
 
     # Builds the object from hash

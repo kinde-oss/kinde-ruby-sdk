@@ -12,6 +12,7 @@
 | **full_name** | **String** | User&#39;s full name. | [optional] |
 | **is_suspended** | **Boolean** | Whether the user is currently suspended or not. | [optional] |
 | **picture** | **String** | User&#39;s profile picture URL. | [optional] |
+| **is_password_reset_requested** | **Boolean** | Whether the user has been asked to reset their password. | [optional] |
 | **total_sign_ins** | **Integer** | Total number of user sign ins. | [optional] |
 | **failed_sign_ins** | **Integer** | Number of consecutive failed user sign ins. | [optional] |
 | **last_signed_in** | **String** | Last sign in date in ISO 8601 format. | [optional] |
@@ -31,6 +32,7 @@ instance = KindeApi::User.new(
   full_name: null,
   is_suspended: null,
   picture: null,
+  is_password_reset_requested: null,
   total_sign_ins: null,
   failed_sign_ins: null,
   last_signed_in: null,

@@ -14,26 +14,26 @@ require 'date'
 require 'time'
 
 module KindeApi
-  class UpdateUserRequest
-    # User's first name.
-    attr_accessor :given_name
+  class GetEnvironmentFeatureFlagsResponse
+    # Response code.
+    attr_accessor :code
 
-    # User's last name.
-    attr_accessor :family_name
+    # Response message.
+    attr_accessor :message
 
-    # Whether the user is currently suspended or not.
-    attr_accessor :is_suspended
+    # The environment's feature flag settings.
+    attr_accessor :feature_flags
 
-    # Prompt the user to change their password on next sign in.
-    attr_accessor :is_password_reset_requested
+    # Pagination token.
+    attr_accessor :next_token
 
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
-        :'given_name' => :'given_name',
-        :'family_name' => :'family_name',
-        :'is_suspended' => :'is_suspended',
-        :'is_password_reset_requested' => :'is_password_reset_requested'
+        :'code' => :'code',
+        :'message' => :'message',
+        :'feature_flags' => :'feature_flags',
+        :'next_token' => :'next_token'
       }
     end
 
@@ -45,10 +45,10 @@ module KindeApi
     # Attribute type mapping.
     def self.openapi_types
       {
-        :'given_name' => :'String',
-        :'family_name' => :'String',
-        :'is_suspended' => :'Boolean',
-        :'is_password_reset_requested' => :'Boolean'
+        :'code' => :'String',
+        :'message' => :'String',
+        :'feature_flags' => :'Hash<String, GetOrganizationFeatureFlagsResponseFeatureFlagsValue>',
+        :'next_token' => :'String'
       }
     end
 
@@ -62,31 +62,33 @@ module KindeApi
     # @param [Hash] attributes Model attributes in the form of hash
     def initialize(attributes = {})
       if (!attributes.is_a?(Hash))
-        fail ArgumentError, "The input argument (attributes) must be a hash in `KindeApi::UpdateUserRequest` initialize method"
+        fail ArgumentError, "The input argument (attributes) must be a hash in `KindeApi::GetEnvironmentFeatureFlagsResponse` initialize method"
       end
 
       # check to see if the attribute exists and convert string to symbol for hash key
       attributes = attributes.each_with_object({}) { |(k, v), h|
         if (!self.class.attribute_map.key?(k.to_sym))
-          fail ArgumentError, "`#{k}` is not a valid attribute in `KindeApi::UpdateUserRequest`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
+          fail ArgumentError, "`#{k}` is not a valid attribute in `KindeApi::GetEnvironmentFeatureFlagsResponse`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
         end
         h[k.to_sym] = v
       }
 
-      if attributes.key?(:'given_name')
-        self.given_name = attributes[:'given_name']
+      if attributes.key?(:'code')
+        self.code = attributes[:'code']
       end
 
-      if attributes.key?(:'family_name')
-        self.family_name = attributes[:'family_name']
+      if attributes.key?(:'message')
+        self.message = attributes[:'message']
       end
 
-      if attributes.key?(:'is_suspended')
-        self.is_suspended = attributes[:'is_suspended']
+      if attributes.key?(:'feature_flags')
+        if (value = attributes[:'feature_flags']).is_a?(Hash)
+          self.feature_flags = value
+        end
       end
 
-      if attributes.key?(:'is_password_reset_requested')
-        self.is_password_reset_requested = attributes[:'is_password_reset_requested']
+      if attributes.key?(:'next_token')
+        self.next_token = attributes[:'next_token']
       end
     end
 
@@ -108,10 +110,10 @@ module KindeApi
     def ==(o)
       return true if self.equal?(o)
       self.class == o.class &&
-          given_name == o.given_name &&
-          family_name == o.family_name &&
-          is_suspended == o.is_suspended &&
-          is_password_reset_requested == o.is_password_reset_requested
+          code == o.code &&
+          message == o.message &&
+          feature_flags == o.feature_flags &&
+          next_token == o.next_token
     end
 
     # @see the `==` method
@@ -123,7 +125,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [given_name, family_name, is_suspended, is_password_reset_requested].hash
+      [code, message, feature_flags, next_token].hash
     end
 
     # Builds the object from hash

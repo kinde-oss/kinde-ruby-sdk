@@ -108,7 +108,6 @@ module KindeSdk
       config = KindeApi::Configuration.default
       config.configure do |c|
         c.access_token = bearer_token
-        c.server_variables = { businessName: business_name }
         c.host = @config.domain
         c.debugging = @config.debugging
         c.logger = @config.logger
@@ -119,12 +118,6 @@ module KindeSdk
     end
 
     private
-
-    def business_name
-      # from https://example.kinde.com fetches `example`
-      # from https://example-chamois.au.kinde.com fetches `example-chamois.au`
-      @config.business_name || @config.domain.split("//")[1].split(".")[0..-3].join(".")
-    end
 
     def url_scheme(default_scheme)
       parsed_url = URI.parse(@config.domain.to_s)

@@ -38,7 +38,8 @@ Class | Method | HTTP request | Description
 *KindeApi::ConnectedAppsApi* | [**get_connected_app_token**](docs/ConnectedAppsApi.md#get_connected_app_token) | **GET** /api/v1/connected_apps/token | Get Connected App Token
 *KindeApi::ConnectedAppsApi* | [**revoke_connected_app_token**](docs/ConnectedAppsApi.md#revoke_connected_app_token) | **POST** /api/v1/connected_apps/revoke | Revoke Connected App Token
 *KindeApi::EnvironmentsApi* | [**delete_environement_feature_flag_override**](docs/EnvironmentsApi.md#delete_environement_feature_flag_override) | **DELETE** /api/v1/environment/feature_flags/{feature_flag_key} | Delete environment feature flag override
-*KindeApi::EnvironmentsApi* | [**delete_environement_feature_flag_overrides**](docs/EnvironmentsApi.md#delete_environement_feature_flag_overrides) | **DELETE** /api/v1/environment/feature_flags/ | Delete all environment feature flag overrides
+*KindeApi::EnvironmentsApi* | [**delete_environement_feature_flag_overrides**](docs/EnvironmentsApi.md#delete_environement_feature_flag_overrides) | **DELETE** /api/v1/environment/feature_flags | Delete all environment feature flag overrides
+*KindeApi::EnvironmentsApi* | [**get_environement_feature_flags**](docs/EnvironmentsApi.md#get_environement_feature_flags) | **GET** /api/v1/environment/feature_flags | List environment feature flags
 *KindeApi::EnvironmentsApi* | [**update_environement_feature_flag_override**](docs/EnvironmentsApi.md#update_environement_feature_flag_override) | **PATCH** /api/v1/environment/feature_flags/{feature_flag_key} | Update environment feature flag override
 *KindeApi::FeatureFlagsApi* | [**create_feature_flag**](docs/FeatureFlagsApi.md#create_feature_flag) | **POST** /api/v1/feature_flags | Create a new feature flag
 *KindeApi::FeatureFlagsApi* | [**delete_feature_flag**](docs/FeatureFlagsApi.md#delete_feature_flag) | **DELETE** /api/v1/feature_flags/{feature_flag_key} | Delete a feature flag
@@ -52,11 +53,12 @@ Class | Method | HTTP request | Description
 *KindeApi::OrganizationsApi* | [**delete_organization_feature_flag_overrides**](docs/OrganizationsApi.md#delete_organization_feature_flag_overrides) | **DELETE** /api/v1/organizations/{org_code}/feature_flags | Delete all organization feature flag overrides
 *KindeApi::OrganizationsApi* | [**delete_organization_user_role**](docs/OrganizationsApi.md#delete_organization_user_role) | **DELETE** /api/v1/organizations/{org_code}/users/{user_id}/roles/{role_id} | Delete Organization User Role
 *KindeApi::OrganizationsApi* | [**get_organization**](docs/OrganizationsApi.md#get_organization) | **GET** /api/v1/organization | Get Organization
+*KindeApi::OrganizationsApi* | [**get_organization_feature_flags**](docs/OrganizationsApi.md#get_organization_feature_flags) | **GET** /api/v1/organizations/{org_code}/feature_flags | List organization feature flags
 *KindeApi::OrganizationsApi* | [**get_organization_user_roles**](docs/OrganizationsApi.md#get_organization_user_roles) | **GET** /api/v1/organizations/{org_code}/users/{user_id}/roles | List Organization User Roles
 *KindeApi::OrganizationsApi* | [**get_organization_users**](docs/OrganizationsApi.md#get_organization_users) | **GET** /api/v1/organizations/{org_code}/users | List Organization Users
 *KindeApi::OrganizationsApi* | [**get_organizations**](docs/OrganizationsApi.md#get_organizations) | **GET** /api/v1/organizations | List Organizations
 *KindeApi::OrganizationsApi* | [**remove_organization_user**](docs/OrganizationsApi.md#remove_organization_user) | **DELETE** /api/v1/organizations/{org_code}/users/{user_id} | Remove Organization User
-*KindeApi::OrganizationsApi* | [**update_organization**](docs/OrganizationsApi.md#update_organization) | **PATCH** /api/v1/organizations/{org_code} | Update Organization
+*KindeApi::OrganizationsApi* | [**update_organization**](docs/OrganizationsApi.md#update_organization) | **PATCH** /api/v1/organization/{org_code} | Update Organization
 *KindeApi::OrganizationsApi* | [**update_organization_feature_flag_override**](docs/OrganizationsApi.md#update_organization_feature_flag_override) | **PATCH** /api/v1/organizations/{org_code}/feature_flags/{feature_flag_key} | Update organization feature flag override
 *KindeApi::OrganizationsApi* | [**update_organization_users**](docs/OrganizationsApi.md#update_organization_users) | **PATCH** /api/v1/organizations/{org_code}/users | Update organization users
 *KindeApi::PermissionsApi* | [**create_permission**](docs/PermissionsApi.md#create_permission) | **POST** /api/v1/permissions | Create a new permission
@@ -65,6 +67,9 @@ Class | Method | HTTP request | Description
 *KindeApi::RolesApi* | [**create_role**](docs/RolesApi.md#create_role) | **POST** /api/v1/role | Create a new role
 *KindeApi::RolesApi* | [**get_roles**](docs/RolesApi.md#get_roles) | **GET** /api/v1/roles | List Roles
 *KindeApi::RolesApi* | [**update_roles**](docs/RolesApi.md#update_roles) | **PATCH** /api/v1/roles/{role_id} | Update a role
+*KindeApi::SubscribersApi* | [**create_subscriber**](docs/SubscribersApi.md#create_subscriber) | **POST** /api/v1/subscribers | Create a new subscriber
+*KindeApi::SubscribersApi* | [**get_subscriber**](docs/SubscribersApi.md#get_subscriber) | **GET** /api/v1/subscribers/{subscriber_id} | Get Subscriber
+*KindeApi::SubscribersApi* | [**get_subscribers**](docs/SubscribersApi.md#get_subscribers) | **GET** /api/v1/subscribers | List Subscribers
 *KindeApi::UsersApi* | [**create_user**](docs/UsersApi.md#create_user) | **POST** /api/v1/user | Create User
 *KindeApi::UsersApi* | [**delete_user**](docs/UsersApi.md#delete_user) | **DELETE** /api/v1/user | Delete User
 *KindeApi::UsersApi* | [**get_user_data**](docs/UsersApi.md#get_user_data) | **GET** /api/v1/user | Get User
@@ -87,6 +92,8 @@ Class | Method | HTTP request | Description
  - [KindeApi::CreateOrganizationUserRoleRequest](docs/CreateOrganizationUserRoleRequest.md)
  - [KindeApi::CreatePermissionRequest](docs/CreatePermissionRequest.md)
  - [KindeApi::CreateRoleRequest](docs/CreateRoleRequest.md)
+ - [KindeApi::CreateSubscriberSuccessResponse](docs/CreateSubscriberSuccessResponse.md)
+ - [KindeApi::CreateSubscriberSuccessResponseSubscriber](docs/CreateSubscriberSuccessResponseSubscriber.md)
  - [KindeApi::CreateUserRequest](docs/CreateUserRequest.md)
  - [KindeApi::CreateUserRequestIdentitiesInner](docs/CreateUserRequestIdentitiesInner.md)
  - [KindeApi::CreateUserRequestIdentitiesInnerDetails](docs/CreateUserRequestIdentitiesInnerDetails.md)
@@ -95,6 +102,9 @@ Class | Method | HTTP request | Description
  - [KindeApi::Error](docs/Error.md)
  - [KindeApi::ErrorResponse](docs/ErrorResponse.md)
  - [KindeApi::GetApplicationsResponse](docs/GetApplicationsResponse.md)
+ - [KindeApi::GetEnvironmentFeatureFlagsResponse](docs/GetEnvironmentFeatureFlagsResponse.md)
+ - [KindeApi::GetOrganizationFeatureFlagsResponse](docs/GetOrganizationFeatureFlagsResponse.md)
+ - [KindeApi::GetOrganizationFeatureFlagsResponseFeatureFlagsValue](docs/GetOrganizationFeatureFlagsResponseFeatureFlagsValue.md)
  - [KindeApi::GetOrganizationsResponse](docs/GetOrganizationsResponse.md)
  - [KindeApi::GetOrganizationsUserRolesResponse](docs/GetOrganizationsUserRolesResponse.md)
  - [KindeApi::GetOrganizationsUsersResponse](docs/GetOrganizationsUsersResponse.md)
@@ -104,12 +114,12 @@ Class | Method | HTTP request | Description
  - [KindeApi::OrganizationUserRole](docs/OrganizationUserRole.md)
  - [KindeApi::Permissions](docs/Permissions.md)
  - [KindeApi::RedirectCallbackUrls](docs/RedirectCallbackUrls.md)
- - [KindeApi::RemoveOrganizationUsersResponse](docs/RemoveOrganizationUsersResponse.md)
  - [KindeApi::Roles](docs/Roles.md)
  - [KindeApi::SuccessResponse](docs/SuccessResponse.md)
  - [KindeApi::UpdateOrganizationRequest](docs/UpdateOrganizationRequest.md)
  - [KindeApi::UpdateOrganizationUsersRequest](docs/UpdateOrganizationUsersRequest.md)
  - [KindeApi::UpdateOrganizationUsersRequestUsersInner](docs/UpdateOrganizationUsersRequestUsersInner.md)
+ - [KindeApi::UpdateOrganizationUsersResponse](docs/UpdateOrganizationUsersResponse.md)
  - [KindeApi::UpdateUserRequest](docs/UpdateUserRequest.md)
  - [KindeApi::User](docs/User.md)
  - [KindeApi::UserIdentity](docs/UserIdentity.md)

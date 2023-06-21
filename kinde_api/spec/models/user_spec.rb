@@ -73,6 +73,12 @@ describe KindeApi::User do
     end
   end
 
+  describe 'test attribute "is_password_reset_requested"' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
   describe 'test attribute "total_sign_ins"' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
