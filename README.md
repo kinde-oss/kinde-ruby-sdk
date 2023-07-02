@@ -75,6 +75,7 @@ Here is detailed explanation on them:
 - `Client id` and `Client secret` can be fetched from your Kinde application credentials in a setting section.
 - `Callback url` refers to your callback processing controller action. Remember that 
 the url must be defined in allowed callback urls of your kinde organization's [application config](#Kinde-configuration).
+Callback url is an optional parameter, you can set the desired url in runtime, see examples below.
 - `Logout url` will be triggered after successful logout on kinde. Same as callback url, it should be 
 defined in allowed logout urls of your kinde organization's application config
 - `Scope` is an oauth special parameter which is used to limit some rights. Probably, you don't need to change in.
@@ -124,6 +125,11 @@ KindeSdk.auth_url
 ```
 If you are about to use PCKE, our recommendation to save code verifier output somewhere near your later tokens output.
 
+The `#auth_url` method can have another redirect url just in runtime. Use it with the argument:
+```ruby
+KindeSdk.auth_url(redirect_uri: "your-another-desired-callback")
+```
+
 You can put the link right in your web-application page or you can use it under the hood through redirection.
 After visiting the link you'll be redirected to Kinde's sign in/sign up form.
 And after authorizing in Kinde, you'll be redirected to callback url.
@@ -135,7 +141,7 @@ Callback will be triggered with body, where will be code present. You are free t
 Next, it needs to be exchanged for the access and refresh tokens.
 `code` is the parameter which received in the callback endpoint, `code_verifier` (if PKCE enabled) should be used from previous step:  
 ```ruby
-KindeSdk.fetch_tokens(code, code_verifier)
+KindeSdk.fetch_tokens(code, code_verifier: code_verifier)
 # => 
 {"access_token"=>"eyJhbGciOiJSUzI1NiIsIm...",                                
  "expires_in"=>86399,                             
@@ -153,6 +159,11 @@ This is your tokens - save the whole hash in your session, redis or any other st
 session[:kinde_auth] = KindeSdk.fetch_tokens(code).slice(:access_token, :id_token, :refresh_token, :expires_at)
 # ...
 client = KindeSdk.client(session[:kinde_auth]) # => #<KindeSdk::Client:0x00007faf31e5ecb8> 
+```
+
+The `#fetch_tokens` method can have another callback url (just lake the `#auth_url` method), just use it in a same way:
+```ruby
+KindeSdk.fetch_tokens(code, redirect_uri: "your-another-desired-callback")
 ```
 
 #### Token expiration and refreshing

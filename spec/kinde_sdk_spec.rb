@@ -22,6 +22,12 @@ describe KindeSdk do
       auth_obj = described_class.auth_url
       expect(auth_obj[:code_verifier]).not_to be_nil
       expect(auth_obj[:url]).to start_with("#{domain}/oauth2/auth?client_id=#{client_id}&")
+      expect(auth_obj[:url]).to match(/localhost%3A3000%2Fcallback/)
+    end
+
+    it "allows override callback url" do
+      auth_obj = described_class.auth_url(redirect_uri: "localhost:5000/another_callback")
+      expect(auth_obj[:url]).to match(/localhost%3A5000%2Fanother_callback/)
     end
   end
 
@@ -73,6 +79,14 @@ describe KindeSdk do
 
     it "calls /token url with proper body and headers" do
       expect(described_class.fetch_tokens(code).keys).to eq(%w[scope token_type access_token refresh_token expires_at])
+    end
+
+    context "with redefined callback_url" do
+      let(:callback_url) { "another-callback" }
+
+      it "calls /token url with proper body and headers" do
+        expect(described_class.fetch_tokens(code).keys.size).to eq(5)
+      end
     end
   end
 

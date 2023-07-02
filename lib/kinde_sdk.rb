@@ -27,9 +27,9 @@ module KindeSdk
     # receive url for authorization in Kinde itself
     #
     # @return [Hash]
-    def auth_url(**kwargs)
+    def auth_url(redirect_uri: @config.callback_url, **kwargs)
       params = {
-        redirect_uri: @config.callback_url,
+        redirect_uri: redirect_uri,
         state: SecureRandom.hex,
         scope: @config.scope
       }.merge(**kwargs)
@@ -46,10 +46,10 @@ module KindeSdk
     # when callback processor receives code, it needs to be used for fetching bearer token
     #
     # @return [Hash]
-    def fetch_tokens(params_or_code, code_verifier = nil)
+    def fetch_tokens(params_or_code, code_verifier: nil, redirect_uri: @config.callback_url)
       code = params_or_code.kind_of?(Hash) ? params.fetch("code") : params_or_code
       params = {
-        redirect_uri: @config.callback_url,
+        redirect_uri: redirect_uri,
         headers: { 'User-Agent' => "Kinde-SDK: Ruby/#{KindeSdk::VERSION}" }
       }
       params[:code_verifier] = code_verifier if code_verifier
