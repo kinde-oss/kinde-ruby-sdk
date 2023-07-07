@@ -22,7 +22,7 @@ module KindeApi
     # Get Connected App URL
     # Get a URL that authenticates and authorizes a user to a third-party connected app.
     # @param key_code_ref [String] The unique key code reference of the connected app to authenticate against.
-    # @param user_id [Integer] The id of the user that needs to authenticate to the third-party connected app.
+    # @param user_id [String] The id of the user that needs to authenticate to the third-party connected app.
     # @param [Hash] opts the optional parameters
     # @return [ConnectedAppsAuthUrl]
     def get_connected_app_auth_url(key_code_ref, user_id, opts = {})
@@ -33,7 +33,7 @@ module KindeApi
     # Get Connected App URL
     # Get a URL that authenticates and authorizes a user to a third-party connected app.
     # @param key_code_ref [String] The unique key code reference of the connected app to authenticate against.
-    # @param user_id [Integer] The id of the user that needs to authenticate to the third-party connected app.
+    # @param user_id [String] The id of the user that needs to authenticate to the third-party connected app.
     # @param [Hash] opts the optional parameters
     # @return [Array<(ConnectedAppsAuthUrl, Integer, Hash)>] ConnectedAppsAuthUrl data, response status code and response headers
     def get_connected_app_auth_url_with_http_info(key_code_ref, user_id, opts = {})
@@ -59,7 +59,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
 
       # form parameters
       form_params = opts[:form_params] || {}
@@ -123,7 +123,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
 
       # form parameters
       form_params = opts[:form_params] || {}
@@ -158,7 +158,7 @@ module KindeApi
     # Revoke the tokens linked to the connected app session.
     # @param session_id [String] The unique sesssion id reprensenting the login session of a user.
     # @param [Hash] opts the optional parameters
-    # @return [ApiResult]
+    # @return [SuccessResponse]
     def revoke_connected_app_token(session_id, opts = {})
       data, _status_code, _headers = revoke_connected_app_token_with_http_info(session_id, opts)
       data
@@ -168,7 +168,7 @@ module KindeApi
     # Revoke the tokens linked to the connected app session.
     # @param session_id [String] The unique sesssion id reprensenting the login session of a user.
     # @param [Hash] opts the optional parameters
-    # @return [Array<(ApiResult, Integer, Hash)>] ApiResult data, response status code and response headers
+    # @return [Array<(SuccessResponse, Integer, Hash)>] SuccessResponse data, response status code and response headers
     def revoke_connected_app_token_with_http_info(session_id, opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: ConnectedAppsApi.revoke_connected_app_token ...'
@@ -187,7 +187,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
 
       # form parameters
       form_params = opts[:form_params] || {}
@@ -196,7 +196,7 @@ module KindeApi
       post_body = opts[:debug_body]
 
       # return_type
-      return_type = opts[:debug_return_type] || 'ApiResult'
+      return_type = opts[:debug_return_type] || 'SuccessResponse'
 
       # auth_names
       auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']

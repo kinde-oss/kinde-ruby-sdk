@@ -51,7 +51,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
 
       # form parameters
       form_params = opts[:form_params] || {}
@@ -100,7 +100,7 @@ module KindeApi
         @api_client.config.logger.debug 'Calling API: EnvironmentsApi.delete_environement_feature_flag_overrides ...'
       end
       # resource path
-      local_var_path = '/api/v1/environment/feature_flags/'
+      local_var_path = '/api/v1/environment/feature_flags'
 
       # query parameters
       query_params = opts[:query_params] || {}
@@ -108,7 +108,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
 
       # form parameters
       form_params = opts[:form_params] || {}
@@ -135,6 +135,63 @@ module KindeApi
       data, status_code, headers = @api_client.call_api(:DELETE, local_var_path, new_options)
       if @api_client.config.debugging
         @api_client.config.logger.debug "API called: EnvironmentsApi#delete_environement_feature_flag_overrides\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
+    # List environment feature flags
+    # Get environment feature flags.
+    # @param [Hash] opts the optional parameters
+    # @return [GetEnvironmentFeatureFlagsResponse]
+    def get_environement_feature_flags(opts = {})
+      data, _status_code, _headers = get_environement_feature_flags_with_http_info(opts)
+      data
+    end
+
+    # List environment feature flags
+    # Get environment feature flags.
+    # @param [Hash] opts the optional parameters
+    # @return [Array<(GetEnvironmentFeatureFlagsResponse, Integer, Hash)>] GetEnvironmentFeatureFlagsResponse data, response status code and response headers
+    def get_environement_feature_flags_with_http_info(opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: EnvironmentsApi.get_environement_feature_flags ...'
+      end
+      # resource path
+      local_var_path = '/api/v1/environment/feature_flags'
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body]
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'GetEnvironmentFeatureFlagsResponse'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
+
+      new_options = opts.merge(
+        :operation => :"EnvironmentsApi.get_environement_feature_flags",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: EnvironmentsApi#get_environement_feature_flags\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
       end
       return data, status_code, headers
     end
@@ -178,7 +235,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
 
       # form parameters
       form_params = opts[:form_params] || {}

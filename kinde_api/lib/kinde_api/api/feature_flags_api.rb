@@ -97,7 +97,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
 
       # form parameters
       form_params = opts[:form_params] || {}
@@ -160,7 +160,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
 
       # form parameters
       form_params = opts[:form_params] || {}
@@ -193,32 +193,30 @@ module KindeApi
 
     # Update a feature flag
     # Update feature flag.
-    # @param feature_flag_key [String] The identifier for the feature flag.
+    # @param feature_flag_key [String] The key identifier for the feature flag.
     # @param name [String] The name of the flag.
     # @param description [String] Description of the flag purpose.
-    # @param key [String] The flag identifier to use in code.
     # @param type [String] The variable type
     # @param allow_override_level [String] Allow the flag to be overridden at a different level.
     # @param default_value [String] Default value for the flag used by environments and organizations.
     # @param [Hash] opts the optional parameters
     # @return [SuccessResponse]
-    def update_feature_flag(feature_flag_key, name, description, key, type, allow_override_level, default_value, opts = {})
-      data, _status_code, _headers = update_feature_flag_with_http_info(feature_flag_key, name, description, key, type, allow_override_level, default_value, opts)
+    def update_feature_flag(feature_flag_key, name, description, type, allow_override_level, default_value, opts = {})
+      data, _status_code, _headers = update_feature_flag_with_http_info(feature_flag_key, name, description, type, allow_override_level, default_value, opts)
       data
     end
 
     # Update a feature flag
     # Update feature flag.
-    # @param feature_flag_key [String] The identifier for the feature flag.
+    # @param feature_flag_key [String] The key identifier for the feature flag.
     # @param name [String] The name of the flag.
     # @param description [String] Description of the flag purpose.
-    # @param key [String] The flag identifier to use in code.
     # @param type [String] The variable type
     # @param allow_override_level [String] Allow the flag to be overridden at a different level.
     # @param default_value [String] Default value for the flag used by environments and organizations.
     # @param [Hash] opts the optional parameters
     # @return [Array<(SuccessResponse, Integer, Hash)>] SuccessResponse data, response status code and response headers
-    def update_feature_flag_with_http_info(feature_flag_key, name, description, key, type, allow_override_level, default_value, opts = {})
+    def update_feature_flag_with_http_info(feature_flag_key, name, description, type, allow_override_level, default_value, opts = {})
       if @api_client.config.debugging
         @api_client.config.logger.debug 'Calling API: FeatureFlagsApi.update_feature_flag ...'
       end
@@ -233,10 +231,6 @@ module KindeApi
       # verify the required parameter 'description' is set
       if @api_client.config.client_side_validation && description.nil?
         fail ArgumentError, "Missing the required parameter 'description' when calling FeatureFlagsApi.update_feature_flag"
-      end
-      # verify the required parameter 'key' is set
-      if @api_client.config.client_side_validation && key.nil?
-        fail ArgumentError, "Missing the required parameter 'key' when calling FeatureFlagsApi.update_feature_flag"
       end
       # verify the required parameter 'type' is set
       if @api_client.config.client_side_validation && type.nil?
@@ -267,7 +261,6 @@ module KindeApi
       query_params = opts[:query_params] || {}
       query_params[:'name'] = name
       query_params[:'description'] = description
-      query_params[:'key'] = key
       query_params[:'type'] = type
       query_params[:'allow_override_level'] = allow_override_level
       query_params[:'default_value'] = default_value
@@ -275,7 +268,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
 
       # form parameters
       form_params = opts[:form_params] || {}

@@ -33,12 +33,12 @@ describe 'OrganizationsApi' do
   end
 
   # unit tests for add_organization_users
-  # Assign Users to an Organization
+  # Add Organization Users
   # Add existing users to an organization.
+  # @param org_code The organization&#39;s code.
   # @param [Hash] opts the optional parameters
-  # @option opts [String] :code The organization&#39;s code.
   # @option opts [AddOrganizationUsersRequest] :add_organization_users_request 
-  # @return [AddOrganizationUsers200Response]
+  # @return [AddOrganizationUsersResponse]
   describe 'add_organization_users test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
@@ -50,8 +50,22 @@ describe 'OrganizationsApi' do
   # Create an organization.
   # @param [Hash] opts the optional parameters
   # @option opts [CreateOrganizationRequest] :create_organization_request Organization details.
-  # @return [CreateOrganization201Response]
+  # @return [CreateOrganizationResponse]
   describe 'create_organization test' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
+  # unit tests for create_organization_user_role
+  # Add Organization User Role
+  # Add role to an organization user.
+  # @param org_code The organization&#39;s code.
+  # @param user_id The user&#39;s id.
+  # @param create_organization_user_role_request Role details.
+  # @param [Hash] opts the optional parameters
+  # @return [SuccessResponse]
+  describe 'create_organization_user_role test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
     end
@@ -82,6 +96,20 @@ describe 'OrganizationsApi' do
     end
   end
 
+  # unit tests for delete_organization_user_role
+  # Delete Organization User Role
+  # Delete role for an organization user.
+  # @param org_code The organization&#39;s code.
+  # @param user_id The user&#39;s id.
+  # @param role_id The role id.
+  # @param [Hash] opts the optional parameters
+  # @return [SuccessResponse]
+  describe 'delete_organization_user_role test' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
   # unit tests for get_organization
   # Get Organization
   # Gets an organization given the organization&#39;s code. 
@@ -94,16 +122,41 @@ describe 'OrganizationsApi' do
     end
   end
 
+  # unit tests for get_organization_feature_flags
+  # List organization feature flags
+  # Get all organization feature flags.
+  # @param org_code The identifier for the organization.
+  # @param [Hash] opts the optional parameters
+  # @return [GetOrganizationFeatureFlagsResponse]
+  describe 'get_organization_feature_flags test' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
+  # unit tests for get_organization_user_roles
+  # List Organization User Roles
+  # Get roles for an organization user.
+  # @param org_code The organization&#39;s code.
+  # @param user_id The user&#39;s id.
+  # @param [Hash] opts the optional parameters
+  # @return [GetOrganizationsUserRolesResponse]
+  describe 'get_organization_user_roles test' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
   # unit tests for get_organization_users
   # List Organization Users
   # Get users in an organization.
+  # @param org_code The organization&#39;s code.
   # @param [Hash] opts the optional parameters
   # @option opts [String] :sort Field and order to sort the result by.
   # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
   # @option opts [String] :next_token A string to get the next page of results if there are more results.
-  # @option opts [String] :code The organization&#39;s code.
   # @option opts [String] :permissions Filter by user permissions
-  # @return [GetOrganizationUsers200Response]
+  # @return [GetOrganizationsUsersResponse]
   describe 'get_organization_users test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
@@ -117,21 +170,34 @@ describe 'OrganizationsApi' do
   # @option opts [String] :sort Field and order to sort the result by.
   # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
   # @option opts [String] :next_token A string to get the next page of results if there are more results.
-  # @return [GetOrganizations200Response]
+  # @return [GetOrganizationsResponse]
   describe 'get_organizations test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
     end
   end
 
-  # unit tests for remove_organization_users
-  # Remove Users from an Organization
-  # Remove existing users from an organization.
+  # unit tests for remove_organization_user
+  # Remove Organization User
+  # Remove user from an organization.
+  # @param org_code The organization&#39;s code.
+  # @param user_id The user&#39;s id.
   # @param [Hash] opts the optional parameters
-  # @option opts [String] :code The organization&#39;s code.
-  # @option opts [RemoveOrganizationUsersRequest] :remove_organization_users_request 
-  # @return [RemoveOrganizationUsers200Response]
-  describe 'remove_organization_users test' do
+  # @return [SuccessResponse]
+  describe 'remove_organization_user test' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
+  # unit tests for update_organization
+  # Update Organization
+  # Update an organization.
+  # @param org_code The identifier for the organization.
+  # @param [Hash] opts the optional parameters
+  # @option opts [UpdateOrganizationRequest] :update_organization_request Organization details.
+  # @return [nil]
+  describe 'update_organization test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
     end
@@ -146,6 +212,19 @@ describe 'OrganizationsApi' do
   # @param [Hash] opts the optional parameters
   # @return [SuccessResponse]
   describe 'update_organization_feature_flag_override test' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
+  # unit tests for update_organization_users
+  # Update organization users
+  # Update users that belong to an organization.
+  # @param org_code The organization&#39;s code.
+  # @param [Hash] opts the optional parameters
+  # @option opts [UpdateOrganizationUsersRequest] :update_organization_users_request 
+  # @return [UpdateOrganizationUsersResponse]
+  describe 'update_organization_users test' do
     it 'should work' do
       # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
     end

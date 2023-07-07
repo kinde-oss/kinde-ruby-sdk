@@ -15,8 +15,11 @@ require 'time'
 
 module KindeApi
   class UserProfileV2
-    # Unique id of the user in Kinde.
+    # Unique id of the user in Kinde (deprecated).
     attr_accessor :id
+
+    # Unique id of the user in Kinde.
+    attr_accessor :sub
 
     # Value of the user's id in a third-party system when the user is imported into Kinde.
     attr_accessor :provided_id
@@ -36,16 +39,21 @@ module KindeApi
     # User's email address if available.
     attr_accessor :email
 
+    # URL that point's to the user's picture or avatar
+    attr_accessor :picture
+
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
         :'id' => :'id',
+        :'sub' => :'sub',
         :'provided_id' => :'provided_id',
         :'name' => :'name',
         :'given_name' => :'given_name',
         :'family_name' => :'family_name',
         :'updated_at' => :'updated_at',
-        :'email' => :'email'
+        :'email' => :'email',
+        :'picture' => :'picture'
       }
     end
 
@@ -58,12 +66,14 @@ module KindeApi
     def self.openapi_types
       {
         :'id' => :'String',
+        :'sub' => :'String',
         :'provided_id' => :'String',
         :'name' => :'String',
         :'given_name' => :'String',
         :'family_name' => :'String',
         :'updated_at' => :'Integer',
-        :'email' => :'String'
+        :'email' => :'String',
+        :'picture' => :'String'
       }
     end
 
@@ -93,6 +103,10 @@ module KindeApi
         self.id = attributes[:'id']
       end
 
+      if attributes.key?(:'sub')
+        self.sub = attributes[:'sub']
+      end
+
       if attributes.key?(:'provided_id')
         self.provided_id = attributes[:'provided_id']
       end
@@ -116,6 +130,10 @@ module KindeApi
       if attributes.key?(:'email')
         self.email = attributes[:'email']
       end
+
+      if attributes.key?(:'picture')
+        self.picture = attributes[:'picture']
+      end
     end
 
     # Show invalid properties with the reasons. Usually used together with valid?
@@ -137,12 +155,14 @@ module KindeApi
       return true if self.equal?(o)
       self.class == o.class &&
           id == o.id &&
+          sub == o.sub &&
           provided_id == o.provided_id &&
           name == o.name &&
           given_name == o.given_name &&
           family_name == o.family_name &&
           updated_at == o.updated_at &&
-          email == o.email
+          email == o.email &&
+          picture == o.picture
     end
 
     # @see the `==` method
@@ -154,7 +174,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [id, provided_id, name, given_name, family_name, updated_at, email].hash
+      [id, sub, provided_id, name, given_name, family_name, updated_at, email, picture].hash
     end
 
     # Builds the object from hash

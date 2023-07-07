@@ -5,7 +5,8 @@ All URIs are relative to *https://app.kinde.com*
 | Method | HTTP request | Description |
 | ------ | ------------ | ----------- |
 | [**delete_environement_feature_flag_override**](EnvironmentsApi.md#delete_environement_feature_flag_override) | **DELETE** /api/v1/environment/feature_flags/{feature_flag_key} | Delete environment feature flag override |
-| [**delete_environement_feature_flag_overrides**](EnvironmentsApi.md#delete_environement_feature_flag_overrides) | **DELETE** /api/v1/environment/feature_flags/ | Delete all environment feature flag overrides |
+| [**delete_environement_feature_flag_overrides**](EnvironmentsApi.md#delete_environement_feature_flag_overrides) | **DELETE** /api/v1/environment/feature_flags | Delete all environment feature flag overrides |
+| [**get_environement_feature_flags**](EnvironmentsApi.md#get_environement_feature_flags) | **GET** /api/v1/environment/feature_flags | List environment feature flags |
 | [**update_environement_feature_flag_override**](EnvironmentsApi.md#update_environement_feature_flag_override) | **PATCH** /api/v1/environment/feature_flags/{feature_flag_key} | Update environment feature flag override |
 
 
@@ -75,7 +76,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## delete_environement_feature_flag_overrides
@@ -141,7 +142,73 @@ This endpoint does not need any parameter.
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
+
+
+## get_environement_feature_flags
+
+> <GetEnvironmentFeatureFlagsResponse> get_environement_feature_flags
+
+List environment feature flags
+
+Get environment feature flags.
+
+### Examples
+
+```ruby
+require 'time'
+require 'kinde_api'
+# setup authorization
+KindeApi.configure do |config|
+  # Configure Bearer authorization (JWT): kindeBearerAuth
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = KindeApi::EnvironmentsApi.new
+
+begin
+  # List environment feature flags
+  result = api_instance.get_environement_feature_flags
+  p result
+rescue KindeApi::ApiError => e
+  puts "Error when calling EnvironmentsApi->get_environement_feature_flags: #{e}"
+end
+```
+
+#### Using the get_environement_feature_flags_with_http_info variant
+
+This returns an Array which contains the response data, status code and headers.
+
+> <Array(<GetEnvironmentFeatureFlagsResponse>, Integer, Hash)> get_environement_feature_flags_with_http_info
+
+```ruby
+begin
+  # List environment feature flags
+  data, status_code, headers = api_instance.get_environement_feature_flags_with_http_info
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => <GetEnvironmentFeatureFlagsResponse>
+rescue KindeApi::ApiError => e
+  puts "Error when calling EnvironmentsApi->get_environement_feature_flags_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**GetEnvironmentFeatureFlagsResponse**](GetEnvironmentFeatureFlagsResponse.md)
+
+### Authorization
+
+[kindeBearerAuth](../README.md#kindeBearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## update_environement_feature_flag_override
@@ -212,5 +279,5 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 

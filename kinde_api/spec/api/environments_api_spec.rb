@@ -55,6 +55,17 @@ describe 'EnvironmentsApi' do
     end
   end
 
+  # unit tests for get_environement_feature_flags
+  # List environment feature flags
+  # Get environment feature flags.
+  # @param [Hash] opts the optional parameters
+  # @return [GetEnvironmentFeatureFlagsResponse]
+  describe 'get_environement_feature_flags test' do
+    it 'should work' do
+      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    end
+  end
+
   # unit tests for update_environement_feature_flag_override
   # Update environment feature flag override
   # Update environment feature flag override.

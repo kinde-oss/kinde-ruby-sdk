@@ -85,7 +85,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## delete_feature_flag
@@ -154,12 +154,12 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## update_feature_flag
 
-> <SuccessResponse> update_feature_flag(feature_flag_key, name, description, key, type, allow_override_level, default_value)
+> <SuccessResponse> update_feature_flag(feature_flag_key, name, description, type, allow_override_level, default_value)
 
 Update a feature flag
 
@@ -177,17 +177,16 @@ KindeApi.configure do |config|
 end
 
 api_instance = KindeApi::FeatureFlagsApi.new
-feature_flag_key = 'feature_flag_key_example' # String | The identifier for the feature flag.
+feature_flag_key = 'feature_flag_key_example' # String | The key identifier for the feature flag.
 name = 'name_example' # String | The name of the flag.
 description = 'description_example' # String | Description of the flag purpose.
-key = 'key_example' # String | The flag identifier to use in code.
 type = 'str' # String | The variable type
 allow_override_level = 'env' # String | Allow the flag to be overridden at a different level.
 default_value = 'default_value_example' # String | Default value for the flag used by environments and organizations.
 
 begin
   # Update a feature flag
-  result = api_instance.update_feature_flag(feature_flag_key, name, description, key, type, allow_override_level, default_value)
+  result = api_instance.update_feature_flag(feature_flag_key, name, description, type, allow_override_level, default_value)
   p result
 rescue KindeApi::ApiError => e
   puts "Error when calling FeatureFlagsApi->update_feature_flag: #{e}"
@@ -198,12 +197,12 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<SuccessResponse>, Integer, Hash)> update_feature_flag_with_http_info(feature_flag_key, name, description, key, type, allow_override_level, default_value)
+> <Array(<SuccessResponse>, Integer, Hash)> update_feature_flag_with_http_info(feature_flag_key, name, description, type, allow_override_level, default_value)
 
 ```ruby
 begin
   # Update a feature flag
-  data, status_code, headers = api_instance.update_feature_flag_with_http_info(feature_flag_key, name, description, key, type, allow_override_level, default_value)
+  data, status_code, headers = api_instance.update_feature_flag_with_http_info(feature_flag_key, name, description, type, allow_override_level, default_value)
   p status_code # => 2xx
   p headers # => { ... }
   p data # => <SuccessResponse>
@@ -216,10 +215,9 @@ end
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **feature_flag_key** | **String** | The identifier for the feature flag. |  |
+| **feature_flag_key** | **String** | The key identifier for the feature flag. |  |
 | **name** | **String** | The name of the flag. |  |
 | **description** | **String** | Description of the flag purpose. |  |
-| **key** | **String** | The flag identifier to use in code. |  |
 | **type** | **String** | The variable type |  |
 | **allow_override_level** | **String** | Allow the flag to be overridden at a different level. |  |
 | **default_value** | **String** | Default value for the flag used by environments and organizations. |  |
@@ -235,5 +233,5 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
 

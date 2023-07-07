@@ -18,6 +18,9 @@ module KindeApi
     # Unique id of the user in Kinde.
     attr_accessor :id
 
+    # External id for user.
+    attr_accessor :provided_id
+
     # Default email address of the user in Kinde.
     attr_accessor :email
 
@@ -27,21 +30,46 @@ module KindeApi
     # User's first name.
     attr_accessor :first_name
 
+    # User's full name.
+    attr_accessor :full_name
+
     # Whether the user is currently suspended or not.
     attr_accessor :is_suspended
 
     # User's profile picture URL.
     attr_accessor :picture
 
+    # Whether the user has been asked to reset their password.
+    attr_accessor :is_password_reset_requested
+
+    # Total number of user sign ins.
+    attr_accessor :total_sign_ins
+
+    # Number of consecutive failed user sign ins.
+    attr_accessor :failed_sign_ins
+
+    # Last sign in date in ISO 8601 format.
+    attr_accessor :last_signed_in
+
+    # Date of user creation in ISO 8601 format.
+    attr_accessor :created_on
+
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
         :'id' => :'id',
+        :'provided_id' => :'provided_id',
         :'email' => :'email',
         :'last_name' => :'last_name',
         :'first_name' => :'first_name',
+        :'full_name' => :'full_name',
         :'is_suspended' => :'is_suspended',
-        :'picture' => :'picture'
+        :'picture' => :'picture',
+        :'is_password_reset_requested' => :'is_password_reset_requested',
+        :'total_sign_ins' => :'total_sign_ins',
+        :'failed_sign_ins' => :'failed_sign_ins',
+        :'last_signed_in' => :'last_signed_in',
+        :'created_on' => :'created_on'
       }
     end
 
@@ -54,18 +82,29 @@ module KindeApi
     def self.openapi_types
       {
         :'id' => :'String',
+        :'provided_id' => :'String',
         :'email' => :'String',
         :'last_name' => :'String',
         :'first_name' => :'String',
+        :'full_name' => :'String',
         :'is_suspended' => :'Boolean',
-        :'picture' => :'String'
+        :'picture' => :'String',
+        :'is_password_reset_requested' => :'Boolean',
+        :'total_sign_ins' => :'Integer',
+        :'failed_sign_ins' => :'Integer',
+        :'last_signed_in' => :'String',
+        :'created_on' => :'String'
       }
     end
 
     # List of attributes with nullable: true
     def self.openapi_nullable
       Set.new([
-        :'picture'
+        :'is_password_reset_requested',
+        :'total_sign_ins',
+        :'failed_sign_ins',
+        :'last_signed_in',
+        :'created_on'
       ])
     end
 
@@ -88,6 +127,10 @@ module KindeApi
         self.id = attributes[:'id']
       end
 
+      if attributes.key?(:'provided_id')
+        self.provided_id = attributes[:'provided_id']
+      end
+
       if attributes.key?(:'email')
         self.email = attributes[:'email']
       end
@@ -100,12 +143,36 @@ module KindeApi
         self.first_name = attributes[:'first_name']
       end
 
+      if attributes.key?(:'full_name')
+        self.full_name = attributes[:'full_name']
+      end
+
       if attributes.key?(:'is_suspended')
         self.is_suspended = attributes[:'is_suspended']
       end
 
       if attributes.key?(:'picture')
         self.picture = attributes[:'picture']
+      end
+
+      if attributes.key?(:'is_password_reset_requested')
+        self.is_password_reset_requested = attributes[:'is_password_reset_requested']
+      end
+
+      if attributes.key?(:'total_sign_ins')
+        self.total_sign_ins = attributes[:'total_sign_ins']
+      end
+
+      if attributes.key?(:'failed_sign_ins')
+        self.failed_sign_ins = attributes[:'failed_sign_ins']
+      end
+
+      if attributes.key?(:'last_signed_in')
+        self.last_signed_in = attributes[:'last_signed_in']
+      end
+
+      if attributes.key?(:'created_on')
+        self.created_on = attributes[:'created_on']
       end
     end
 
@@ -128,11 +195,18 @@ module KindeApi
       return true if self.equal?(o)
       self.class == o.class &&
           id == o.id &&
+          provided_id == o.provided_id &&
           email == o.email &&
           last_name == o.last_name &&
           first_name == o.first_name &&
+          full_name == o.full_name &&
           is_suspended == o.is_suspended &&
-          picture == o.picture
+          picture == o.picture &&
+          is_password_reset_requested == o.is_password_reset_requested &&
+          total_sign_ins == o.total_sign_ins &&
+          failed_sign_ins == o.failed_sign_ins &&
+          last_signed_in == o.last_signed_in &&
+          created_on == o.created_on
     end
 
     # @see the `==` method
@@ -144,7 +218,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [id, email, last_name, first_name, is_suspended, picture].hash
+      [id, provided_id, email, last_name, first_name, full_name, is_suspended, picture, is_password_reset_requested, total_sign_ins, failed_sign_ins, last_signed_in, created_on].hash
     end
 
     # Builds the object from hash

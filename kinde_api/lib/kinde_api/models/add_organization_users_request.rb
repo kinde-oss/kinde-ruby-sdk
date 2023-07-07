@@ -15,7 +15,7 @@ require 'time'
 
 module KindeApi
   class AddOrganizationUsersRequest
-    # List of user ids to be added to the organization.
+    # Users to be added to the organization.
     attr_accessor :users
 
     # Attribute mapping from ruby-style variable name to JSON key.
@@ -33,7 +33,7 @@ module KindeApi
     # Attribute type mapping.
     def self.openapi_types
       {
-        :'users' => :'Array<String>'
+        :'users' => :'Array<AddOrganizationUsersRequestUsersInner>'
       }
     end
 

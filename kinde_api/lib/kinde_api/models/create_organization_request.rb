@@ -21,6 +21,21 @@ module KindeApi
     # The organization's feature flag settings.
     attr_accessor :feature_flags
 
+    # The organization's ID.
+    attr_accessor :external_id
+
+    # The organization's brand settings - background color.
+    attr_accessor :background_color
+
+    # The organization's brand settings - button color.
+    attr_accessor :button_color
+
+    # The organization's brand settings - button text color.
+    attr_accessor :button_text_color
+
+    # The organization's brand settings - link color.
+    attr_accessor :link_color
+
     class EnumAttributeValidator
       attr_reader :datatype
       attr_reader :allowable_values
@@ -47,7 +62,12 @@ module KindeApi
     def self.attribute_map
       {
         :'name' => :'name',
-        :'feature_flags' => :'feature_flags'
+        :'feature_flags' => :'feature_flags',
+        :'external_id' => :'external_id',
+        :'background_color' => :'background_color',
+        :'button_color' => :'button_color',
+        :'button_text_color' => :'button_text_color',
+        :'link_color' => :'link_color'
       }
     end
 
@@ -60,7 +80,12 @@ module KindeApi
     def self.openapi_types
       {
         :'name' => :'String',
-        :'feature_flags' => :'Hash<String, String>'
+        :'feature_flags' => :'Hash<String, String>',
+        :'external_id' => :'String',
+        :'background_color' => :'String',
+        :'button_color' => :'String',
+        :'button_text_color' => :'String',
+        :'link_color' => :'String'
       }
     end
 
@@ -94,6 +119,26 @@ module KindeApi
           self.feature_flags = value
         end
       end
+
+      if attributes.key?(:'external_id')
+        self.external_id = attributes[:'external_id']
+      end
+
+      if attributes.key?(:'background_color')
+        self.background_color = attributes[:'background_color']
+      end
+
+      if attributes.key?(:'button_color')
+        self.button_color = attributes[:'button_color']
+      end
+
+      if attributes.key?(:'button_text_color')
+        self.button_text_color = attributes[:'button_text_color']
+      end
+
+      if attributes.key?(:'link_color')
+        self.link_color = attributes[:'link_color']
+      end
     end
 
     # Show invalid properties with the reasons. Usually used together with valid?
@@ -115,7 +160,12 @@ module KindeApi
       return true if self.equal?(o)
       self.class == o.class &&
           name == o.name &&
-          feature_flags == o.feature_flags
+          feature_flags == o.feature_flags &&
+          external_id == o.external_id &&
+          background_color == o.background_color &&
+          button_color == o.button_color &&
+          button_text_color == o.button_text_color &&
+          link_color == o.link_color
     end
 
     # @see the `==` method
@@ -127,7 +177,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [name, feature_flags].hash
+      [name, feature_flags, external_id, background_color, button_color, button_text_color, link_color].hash
     end
 
     # Builds the object from hash

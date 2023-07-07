@@ -4,7 +4,7 @@
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **users** | **Array&lt;String&gt;** | List of user ids to be added to the organization. | [optional] |
+| **users** | [**Array&lt;AddOrganizationUsersRequestUsersInner&gt;**](AddOrganizationUsersRequestUsersInner.md) | Users to be added to the organization. | [optional] |
 
 ## Example
 

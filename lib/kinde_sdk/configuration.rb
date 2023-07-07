@@ -14,7 +14,6 @@ module KindeSdk
     attr_accessor :debugging
     attr_accessor :oauth_client
     attr_accessor :pkce_enabled
-    attr_accessor :business_name
 
     def initialize
       @authorize_url = '/oauth2/auth'
@@ -23,7 +22,6 @@ module KindeSdk
       @logger = defined?(Rails) ? Rails.logger : Logger.new(STDOUT)
       @scope = 'openid offline email profile'
       @pkce_enabled = true
-      @business_name = nil
 
       yield(self) if block_given?
     end

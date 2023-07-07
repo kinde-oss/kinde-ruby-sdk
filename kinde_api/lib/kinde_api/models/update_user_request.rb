@@ -24,12 +24,16 @@ module KindeApi
     # Whether the user is currently suspended or not.
     attr_accessor :is_suspended
 
+    # Prompt the user to change their password on next sign in.
+    attr_accessor :is_password_reset_requested
+
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
         :'given_name' => :'given_name',
         :'family_name' => :'family_name',
-        :'is_suspended' => :'is_suspended'
+        :'is_suspended' => :'is_suspended',
+        :'is_password_reset_requested' => :'is_password_reset_requested'
       }
     end
 
@@ -43,7 +47,8 @@ module KindeApi
       {
         :'given_name' => :'String',
         :'family_name' => :'String',
-        :'is_suspended' => :'Boolean'
+        :'is_suspended' => :'Boolean',
+        :'is_password_reset_requested' => :'Boolean'
       }
     end
 
@@ -79,6 +84,10 @@ module KindeApi
       if attributes.key?(:'is_suspended')
         self.is_suspended = attributes[:'is_suspended']
       end
+
+      if attributes.key?(:'is_password_reset_requested')
+        self.is_password_reset_requested = attributes[:'is_password_reset_requested']
+      end
     end
 
     # Show invalid properties with the reasons. Usually used together with valid?
@@ -101,7 +110,8 @@ module KindeApi
       self.class == o.class &&
           given_name == o.given_name &&
           family_name == o.family_name &&
-          is_suspended == o.is_suspended
+          is_suspended == o.is_suspended &&
+          is_password_reset_requested == o.is_password_reset_requested
     end
 
     # @see the `==` method
@@ -113,7 +123,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [given_name, family_name, is_suspended].hash
+      [given_name, family_name, is_suspended, is_password_reset_requested].hash
     end
 
     # Builds the object from hash

@@ -30,6 +30,9 @@ module KindeApi
     # User's first name.
     attr_accessor :first_name
 
+    # URL that point's to the user's picture or avatar
+    attr_accessor :picture
+
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
@@ -37,7 +40,8 @@ module KindeApi
         :'preferred_email' => :'preferred_email',
         :'provided_id' => :'provided_id',
         :'last_name' => :'last_name',
-        :'first_name' => :'first_name'
+        :'first_name' => :'first_name',
+        :'picture' => :'picture'
       }
     end
 
@@ -53,7 +57,8 @@ module KindeApi
         :'preferred_email' => :'String',
         :'provided_id' => :'String',
         :'last_name' => :'String',
-        :'first_name' => :'String'
+        :'first_name' => :'String',
+        :'picture' => :'String'
       }
     end
 
@@ -98,6 +103,10 @@ module KindeApi
       if attributes.key?(:'first_name')
         self.first_name = attributes[:'first_name']
       end
+
+      if attributes.key?(:'picture')
+        self.picture = attributes[:'picture']
+      end
     end
 
     # Show invalid properties with the reasons. Usually used together with valid?
@@ -122,7 +131,8 @@ module KindeApi
           preferred_email == o.preferred_email &&
           provided_id == o.provided_id &&
           last_name == o.last_name &&
-          first_name == o.first_name
+          first_name == o.first_name &&
+          picture == o.picture
     end
 
     # @see the `==` method
@@ -134,7 +144,7 @@ module KindeApi
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [id, preferred_email, provided_id, last_name, first_name].hash
+      [id, preferred_email, provided_id, last_name, first_name, picture].hash
     end
 
     # Builds the object from hash
