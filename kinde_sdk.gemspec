@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.email       = ["support@kinde.com"]
   s.homepage    = "https://kinde.com/"
   s.summary     = "Kinde Management API Ruby Gem"
-  s.description = "Provides API to easy management your Kinde Businesses"
+  s.description = "Integrate the Kinde API into any ruby-based applications, Rails or non-Rails"
   s.license     = "MIT"
   s.required_ruby_version = ">= 2.7"
 
