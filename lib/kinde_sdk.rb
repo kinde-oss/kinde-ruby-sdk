@@ -67,7 +67,7 @@ module KindeSdk
     # @return [KindeSdk::Client]
     def client(tokens_hash)
       sdk_api_client = api_client(tokens_hash["access_token"])
-      KindeSdk::Client.new(sdk_api_client, tokens_hash)
+      KindeSdk::Client.new(sdk_api_client, tokens_hash, @config.auto_refresh_tokens)
     end
 
     def logout_url

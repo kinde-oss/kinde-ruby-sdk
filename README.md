@@ -65,6 +65,7 @@ KindeSdk.configure do |c|
  # c.authorize_url = '/oauth2/auth'         # default value
  # c.token_url = '/oauth2/token'            # default value
  # c.debugging = false                      # default value
+ # c.auto_refresh_tokens = true             # default value
  c.logger = Rails.logger
 end
 ```
@@ -84,6 +85,8 @@ defined in allowed logout urls of your kinde organization's application config
 - `Debugging` set to true start writing verbose request logs. Might be useful while developing your application.
 - `Logger` might be set to any kind of loggers you are using. By default it is set to `Rails.logger` if gem is used in
 rails application or `Logger.new(STDOUT)` if it is not a rails app.
+- `auto_refresh_tokens` defines default behaviour on api instance method calls. If the config set to false, there will not be any auto refreshes during method calling,
+otherwise each time client will try to refresh expired tokens if `expires_at` are present (see [token expiration and refreshing](#token-expiration-and-refreshing) section).
 
 These variables can be handled with any system you want: .env files, settings.yml or any type of config files.
 For example, .env file (you can name variables by yourself):
@@ -180,6 +183,13 @@ client.refresh_token # => {"access_token" => "qwe...", ...., "expires_at"=>16854
 ```
 If you are calling `#refresh_token` on a client instance, the instance token data will be automatically updated.
 If you are calling `KindeSdk#refresh_token`, you'll need to store new token data in your configured storage (redis/session/etc).
+
+**Warning!**
+Each instance_api method checking tokens for expiration if expires_at present in a hash.
+So, if in your backend code you are using some storage, be sure you are saving `client.tokens_hash` after each instance
+method calling, otherwise you will keep in your storage (session/redis/etc.) old data and unable to fetch new tokens.
+
+If you don't want auto refreshing behavior, set `auto_refresh_tokens` config to false.
 
 #### Audience
 An `audience` is the intended recipient of an access token - for example the API for your application.
