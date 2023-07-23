@@ -5,10 +5,11 @@ module KindeSdk
     include FeatureFlags
     include Permissions
 
-    attr_accessor :kinde_api_client, :bearer_token, :tokens_hash, :expires_at
+    attr_accessor :kinde_api_client, :auto_refresh_tokens, :bearer_token, :tokens_hash, :expires_at
 
-    def initialize(sdk_api_client, tokens_hash)
+    def initialize(sdk_api_client, tokens_hash, auto_refresh_tokens)
       @kinde_api_client = sdk_api_client
+      @auto_refresh_tokens = auto_refresh_tokens
       set_hash_related_data(tokens_hash)
     end
 
@@ -49,12 +50,23 @@ module KindeSdk
 
     def set_hash_related_data(tokens_hash)
       @tokens_hash = tokens_hash.transform_keys(&:to_sym)
-      @bearer_token = tokens_hash[:access_token]
-      @expires_at = tokens_hash[:expires_at]
+      @bearer_token = @tokens_hash[:access_token]
+      @expires_at = @tokens_hash[:expires_at]
     end
 
+    # going from another side: prepending each api_client's public method to check token for expiration
     def init_instance_api(api_klass)
-      api_klass.new(kinde_api_client)
+      instance = api_klass.new(kinde_api_client)
+      main_client = self
+      methods_to_prepend = instance.public_methods(false).reject { |m| m.to_s.start_with?("api_client") }
+      methods_to_prepend.each do |method_name|
+        original = instance.method(method_name)
+        instance.define_singleton_method(method_name) do |*args, &block|
+          main_client.refresh_token if main_client.auto_refresh_tokens && main_client.token_expired?
+          original.call(*args, &block)
+        end
+      end
+      instance
     end
   end
 end

@@ -6,6 +6,7 @@ describe KindeSdk do
   let(:client_secret) { "client_secret" }
   let(:callback_url) { "http://localhost:3000/callback" }
   let(:logout_url) { "http://localhost/logout-callback" }
+  let(:auto_refresh_tokens) { true }
 
   before do
     KindeSdk.configure do |c|
@@ -14,6 +15,7 @@ describe KindeSdk do
       c.client_secret = client_secret
       c.callback_url = callback_url
       c.logout_url = logout_url
+      c.auto_refresh_tokens = auto_refresh_tokens
     end
   end
 
@@ -227,6 +229,11 @@ describe KindeSdk do
     end
 
     describe "api instances" do
+      before do
+        stub_request(:get, "#{domain}/oauth2/user_profile")
+        # allow(client.oauth).to receive(:get_user_with_http_info).and_return(["data", 200, {}])
+      end
+
       it 'initializes client by passing the tokens_hash' do
         expect(client).to be_instance_of(KindeSdk::Client)
       end
@@ -241,6 +248,29 @@ describe KindeSdk do
 
       it "initializes feature flags instance api" do
         expect(client.feature_flags).to be_instance_of(KindeApi::FeatureFlagsApi)
+      end
+
+      it "does not call for refresh tokens" do
+        expect(client).not_to receive(:refresh_token)
+        client.oauth.get_user({})
+      end
+
+      context "when token expired" do
+        let(:expires_at) { Time.now.to_i - 1 }
+
+        it "calls refresh_tokens before method if token expired" do
+          expect(client).to receive(:refresh_token).at_least(:once)
+          client.oauth.get_user({})
+        end
+
+        context "when auto_refresh_tokens disabled" do
+          let(:auto_refresh_tokens) { false }
+
+          it "does not call for refresh tokens" do
+            expect(client).not_to receive(:refresh_token)
+            client.oauth.get_user({})
+          end
+        end
       end
     end
   end
