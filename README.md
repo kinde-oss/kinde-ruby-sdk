@@ -407,7 +407,7 @@ $redis.set("kinde_m2m_token", result["access_token"], ex: result["expires_in"].t
 
 ##### Organizations handling
 ```ruby
-client = KindeSdk.client({"access_token" => $redis.get("kinde_m2m_token")})
+
 # get organizations list:
 client.organizations.get_organizations
 # => {"code": "OK", "message": "Success", "next_token": "qweqweqwe", "organizations": [{"code": "org_casda123c", "name": "Default Organization", "is_default": true}]}
