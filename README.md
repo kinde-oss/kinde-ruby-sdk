@@ -4,6 +4,8 @@ The Kinde Ruby SDK gem allows developers to integrate Kinde API into any ruby-ba
 The gem contains all the related oauth2 authorization, so you need only to integrate it properly.
 The gem contains 3 pre-built OAuth flows: **client credentials**, **authorization code** and **authorization code with PKCE code verifier**.
 
+You can also view the [Ruby starter kit here](https://github.com/kinde-starter-kits/ruby-starter-kit).
+
 ## Register for Kinde
 
 If you haven’t already got a Kinde account, register for free [here](http://app.kinde.com/register) (no credit card required).
