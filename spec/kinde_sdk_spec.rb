@@ -230,7 +230,16 @@ describe KindeSdk do
 
     describe "api instances" do
       before do
-        stub_request(:get, "#{domain}/oauth2/user_profile")
+        stub_request(:get, "https://app.kinde.com/oauth2/user_profile").
+         with(
+           headers: {
+          'Accept'=>'application/json',
+          'Authorization'=>'Bearer ',
+          'Content-Type'=>'application/json',
+          'Expect'=>'',
+          'User-Agent'=>'OpenAPI-Generator/1.0.0/ruby'
+           }).
+         to_return(status: 200, body: "", headers: {})
         # allow(client.oauth).to receive(:get_user_with_http_info).and_return(["data", 200, {}])
       end
 
