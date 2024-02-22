@@ -10,6 +10,7 @@ All URIs are relative to *https://app.kinde.com*
 | [**get_users**](UsersApi.md#get_users) | **GET** /api/v1/users | List Users |
 | [**refresh_user_claims**](UsersApi.md#refresh_user_claims) | **POST** /api/v1/users/{user_id}/refresh_claims | Refresh User Claims and Invalidate Cache |
 | [**update_user**](UsersApi.md#update_user) | **PATCH** /api/v1/user | Update User |
+| [**update_user_feature_flag_override**](UsersApi.md#update_user_feature_flag_override) | **PATCH** /api/v1/users/{user_id}/feature_flags/{feature_flag_key} | Update User Feature Flag Override |
 
 
 ## create_user
@@ -250,7 +251,6 @@ end
 
 api_instance = KindeApi::UsersApi.new
 opts = {
-  sort: 'name_asc', # String | Field and order to sort the result by.
   page_size: 56, # Integer | Number of results per page. Defaults to 10 if parameter not sent.
   user_id: 'user_id_example', # String | ID of the user to filter by.
   next_token: 'next_token_example', # String | A string to get the next page of results if there are more results.
@@ -289,7 +289,6 @@ end
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **sort** | **String** | Field and order to sort the result by. | [optional] |
 | **page_size** | **Integer** | Number of results per page. Defaults to 10 if parameter not sent. | [optional] |
 | **user_id** | **String** | ID of the user to filter by. | [optional] |
 | **next_token** | **String** | A string to get the next page of results if there are more results. | [optional] |
@@ -381,7 +380,7 @@ end
 
 ## update_user
 
-> <UpdateUserResponse> update_user(update_user_request, opts)
+> <UpdateUserResponse> update_user(id, update_user_request)
 
 Update User
 
@@ -399,14 +398,12 @@ KindeApi.configure do |config|
 end
 
 api_instance = KindeApi::UsersApi.new
+id = 'id_example' # String | The user's id.
 update_user_request = KindeApi::UpdateUserRequest.new # UpdateUserRequest | The user to update.
-opts = {
-  id: 'id_example' # String | The user's id.
-}
 
 begin
   # Update User
-  result = api_instance.update_user(update_user_request, opts)
+  result = api_instance.update_user(id, update_user_request)
   p result
 rescue KindeApi::ApiError => e
   puts "Error when calling UsersApi->update_user: #{e}"
@@ -417,12 +414,12 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<UpdateUserResponse>, Integer, Hash)> update_user_with_http_info(update_user_request, opts)
+> <Array(<UpdateUserResponse>, Integer, Hash)> update_user_with_http_info(id, update_user_request)
 
 ```ruby
 begin
   # Update User
-  data, status_code, headers = api_instance.update_user_with_http_info(update_user_request, opts)
+  data, status_code, headers = api_instance.update_user_with_http_info(id, update_user_request)
   p status_code # => 2xx
   p headers # => { ... }
   p data # => <UpdateUserResponse>
@@ -435,8 +432,8 @@ end
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
+| **id** | **String** | The user&#39;s id. |  |
 | **update_user_request** | [**UpdateUserRequest**](UpdateUserRequest.md) | The user to update. |  |
-| **id** | **String** | The user&#39;s id. | [optional] |
 
 ### Return type
 
@@ -449,5 +446,78 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
+- **Accept**: application/json, application/json; charset=utf-8
+
+
+## update_user_feature_flag_override
+
+> <SuccessResponse> update_user_feature_flag_override(user_id, feature_flag_key, value)
+
+Update User Feature Flag Override
+
+Update user feature flag override.
+
+### Examples
+
+```ruby
+require 'time'
+require 'kinde_api'
+# setup authorization
+KindeApi.configure do |config|
+  # Configure Bearer authorization (JWT): kindeBearerAuth
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = KindeApi::UsersApi.new
+user_id = 'user_id_example' # String | The identifier for the user
+feature_flag_key = 'feature_flag_key_example' # String | The identifier for the feature flag
+value = 'value_example' # String | Override value
+
+begin
+  # Update User Feature Flag Override
+  result = api_instance.update_user_feature_flag_override(user_id, feature_flag_key, value)
+  p result
+rescue KindeApi::ApiError => e
+  puts "Error when calling UsersApi->update_user_feature_flag_override: #{e}"
+end
+```
+
+#### Using the update_user_feature_flag_override_with_http_info variant
+
+This returns an Array which contains the response data, status code and headers.
+
+> <Array(<SuccessResponse>, Integer, Hash)> update_user_feature_flag_override_with_http_info(user_id, feature_flag_key, value)
+
+```ruby
+begin
+  # Update User Feature Flag Override
+  data, status_code, headers = api_instance.update_user_feature_flag_override_with_http_info(user_id, feature_flag_key, value)
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => <SuccessResponse>
+rescue KindeApi::ApiError => e
+  puts "Error when calling UsersApi->update_user_feature_flag_override_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+| Name | Type | Description | Notes |
+| ---- | ---- | ----------- | ----- |
+| **user_id** | **String** | The identifier for the user |  |
+| **feature_flag_key** | **String** | The identifier for the feature flag |  |
+| **value** | **String** | Override value |  |
+
+### Return type
+
+[**SuccessResponse**](SuccessResponse.md)
+
+### Authorization
+
+[kindeBearerAuth](../README.md#kindeBearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
 - **Accept**: application/json, application/json; charset=utf-8
 

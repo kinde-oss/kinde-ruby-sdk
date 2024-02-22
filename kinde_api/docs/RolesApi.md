@@ -4,7 +4,7 @@ All URIs are relative to *https://app.kinde.com*
 
 | Method | HTTP request | Description |
 | ------ | ------------ | ----------- |
-| [**create_role**](RolesApi.md#create_role) | **POST** /api/v1/role | Create Role |
+| [**create_role**](RolesApi.md#create_role) | **POST** /api/v1/roles | Create Role |
 | [**delete_role**](RolesApi.md#delete_role) | **DELETE** /api/v1/roles/{role_id} | Delete Role |
 | [**get_role_permission**](RolesApi.md#get_role_permission) | **GET** /api/v1/roles/{role_id}/permissions | Get Role Permissions |
 | [**get_roles**](RolesApi.md#get_roles) | **GET** /api/v1/roles | List Roles |
@@ -81,7 +81,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: application/json; charset=utf-8
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## delete_role
