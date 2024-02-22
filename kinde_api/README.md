@@ -89,7 +89,7 @@ Class | Method | HTTP request | Description
 *KindeApi::PermissionsApi* | [**delete_permission**](docs/PermissionsApi.md#delete_permission) | **DELETE** /api/v1/permissions/{permission_id} | Delete Permission
 *KindeApi::PermissionsApi* | [**get_permissions**](docs/PermissionsApi.md#get_permissions) | **GET** /api/v1/permissions | List Permissions
 *KindeApi::PermissionsApi* | [**update_permissions**](docs/PermissionsApi.md#update_permissions) | **PATCH** /api/v1/permissions/{permission_id} | Update Permission
-*KindeApi::RolesApi* | [**create_role**](docs/RolesApi.md#create_role) | **POST** /api/v1/role | Create Role
+*KindeApi::RolesApi* | [**create_role**](docs/RolesApi.md#create_role) | **POST** /api/v1/roles | Create Role
 *KindeApi::RolesApi* | [**delete_role**](docs/RolesApi.md#delete_role) | **DELETE** /api/v1/roles/{role_id} | Delete Role
 *KindeApi::RolesApi* | [**get_role_permission**](docs/RolesApi.md#get_role_permission) | **GET** /api/v1/roles/{role_id}/permissions | Get Role Permissions
 *KindeApi::RolesApi* | [**get_roles**](docs/RolesApi.md#get_roles) | **GET** /api/v1/roles | List Roles
@@ -106,6 +106,7 @@ Class | Method | HTTP request | Description
 *KindeApi::UsersApi* | [**get_users**](docs/UsersApi.md#get_users) | **GET** /api/v1/users | List Users
 *KindeApi::UsersApi* | [**refresh_user_claims**](docs/UsersApi.md#refresh_user_claims) | **POST** /api/v1/users/{user_id}/refresh_claims | Refresh User Claims and Invalidate Cache
 *KindeApi::UsersApi* | [**update_user**](docs/UsersApi.md#update_user) | **PATCH** /api/v1/user | Update User
+*KindeApi::UsersApi* | [**update_user_feature_flag_override**](docs/UsersApi.md#update_user_feature_flag_override) | **PATCH** /api/v1/users/{user_id}/feature_flags/{feature_flag_key} | Update User Feature Flag Override
 
 
 ## Documentation for Models
@@ -203,6 +204,7 @@ Class | Method | HTTP request | Description
 ## Documentation for Authorization
 
 
+Authentication schemes defined for the API:
 ### kindeBearerAuth
 
 - **Type**: Bearer authentication (JWT)

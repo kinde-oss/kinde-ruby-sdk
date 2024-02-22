@@ -11,7 +11,7 @@ All URIs are relative to *https://app.kinde.com*
 
 ## get_connected_app_auth_url
 
-> <ConnectedAppsAuthUrl> get_connected_app_auth_url(key_code_ref, user_id)
+> <ConnectedAppsAuthUrl> get_connected_app_auth_url(key_code_ref, opts)
 
 Get Connected App URL
 
@@ -30,11 +30,15 @@ end
 
 api_instance = KindeApi::ConnectedAppsApi.new
 key_code_ref = 'key_code_ref_example' # String | The unique key code reference of the connected app to authenticate against.
-user_id = 'user_id_example' # String | The id of the user that needs to authenticate to the third-party connected app.
+opts = {
+  user_id: 'user_id_example', # String | The id of the user that needs to authenticate to the third-party connected app.
+  org_code: 'org_code_example', # String | The code of the Kinde organization that needs to authenticate to the third-party connected app.
+  override_callback_url: 'override_callback_url_example' # String | A URL that overrides the default callback URL setup in your connected app configuration
+}
 
 begin
   # Get Connected App URL
-  result = api_instance.get_connected_app_auth_url(key_code_ref, user_id)
+  result = api_instance.get_connected_app_auth_url(key_code_ref, opts)
   p result
 rescue KindeApi::ApiError => e
   puts "Error when calling ConnectedAppsApi->get_connected_app_auth_url: #{e}"
@@ -45,12 +49,12 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<ConnectedAppsAuthUrl>, Integer, Hash)> get_connected_app_auth_url_with_http_info(key_code_ref, user_id)
+> <Array(<ConnectedAppsAuthUrl>, Integer, Hash)> get_connected_app_auth_url_with_http_info(key_code_ref, opts)
 
 ```ruby
 begin
   # Get Connected App URL
-  data, status_code, headers = api_instance.get_connected_app_auth_url_with_http_info(key_code_ref, user_id)
+  data, status_code, headers = api_instance.get_connected_app_auth_url_with_http_info(key_code_ref, opts)
   p status_code # => 2xx
   p headers # => { ... }
   p data # => <ConnectedAppsAuthUrl>
@@ -64,7 +68,9 @@ end
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
 | **key_code_ref** | **String** | The unique key code reference of the connected app to authenticate against. |  |
-| **user_id** | **String** | The id of the user that needs to authenticate to the third-party connected app. |  |
+| **user_id** | **String** | The id of the user that needs to authenticate to the third-party connected app. | [optional] |
+| **org_code** | **String** | The code of the Kinde organization that needs to authenticate to the third-party connected app. | [optional] |
+| **override_callback_url** | **String** | A URL that overrides the default callback URL setup in your connected app configuration | [optional] |
 
 ### Return type
 

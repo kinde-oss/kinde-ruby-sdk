@@ -100,7 +100,7 @@ end
 
 ## create_organization
 
-> <CreateOrganizationResponse> create_organization(opts)
+> <CreateOrganizationResponse> create_organization(create_organization_request)
 
 Create Organization
 
@@ -118,13 +118,11 @@ KindeApi.configure do |config|
 end
 
 api_instance = KindeApi::OrganizationsApi.new
-opts = {
-  create_organization_request: KindeApi::CreateOrganizationRequest.new # CreateOrganizationRequest | Organization details.
-}
+create_organization_request = KindeApi::CreateOrganizationRequest.new({name: 'name_example'}) # CreateOrganizationRequest | Organization details.
 
 begin
   # Create Organization
-  result = api_instance.create_organization(opts)
+  result = api_instance.create_organization(create_organization_request)
   p result
 rescue KindeApi::ApiError => e
   puts "Error when calling OrganizationsApi->create_organization: #{e}"
@@ -135,12 +133,12 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<CreateOrganizationResponse>, Integer, Hash)> create_organization_with_http_info(opts)
+> <Array(<CreateOrganizationResponse>, Integer, Hash)> create_organization_with_http_info(create_organization_request)
 
 ```ruby
 begin
   # Create Organization
-  data, status_code, headers = api_instance.create_organization_with_http_info(opts)
+  data, status_code, headers = api_instance.create_organization_with_http_info(create_organization_request)
   p status_code # => 2xx
   p headers # => { ... }
   p data # => <CreateOrganizationResponse>
@@ -153,7 +151,7 @@ end
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **create_organization_request** | [**CreateOrganizationRequest**](CreateOrganizationRequest.md) | Organization details. | [optional] |
+| **create_organization_request** | [**CreateOrganizationRequest**](CreateOrganizationRequest.md) | Organization details. |  |
 
 ### Return type
 
