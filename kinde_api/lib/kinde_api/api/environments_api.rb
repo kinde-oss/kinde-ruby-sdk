@@ -72,12 +72,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"EnvironmentsApi.delete_environement_feature_flag_override",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:DELETE, local_var_path, new_options)
@@ -130,12 +130,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"EnvironmentsApi.delete_environement_feature_flag_overrides",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:DELETE, local_var_path, new_options)
@@ -188,12 +188,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"EnvironmentsApi.get_environement_feature_flags",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
@@ -268,12 +268,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"EnvironmentsApi.update_environement_feature_flag_override",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:PATCH, local_var_path, new_options)

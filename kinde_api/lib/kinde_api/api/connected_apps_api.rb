@@ -81,12 +81,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"ConnectedAppsApi.get_connected_app_auth_url",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
@@ -148,12 +148,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"ConnectedAppsApi.get_connected_app_token",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
@@ -215,12 +215,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"ConnectedAppsApi.revoke_connected_app_token",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:POST, local_var_path, new_options)

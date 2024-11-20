@@ -76,12 +76,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.add_organization_users",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:POST, local_var_path, new_options)
@@ -145,12 +145,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.create_organization",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:POST, local_var_path, new_options)
@@ -232,12 +232,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.create_organization_user_permission",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:POST, local_var_path, new_options)
@@ -319,12 +319,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.create_organization_user_role",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:POST, local_var_path, new_options)
@@ -385,12 +385,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.delete_organization",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:DELETE, local_var_path, new_options)
@@ -461,12 +461,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.delete_organization_feature_flag_override",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:DELETE, local_var_path, new_options)
@@ -528,12 +528,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.delete_organization_feature_flag_overrides",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:DELETE, local_var_path, new_options)
@@ -611,12 +611,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.delete_organization_user_permission",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:DELETE, local_var_path, new_options)
@@ -693,12 +693,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.delete_organization_user_role",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:DELETE, local_var_path, new_options)
@@ -754,12 +754,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.get_organization",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
@@ -821,12 +821,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.get_organization_feature_flags",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
@@ -899,12 +899,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.get_organization_user_permissions",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
@@ -974,12 +974,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.get_organization_user_roles",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
@@ -1060,12 +1060,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.get_organization_users",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
@@ -1132,12 +1132,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.get_organizations",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
@@ -1207,12 +1207,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.remove_organization_user",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:DELETE, local_var_path, new_options)
@@ -1278,12 +1278,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.update_organization",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:PATCH, local_var_path, new_options)
@@ -1362,12 +1362,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.update_organization_feature_flag_override",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:PATCH, local_var_path, new_options)
@@ -1433,12 +1433,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"OrganizationsApi.update_organization_users",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:PATCH, local_var_path, new_options)

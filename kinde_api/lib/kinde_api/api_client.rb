@@ -161,7 +161,7 @@ module KindeApi
         end
         prefix += '-' unless prefix.end_with?('-')
         encoding = response.body.encoding
-        tempfile = Tempfile.open(prefix, @config.temp_folder_path, encoding:)
+        tempfile = Tempfile.open(prefix, @config.temp_folder_path, encoding: encoding)
         @tempfile = tempfile
       end
       request.on_body do |chunk|

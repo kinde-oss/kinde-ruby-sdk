@@ -66,12 +66,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"RolesApi.create_role",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:POST, local_var_path, new_options)
@@ -129,12 +129,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"RolesApi.delete_role",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:DELETE, local_var_path, new_options)
@@ -206,12 +206,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"RolesApi.get_role_permission",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
@@ -276,12 +276,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"RolesApi.get_roles",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
@@ -349,12 +349,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"RolesApi.remove_role_permission",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:DELETE, local_var_path, new_options)
@@ -426,12 +426,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"RolesApi.update_role_permissions",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:PATCH, local_var_path, new_options)
@@ -493,12 +493,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"RolesApi.update_roles",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:PATCH, local_var_path, new_options)

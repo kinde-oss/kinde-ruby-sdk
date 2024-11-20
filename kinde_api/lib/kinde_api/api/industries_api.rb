@@ -66,12 +66,12 @@ module KindeApi
 
       new_options = opts.merge(
         operation: :"IndustriesApi.get_industries",
-        header_params:,
-        query_params:,
-        form_params:,
+        header_params: header_params,
+        query_params: query_params,
+        form_params: form_params,
         body: post_body,
-        auth_names:,
-        return_type:
+        auth_names: auth_names,
+        return_type: return_type
       )
 
       data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
