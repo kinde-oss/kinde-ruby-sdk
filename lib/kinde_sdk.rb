@@ -47,7 +47,7 @@ module KindeSdk
     #
     # @return [Hash]
     def fetch_tokens(params_or_code, code_verifier: nil, redirect_uri: @config.callback_url)
-      code = params_or_code.kind_of?(Hash) ? params.fetch("code") : params_or_code
+      code = params_or_code.kind_of?(Hash) ? params_or_code.fetch("code") : params_or_code
       params = {
         redirect_uri: redirect_uri,
         headers: { 'User-Agent' => "Kinde-SDK: Ruby/#{KindeSdk::VERSION}" }
@@ -70,35 +70,56 @@ module KindeSdk
       KindeSdk::Client.new(sdk_api_client, tokens_hash, @config.auto_refresh_tokens)
     end
 
-    def logout_url
-      query = @config.logout_url ? URI.encode_www_form(redirect: @config.logout_url) : nil
-      host = URI::parse(@config.domain).host
+    def logout_url(logout_url: @config.logout_url, domain: @config.domain)
+      query = logout_url ? URI.encode_www_form(redirect: logout_url) : nil
+      host = URI::parse(domain).host
       URI::HTTP.build(host: host, path: '/logout', query: query).to_s
     end
 
     def client_credentials_access(
       client_id: @config.client_id,
       client_secret: @config.client_secret,
-      audience: "#{@config.domain}/api"
+      audience: "#{@config.domain}/api",
+      domain: @config.domain
     )
-      Faraday.new(url: @config.domain) do |faraday|
+      Faraday.new(url: domain) do |faraday|
         faraday.response :json
         faraday.use Faraday::FollowRedirects::Middleware
       end
-        .post(@config.token_url) do |req|
+        .post("#{domain}/oauth2/token") do |req|
         req.headers[:content_type] = 'application/x-www-form-urlencoded'
         req.body =
           "grant_type=client_credentials&client_id=#{client_id}&client_secret=#{client_secret}&audience=#{audience}"
       end.body
     end
 
-    def token_expired?(hash)
-      OAuth2::AccessToken.from_hash(@config.oauth_client, hash).expired?
+    def token_expired?(hash,
+      client_id: @config.client_id,
+      client_secret: @config.client_secret,
+      audience: "#{@config.domain}/api",
+      domain: @config.domain
+    )
+      OAuth2::AccessToken.from_hash(@config.oauth_client(
+        client_id: client_id, 
+        client_secret: client_secret,
+        domain: domain,
+        authorize_url: "#{domain}/oauth2/auth",
+        token_url: "#{domain}/oauth2/token"), hash).expired?
     end
 
     # @return [Hash]
-    def refresh_token(hash)
-      OAuth2::AccessToken.from_hash(@config.oauth_client, hash).refresh.to_hash
+    def refresh_token(hash,
+      client_id: @config.client_id,
+      client_secret: @config.client_secret,
+      audience: "#{@config.domain}/api",
+      domain: @config.domain
+    )
+      OAuth2::AccessToken.from_hash(@config.oauth_client(
+        client_id: client_id, 
+        client_secret: client_secret,
+        domain: domain,
+        authorize_url: "#{domain}/oauth2/auth",
+        token_url: "#{domain}/oauth2/token"), hash).refresh.to_hash
     end
 
     # init sdk api client by bearer token

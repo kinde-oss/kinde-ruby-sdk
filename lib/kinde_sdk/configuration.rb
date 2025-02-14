@@ -36,7 +36,7 @@ module KindeSdk
       yield(self) if block_given?
     end
 
-    def oauth_client
+    def oauth_client(client_id: @client_id, client_secret: @client_secret, domain: @domain, authorize_url: @authorize_url, token_url: @token_url )
       ::OAuth2::Client.new(
         client_id,
         client_secret,
