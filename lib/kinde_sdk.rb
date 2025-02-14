@@ -27,10 +27,12 @@ module KindeSdk
     # receive url for authorization in Kinde itself
     #
     # @return [Hash]
-    def auth_url(redirect_uri: @config.callback_url, **kwargs)
+    def auth_url(redirect_uri: @config.callback_url, domain: @config.domain, **kwargs)
       params = {
         redirect_uri: redirect_uri,
         state: SecureRandom.hex,
+        authorize_url: "#{domain}/oauth2/auth",
+        token_url: "#{domain}/oauth2/token",
         scope: @config.scope
       }.merge(**kwargs)
       return { url: @config.oauth_client.auth_code.authorize_url(params) } unless @config.pkce_enabled
