@@ -27,7 +27,12 @@ module KindeSdk
     # receive url for authorization in Kinde itself
     #
     # @return [Hash]
-    def auth_url(redirect_uri: @config.callback_url, domain: @config.domain, **kwargs)
+    def auth_url(
+      client_id: @config.client_id,
+      client_secret: @config.client_secret,
+      domain: @config.domain,
+      redirect_uri: @config.callback_url,
+       **kwargs)
       params = {
         redirect_uri: redirect_uri,
         state: SecureRandom.hex,
@@ -35,12 +40,22 @@ module KindeSdk
         token_url: "#{domain}/oauth2/token",
         scope: @config.scope
       }.merge(**kwargs)
-      return { url: @config.oauth_client.auth_code.authorize_url(params) } unless @config.pkce_enabled
+      return { url: @config.oauth_client(
+        client_id: client_id,
+        client_secret: client_secret,
+        domain: domain,
+        authorize_url: "#{domain}/oauth2/auth",
+        token_url: "#{domain}/oauth2/token").auth_code.authorize_url(params) } unless @config.pkce_enabled
 
       pkce_challenge = PkceChallenge.challenge(char_length: 128)
       params.merge!(code_challenge_method: 'S256', code_challenge: pkce_challenge.code_challenge)
       {
-        url: @config.oauth_client.auth_code.authorize_url(params),
+        url: @config.oauth_client(
+          client_id: client_id,
+          client_secret: client_secret,
+          domain: domain,
+          authorize_url: "#{domain}/oauth2/auth",
+          token_url: "#{domain}/oauth2/token").auth_code.authorize_url(params),
         code_verifier: pkce_challenge.code_verifier
       }
     end
@@ -48,14 +63,25 @@ module KindeSdk
     # when callback processor receives code, it needs to be used for fetching bearer token
     #
     # @return [Hash]
-    def fetch_tokens(params_or_code, code_verifier: nil, redirect_uri: @config.callback_url)
+    def fetch_tokens(
+      params_or_code, 
+      client_id: @config.client_id,
+      client_secret: @config.client_secret,
+      domain: @config.domain,
+      code_verifier: nil,
+      redirect_uri: @config.callback_url)
       code = params_or_code.kind_of?(Hash) ? params_or_code.fetch("code") : params_or_code
       params = {
         redirect_uri: redirect_uri,
         headers: { 'User-Agent' => "Kinde-SDK: Ruby/#{KindeSdk::VERSION}" }
       }
       params[:code_verifier] = code_verifier if code_verifier
-      @config.oauth_client.auth_code.get_token(code.to_s, params).to_hash
+      @config.oauth_client(
+        client_id: client_id,
+        client_secret: client_secret,
+        domain: domain,
+        authorize_url: "#{domain}/oauth2/auth",
+        token_url: "#{domain}/oauth2/token").auth_code.get_token(code.to_s, params).to_hash
     end
 
     # tokens_hash #=>
