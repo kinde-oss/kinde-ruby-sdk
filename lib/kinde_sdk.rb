@@ -36,8 +36,6 @@ module KindeSdk
       params = {
         redirect_uri: redirect_uri,
         state: SecureRandom.hex,
-        authorize_url: "#{domain}/oauth2/auth",
-        token_url: "#{domain}/oauth2/token",
         scope: @config.scope
       }.merge(**kwargs)
       return { url: @config.oauth_client(
