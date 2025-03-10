@@ -2,6 +2,7 @@ require "kinde_sdk/version"
 require "kinde_sdk/configuration"
 require "kinde_sdk/client/feature_flags"
 require "kinde_sdk/client/permissions"
+require "kinde_sdk/controllers/auth_controller"
 require "kinde_sdk/client"
 
 require 'securerandom'
