@@ -1,3 +1,5 @@
+require 'action_controller'
+
 module KindeSdk
   class AuthController < ActionController::Base
     # Add before_action to validate nonce in callback

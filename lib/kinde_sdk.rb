@@ -1,3 +1,6 @@
+require "logger"
+require "action_controller/railtie"
+
 require "kinde_sdk/version"
 require "kinde_sdk/configuration"
 require "kinde_sdk/client/feature_flags"
