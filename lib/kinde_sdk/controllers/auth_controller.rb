@@ -80,7 +80,10 @@ module KindeSdk
   
       # Verify nonce returned matches stored nonce
       returned_nonce = params[:nonce]
+      returned_state = params[:state]
       stored_nonce = session[:auth_nonce]
+      stored_state = session[:auth_state]
+      stored_url = stored_state[:redirect_url]
   
       unless returned_nonce.present? && returned_nonce == stored_nonce
         Rails.logger.warn("Nonce validation failed: returned=#{returned_nonce}, stored=#{stored_nonce}")
@@ -88,9 +91,20 @@ module KindeSdk
         return
       end
   
+      # Extract the state from the stored redirect_url
+      parsed_url = URI.parse(stored_url)
+      query_params = CGI.parse(parsed_url.query || "")
+      stored_state_from_url = query_params["state"]&.first
+
+      # Verify returned state matches the state extracted from the redirect_url
+      unless returned_state.present? && returned_state == stored_state_from_url
+        Rails.logger.warn("State validation failed: returned=#{returned_state}, expected=#{stored_state_from_url}")
+        redirect_to root_path, alert: "Invalid authentication state"
+        return
+      end
+
       # Optional: Check state age (e.g., expires after 15 minutes)
-      state = session[:auth_state]
-      if Time.current.to_i - state[:requested_at] > 900
+      if Time.current.to_i - stored_state[:requested_at] > 900
         Rails.logger.warn("Authentication state expired")
         redirect_to root_path, alert: "Authentication session expired"
         return
