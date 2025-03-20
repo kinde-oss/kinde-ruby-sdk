@@ -1,13 +1,10 @@
 require "logger"
-require "action_controller/railtie"
-
 require "kinde_sdk/version"
 require "kinde_sdk/configuration"
 require "kinde_sdk/client/feature_flags"
 require "kinde_sdk/client/permissions"
 require "kinde_sdk/controllers/auth_controller"
 require "kinde_sdk/client"
-
 require 'securerandom'
 require 'oauth2'
 require 'pkce_challenge'
@@ -78,12 +75,19 @@ module KindeSdk
         headers: { 'User-Agent' => "Kinde-SDK: Ruby/#{KindeSdk::VERSION}" }
       }
       params[:code_verifier] = code_verifier if code_verifier
-      @config.oauth_client(
+      token = @config.oauth_client(
         client_id: client_id,
         client_secret: client_secret,
         domain: domain,
         authorize_url: "#{domain}/oauth2/auth",
-        token_url: "#{domain}/oauth2/token").auth_code.get_token(code.to_s, params).to_hash
+        token_url: "#{domain}/oauth2/token").auth_code.get_token(code.to_s, params)
+
+      {
+          access_token: token.token,
+          id_token: token.params['id_token'],
+          expires_at: token.expires_at,
+          refresh_token: token.refresh_token,
+        }.compact
     end
 
     # tokens_hash #=>
