@@ -150,7 +150,7 @@ module KindeSdk
       Rails.logger.info("The original nonce is: #{original_nonce}")
       nonce_from_token == original_nonce
     rescue StandardError => e
-      puts "Error: #{e.message}"
+      Rails.logger.error("Nonce validation error: #{e.message}")
       false
     end
     
