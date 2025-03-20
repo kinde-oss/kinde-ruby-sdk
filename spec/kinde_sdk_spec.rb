@@ -74,7 +74,7 @@ describe KindeSdk do
         )
         .to_return(
           status: 200,
-          body: { "access_token": "eyJ", "expires_in": 86399, "scope": "", "token_type": "bearer" }.to_json,
+          body: { "access_token": "eyJ", "id_token": "test", "refresh_token": "test","expires_in": 86399, "scope": "", "token_type": "bearer" }.to_json,
           headers: { "content-type" => "application/json;charset=UTF-8" }
         )
     end
@@ -87,7 +87,7 @@ describe KindeSdk do
       let(:callback_url) { "another-callback" }
 
       it "calls /token url with proper body and headers" do
-        expect(described_class.fetch_tokens(code).keys.size).to eq(5)
+        expect(described_class.fetch_tokens(code).keys.size).to eq(4)
       end
     end
   end
