@@ -146,8 +146,6 @@ module KindeSdk
       payload = decoded_token[0]
       nonce_from_token = payload['nonce']
       
-      Rails.logger.info("The nonce from the token is: #{nonce_from_token}")
-      Rails.logger.info("The original nonce is: #{original_nonce}")
       nonce_from_token == original_nonce
     rescue StandardError => e
       Rails.logger.error("Nonce validation error: #{e.message}")
