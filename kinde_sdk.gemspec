@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-
 SDK_PATH = "kinde_api"
 
 $LOAD_PATH.push File.expand_path("lib", __dir__)
