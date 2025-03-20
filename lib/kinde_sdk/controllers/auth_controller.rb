@@ -32,7 +32,7 @@ module KindeSdk
       tokens = KindeSdk.fetch_tokens(
         params[:code],
         code_verifier: KindeSdk.config.pkce_enabled ? session[:code_verifier] : nil
-      ).slice(:access_token, :refresh_token, :expires_at)
+      ).slice(:access_token, :id_token, :refresh_token, :expires_at)
   
 
       # Validate nonce in ID token
@@ -49,15 +49,16 @@ module KindeSdk
       end
 
       # Store tokens and user in session
-      session[:kinde_auth] = tokens
+      session[:kinde_auth] = OAuth2::AccessToken.from_hash(KindeSdk.config.oauth_client, tokens).to_hash
+        .slice(:access_token, :refresh_token, :expires_at)
       session[:kinde_user] = KindeSdk.client(tokens).oauth.get_user.to_hash
       
       # Clear nonce and state after successful authentication
       session.delete(:auth_nonce)
       session.delete(:auth_state)
       session.delete(:code_verifier)
-  
-      redirect_to main_app.root_path
+      Rails.logger.info("AUTHENTICATION SUCCESSFUL")
+      redirect_to "/"
     rescue StandardError => e
       Rails.logger.error("Authentication callback failed: #{e.message}")
       redirect_to "/", alert: "Authentication failed"

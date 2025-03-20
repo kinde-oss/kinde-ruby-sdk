@@ -83,11 +83,13 @@ module KindeSdk
         token_url: "#{domain}/oauth2/token").auth_code.get_token(code.to_s, params)
 
       {
-          access_token: token.token,
-          id_token: token.params['id_token'],
-          expires_at: token.expires_at,
-          refresh_token: token.refresh_token,
-        }.compact
+        access_token: token.token,           # The access token
+        id_token: token.params['id_token'],  # The ID token from params
+        expires_at: token.expires_at,        # Optional: expiration time
+        refresh_token: token.refresh_token,   # Optional: if present
+        scope: token.params['scope'],        # The scopes requested
+        token_type: token.params['token_type'] # The token type
+      }.compact
     end
 
     # tokens_hash #=>
@@ -100,7 +102,7 @@ module KindeSdk
     #
     # @return [KindeSdk::Client]
     def client(tokens_hash)
-      sdk_api_client = api_client(tokens_hash["access_token"])
+      sdk_api_client = api_client(tokens_hash[:access_token] || tokens_hash["access_token"])
       KindeSdk::Client.new(sdk_api_client, tokens_hash, @config.auto_refresh_tokens)
     end
 
