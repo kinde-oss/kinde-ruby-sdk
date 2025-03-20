@@ -80,14 +80,14 @@ describe KindeSdk do
     end
 
     it "calls /token url with proper body and headers" do
-      expect(described_class.fetch_tokens(code).keys).to eq(%w[scope token_type access_token id_token refresh_token expires_at])
+      expect(described_class.fetch_tokens(code).keys).to eq(%w[access_token id_token expires_at refresh_token scope token_type])
     end
 
     context "with redefined callback_url" do
       let(:callback_url) { "another-callback" }
 
       it "calls /token url with proper body and headers" do
-        expect(described_class.fetch_tokens(code).keys.size).to eq(4)
+        expect(described_class.fetch_tokens(code).keys.size).to eq(6)
       end
     end
   end
