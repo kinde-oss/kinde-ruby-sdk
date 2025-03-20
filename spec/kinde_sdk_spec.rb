@@ -80,7 +80,7 @@ describe KindeSdk do
     end
 
     it "calls /token url with proper body and headers" do
-      expect(described_class.fetch_tokens(code).keys).to eq(%w[scope token_type access_token refresh_token expires_at])
+      expect(described_class.fetch_tokens(code).keys).to eq(%w[scope token_type access_token id_token refresh_token expires_at])
     end
 
     context "with redefined callback_url" do
