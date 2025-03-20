@@ -36,9 +36,7 @@ module KindeSdk
   
 
       # Validate nonce in ID token
-      Rails.logger.info("The tokens are: #{tokens}")
       id_token = tokens[:id_token]
-      Rails.logger.info("The id token is: #{id_token}")
       issuer = KindeSdk.config.domain
       client_id = KindeSdk.config.client_id
       original_nonce = session[:auth_nonce]
@@ -57,7 +55,6 @@ module KindeSdk
       session.delete(:auth_nonce)
       session.delete(:auth_state)
       session.delete(:code_verifier)
-      Rails.logger.info("AUTHENTICATION SUCCESSFUL")
       redirect_to "/"
     rescue StandardError => e
       Rails.logger.error("Authentication callback failed: #{e.message}")
@@ -84,7 +81,6 @@ module KindeSdk
     end
   
     def logout_callback
-      Rails.logger.info("Logout callback successfully received")
       reset_session
       redirect_to "/"
     end
@@ -105,7 +101,6 @@ module KindeSdk
       stored_url = stored_state["redirect_url"]
   
       # Extract the state from the stored redirect_url
-      Rails.logger.info("The uri is : [#{stored_url}]")
       parsed_url = URI.parse(stored_url)
       query_params = CGI.parse(parsed_url.query || "")
       stored_state_from_url = query_params["state"]&.first
