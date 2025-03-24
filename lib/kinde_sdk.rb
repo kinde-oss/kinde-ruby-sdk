@@ -102,6 +102,8 @@ module KindeSdk
     #
     # @return [KindeSdk::Client]
     def client(tokens_hash)
+      validate_jwt_token(hash)
+      
       sdk_api_client = api_client(tokens_hash[:access_token] || tokens_hash["access_token"])
       KindeSdk::Client.new(sdk_api_client, tokens_hash, @config.auto_refresh_tokens)
     end
@@ -135,6 +137,8 @@ module KindeSdk
       audience: "#{@config.domain}/api",
       domain: @config.domain
     )
+      validate_jwt_token(hash)
+      
       OAuth2::AccessToken.from_hash(@config.oauth_client(
         client_id: client_id, 
         client_secret: client_secret,
@@ -150,6 +154,8 @@ module KindeSdk
       audience: "#{@config.domain}/api",
       domain: @config.domain
     )
+      validate_jwt_token(hash)
+      
       OAuth2::AccessToken.from_hash(@config.oauth_client(
         client_id: client_id, 
         client_secret: client_secret,
@@ -182,5 +188,18 @@ module KindeSdk
     rescue URI::InvalidURIError
       default_scheme
     end
+
+
+    def validate_jwt_token(token_hash)
+      token_hash.each do |key, token|
+        next unless %w[access_token id_token].include?(key.to_s.downcase)
+        begin
+          JWT.decode(token, nil, false)
+        rescue JWT::DecodeError
+          raise JWT::DecodeError, "Invalid #{key.to_s.capitalize.gsub('_', ' ')}"
+        end
+      end
+    end
+
   end
 end
