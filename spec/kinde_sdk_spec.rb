@@ -161,6 +161,20 @@ describe KindeSdk do
         "scp" => ["openid", "offline"],
         "sub" => "kp:b17adf719f7d4b87b611d1a88a09fd15" }
     end
+    before do
+      stub_request(:get, "#{domain}/.well-known/jwks.json")
+        .with(
+          headers: {
+       	  'Accept'=>'*/*',
+       	  'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+       	  'User-Agent'=>'Ruby'
+           })
+        .to_return(
+          status: 200,
+          body: jwks_hash.to_json,
+          headers: { "content-type" => "application/json;charset=UTF-8" }
+        )
+    end
     let(:token) { JWT.encode(hash_to_encode, jwk.signing_key, jwk[:alg], kid: jwk[:kid]) }
     let(:expires_at) { Time.now.to_i + 10000000 }
     let(:client) { described_class.client({ "access_token": token, "expires_at": expires_at }) }
