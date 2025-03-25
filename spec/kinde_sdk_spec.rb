@@ -147,13 +147,13 @@ describe KindeSdk do
     let(:hash_to_encode) do
       { "aud" => [],
         "azp" => "19ebb687cd2f405c9f2daf645a8db895",
-        "exp" => 1679600554,
         "feature_flags" => {
           "asd" => { "t" => "b", "v" => true },
           "eeeeee" => { "t" => "i", "v" => 111 },
           "qqq" => { "t" => "s", "v" => "aa" }
         },
-        "iat" => 1679514154,
+        "iat": Time.now.to_i,           # Issued at: current time
+        "exp": Time.now.to_i + 3600
         "iss" => "https://example.kinde.com",
         "jti" => "22c48b2c-da46-4661-a7ff-425c23eceab5",
         "org_code" => "org_cb4544175bc",
