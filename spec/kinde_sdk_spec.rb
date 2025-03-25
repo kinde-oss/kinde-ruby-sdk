@@ -1,4 +1,8 @@
 require 'spec_helper'
+require 'jwt'
+require 'openssl'
+require 'webmock/rspec'
+
 
 describe KindeSdk do
   let(:domain) { "http://example.com" }
@@ -7,6 +11,13 @@ describe KindeSdk do
   let(:callback_url) { "http://localhost:3000/callback" }
   let(:logout_url) { "http://localhost/logout-callback" }
   let(:auto_refresh_tokens) { true }
+
+  let(:optional_parameters) { { kid: 'my-kid', use: 'sig', alg: 'RS512' } }
+  let(:rsa_key) { OpenSSL::PKey::RSA.new(2048) }
+  let(:jwk) { JWT::JWK.new(rsa_key, optional_parameters) }
+  let(:payload) { { data: 'data' } }
+  let(:token) { JWT.encode(payload, jwk.signing_key, jwk[:alg], kid: jwk[:kid]) }
+  let(:jwks_hash) { JWT::JWK::Set.new(jwk).export }
 
   before do
     KindeSdk.configure do |c|
@@ -74,7 +85,19 @@ describe KindeSdk do
         )
         .to_return(
           status: 200,
-          body: { "access_token": "eyJ", "id_token": "test", "refresh_token": "test","expires_in": 86399, "scope": "", "token_type": "bearer" }.to_json,
+          body: { "access_token" => "eyJ", "id_token" => "test", "refresh_token" => "test", "expires_in" => 86399, "scope" => "", "token_type" => "bearer" }.to_json,
+          headers: { "content-type" => "application/json;charset=UTF-8" }
+        )
+      stub_request(:get, "#{domain}/.well-known/jwks.json")
+        .with(
+          headers: {
+       	  'Accept'=>'*/*',
+       	  'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+       	  'User-Agent'=>'Ruby'
+           })
+        .to_return(
+          status: 200,
+          body: jwks_hash.to_json,
           headers: { "content-type" => "application/json;charset=UTF-8" }
         )
     end
@@ -123,13 +146,13 @@ describe KindeSdk do
     let(:hash_to_encode) do
       { "aud" => [],
         "azp" => "19ebb687cd2f405c9f2daf645a8db895",
-        "exp" => 1679600554,
         "feature_flags" => {
           "asd" => { "t" => "b", "v" => true },
           "eeeeee" => { "t" => "i", "v" => 111 },
           "qqq" => { "t" => "s", "v" => "aa" }
         },
-        "iat" => 1679514154,
+        "iat": Time.now.to_i,           # Issued at: current time
+        "exp": Time.now.to_i + 3600,  # Expiration time: 1 hour from now
         "iss" => "https://example.kinde.com",
         "jti" => "22c48b2c-da46-4661-a7ff-425c23eceab5",
         "org_code" => "org_cb4544175bc",
@@ -137,9 +160,23 @@ describe KindeSdk do
         "scp" => ["openid", "offline"],
         "sub" => "kp:b17adf719f7d4b87b611d1a88a09fd15" }
     end
-    let(:token) { JWT.encode(hash_to_encode, nil, "none") }
+    before do
+      stub_request(:get, "#{domain}/.well-known/jwks.json")
+        .with(
+          headers: {
+       	  'Accept'=>'*/*',
+       	  'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+       	  'User-Agent'=>'Ruby'
+           })
+        .to_return(
+          status: 200,
+          body: jwks_hash.to_json,
+          headers: { "content-type" => "application/json;charset=UTF-8" }
+        )
+    end
+    let(:token) { JWT.encode(hash_to_encode, jwk.signing_key, jwk[:alg], kid: jwk[:kid]) }
     let(:expires_at) { Time.now.to_i + 10000000 }
-    let(:client) { described_class.client({ "access_token": token, "expires_at": expires_at }) }
+    let(:client) { described_class.client({ access_token: token, expires_at: expires_at }) }
 
     context "with feature flags" do
       it "returns existing flags", :aggregate_failures do
@@ -229,3 +266,5 @@ describe KindeSdk do
     end
   end
 end
+
+

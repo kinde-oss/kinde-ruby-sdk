@@ -10,6 +10,10 @@ require 'oauth2'
 require 'pkce_challenge'
 require 'faraday/follow_redirects'
 require 'uri'
+require 'httparty'
+require 'jwt'
+require 'openssl'
+require 'base64'
 
 module KindeSdk
   class << self
@@ -102,6 +106,8 @@ module KindeSdk
     #
     # @return [KindeSdk::Client]
     def client(tokens_hash)
+      validate_jwt_token(tokens_hash)
+      
       sdk_api_client = api_client(tokens_hash[:access_token] || tokens_hash["access_token"])
       KindeSdk::Client.new(sdk_api_client, tokens_hash, @config.auto_refresh_tokens)
     end
@@ -135,6 +141,8 @@ module KindeSdk
       audience: "#{@config.domain}/api",
       domain: @config.domain
     )
+      validate_jwt_token(hash)
+      
       OAuth2::AccessToken.from_hash(@config.oauth_client(
         client_id: client_id, 
         client_secret: client_secret,
@@ -150,6 +158,8 @@ module KindeSdk
       audience: "#{@config.domain}/api",
       domain: @config.domain
     )
+      validate_jwt_token(hash)
+      
       OAuth2::AccessToken.from_hash(@config.oauth_client(
         client_id: client_id, 
         client_secret: client_secret,
@@ -182,5 +192,62 @@ module KindeSdk
     rescue URI::InvalidURIError
       default_scheme
     end
+
+
+    def validate_jwt_token(token_hash)
+      token_hash.each do |key, token|
+        next unless %w[access_token id_token].include?(key.to_s.downcase)
+        begin
+          jwt_validation(token, "#{@config.domain}#{@config.jwks_url}", @config.expected_issuer, @config.expected_audience)
+        rescue JWT::DecodeError
+          Rails.logger.error("Invalid JWT token: #{key}")
+          raise JWT::DecodeError, "Invalid #{key.to_s.capitalize.gsub('_', ' ')}"
+        end
+      end
+    end
+
+
+    # Method to validate a JWT token with caching for JWKS
+    def jwt_validation(jwt_token, jwks_url, expected_issuer, expected_audience)
+      @cached_jwks ||= fetch_jwks(jwks_url)
+
+      begin
+        validate_token(jwt_token, @cached_jwks, expected_issuer, expected_audience)
+      rescue JWT::DecodeError, StandardError
+        # If validation fails, fetch JWKS again and retry validation
+        @cached_jwks = fetch_jwks(jwks_url)
+        validate_token(jwt_token, @cached_jwks, expected_issuer, expected_audience)
+      end
+    end
+
+    private
+
+    # Fetch JWKS from the URL
+    def fetch_jwks(jwks_url)
+      jwks_response = HTTParty.get(jwks_url)
+      JSON.parse(jwks_response.body)
+    end
+
+    # Validate the JWT token using the provided JWKS
+    def validate_token(jwt_token, jwks_hash, expected_issuer, expected_audience)
+      # Decode token header to get 'kid'
+      decoded_token = JWT.decode(jwt_token, nil, false) # [payload, header]
+      header = decoded_token[1]
+      kid = header['kid']
+
+      # Find the matching JWK
+      jwks = JWT::JWK::Set.new(jwks_hash)
+      jwks.filter! {|key| key[:use] == 'sig' }
+      algorithms = jwks.map { |key| key[:alg] }.compact.uniq
+      payload, _header = JWT.decode(jwt_token, nil, true, algorithms: algorithms, jwks: jwks)
+      { valid: true, payload: payload }
+    rescue JWT::DecodeError => e
+      Rails.logger.error("Token validation failed: #{e.message}")
+      raise JWT::DecodeError, "Token validation failed: #{e.message}"
+    rescue StandardError => e
+      Rails.logger.error("Unexpected error: #{e.message}")
+      raise StandardError, "Unexpected error: #{e.message}"
+    end
+
   end
 end

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 SDK_PATH = "kinde_api"
 
 $LOAD_PATH.push File.expand_path("lib", __dir__)
@@ -20,6 +21,8 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency "typhoeus", "~> 1.0", ">= 1.0.1"
   s.add_runtime_dependency "oauth2", "~> 2.0"
+  s.add_runtime_dependency "httparty", "~> 0.19.0"
+  s.add_runtime_dependency "jwt", "~> 2.2"
   s.add_runtime_dependency "pkce_challenge"
   s.add_runtime_dependency "faraday-follow_redirects"
 
