@@ -10,6 +10,11 @@ module KindeSdk
     attr_accessor :authorize_url
     attr_accessor :token_url
 
+    attr_accessor :jwks_url
+    attr_accessor :jwks
+    attr_accessor :expected_issuer
+    attr_accessor :expected_audience
+
     attr_accessor :logger
     attr_accessor :debugging
     attr_accessor :oauth_client
@@ -19,6 +24,9 @@ module KindeSdk
     def initialize
       @authorize_url = '/oauth2/auth'
       @token_url = '/oauth2/token'
+      @jwks_url = '/.well-known/jwks.json'
+      @expected_audience = nil
+      @expected_issuer = nil
       @debugging = false
       @logger = defined?(Rails) ? Rails.logger : Logger.new(STDOUT)
       @scope = 'openid offline email profile'

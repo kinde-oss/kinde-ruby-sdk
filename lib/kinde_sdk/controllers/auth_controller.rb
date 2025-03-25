@@ -24,7 +24,7 @@ module KindeSdk
         requested_at: Time.current.to_i,
         redirect_url: auth_data[:url]
       }
-  
+      
       redirect_to auth_data[:url], allow_other_host: true
     end
   
@@ -90,7 +90,7 @@ module KindeSdk
     def validate_state
       # Check if nonce and state exist in session
       unless session[:auth_nonce] && session[:auth_state]
-        Rails.logger.warn("Missing session state or nonce")
+        Rails.logger.warn("Missing session state or nonce [#{session[:auth_nonce]}] [#{session[:auth_state]}]")
         redirect_to "/", alert: "Invalid authentication state"
         return
       end
