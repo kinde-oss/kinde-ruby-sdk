@@ -86,7 +86,7 @@ describe KindeSdk do
         )
         .to_return(
           status: 200,
-          body: JWT.encode({ "access_token" => "eyJ", "id_token" => "test", "refresh_token" => "test", "expires_in" => 86399, "scope" => "", "token_type" => "bearer" }, jwk.signing_key, jwk[:alg], { kid: jwk[:kid] }).to_json,
+          body: { "access_token" => "eyJ", "id_token" => "test", "refresh_token" => "test", "expires_in" => 86399, "scope" => "", "token_type" => "bearer" }.to_json,
           headers: { "content-type" => "application/json;charset=UTF-8" }
         )
       stub_request(:get, "#{domain}/.well-known/jwks.json")
