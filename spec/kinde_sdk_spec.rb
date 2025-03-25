@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'spec_helper'
 require 'jwt'
 require 'openssl'
 require 'webmock/rspec'
