@@ -71,12 +71,22 @@ describe KindeSdk do
     before do
       stub_request(:post, "#{domain}/oauth2/token")
         .with(
-          body: {},
-          headers: {}
+          body: {
+            "code" => code,
+            "grant_type" => "authorization_code",
+            "redirect_uri" => callback_url
+          },
+          headers: {
+            'Accept' => '*/*',
+            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+            'Authorization' => 'Basic Y2xpZW50X2lkOmNsaWVudF9zZWNyZXQ=',
+            'Content-Type' => 'application/x-www-form-urlencoded',
+            'User-Agent' => "Kinde-SDK: Ruby/#{KindeSdk::VERSION}"
+          }
         )
         .to_return(
           status: 200,
-          body: JWT.encode({ "access_token": "eyJ", "id_token": "test", "refresh_token": "test","expires_in": 86399, "scope": "", "token_type": "bearer" }, jwk.signing_key, jwk[:alg], kid: jwk[:kid]).to_json,
+          body: JWT.encode({ "access_token" => "eyJ", "id_token" => "test", "refresh_token" => "test", "expires_in" => 86399, "scope" => "", "token_type" => "bearer" }, jwk.signing_key, jwk[:alg], { kid: jwk[:kid] }).to_json,
           headers: { "content-type" => "application/json;charset=UTF-8" }
         )
       stub_request(:get, "#{domain}/.well-known/jwks.json")
