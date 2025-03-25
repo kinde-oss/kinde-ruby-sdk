@@ -153,7 +153,7 @@ describe KindeSdk do
           "qqq" => { "t" => "s", "v" => "aa" }
         },
         "iat": Time.now.to_i,           # Issued at: current time
-        "exp": Time.now.to_i + 3600
+        "exp": Time.now.to_i + 3600,  # Expiration time: 1 hour from now
         "iss" => "https://example.kinde.com",
         "jti" => "22c48b2c-da46-4661-a7ff-425c23eceab5",
         "org_code" => "org_cb4544175bc",
