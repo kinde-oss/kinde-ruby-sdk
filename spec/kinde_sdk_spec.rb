@@ -177,7 +177,7 @@ describe KindeSdk do
     end
     let(:token) { JWT.encode(hash_to_encode, jwk.signing_key, jwk[:alg], kid: jwk[:kid]) }
     let(:expires_at) { Time.now.to_i + 10000000 }
-    let(:client) { described_class.client({ "access_token": token, "expires_at": expires_at }) }
+    let(:client) { described_class.client({ access_token: token, expires_at: expires_at }) }
 
     context "with feature flags" do
       it "returns existing flags", :aggregate_failures do
