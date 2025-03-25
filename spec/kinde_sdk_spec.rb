@@ -1,4 +1,9 @@
 require 'spec_helper'
+require 'spec_helper'
+require 'jwt'
+require 'openssl'
+require 'webmock/rspec'
+
 
 describe KindeSdk do
   let(:domain) { "http://example.com" }
@@ -7,6 +12,13 @@ describe KindeSdk do
   let(:callback_url) { "http://localhost:3000/callback" }
   let(:logout_url) { "http://localhost/logout-callback" }
   let(:auto_refresh_tokens) { true }
+
+  let(:optional_parameters) { { kid: 'my-kid', use: 'sig', alg: 'RS512' } }
+  let(:rsa_key) { OpenSSL::PKey::RSA.new(2048) }
+  let(:jwk) { JWT::JWK.new(rsa_key, optional_parameters) }
+  let(:payload) { { data: 'data' } }
+  let(:token) { JWT.encode(payload, jwk.signing_key, jwk[:alg], kid: jwk[:kid]) }
+  let(:jwks_hash) { JWT::JWK::Set.new(jwk).export }
 
   before do
     KindeSdk.configure do |c|
@@ -74,7 +86,18 @@ describe KindeSdk do
         )
         .to_return(
           status: 200,
-          body: { "access_token": "eyJ", "id_token": "test", "refresh_token": "test","expires_in": 86399, "scope": "", "token_type": "bearer" }.to_json,
+          body: JWT.encode({ "access_token": "eyJ", "id_token": "test", "refresh_token": "test","expires_in": 86399, "scope": "", "token_type": "bearer" }, jwk.signing_key, jwk[:alg], kid: jwk[:kid]).to_json,
+          headers: { "content-type" => "application/json;charset=UTF-8" }
+        )
+      stub_request(:get, "#{domain}/.well-known/jwks.json")
+        .with(
+          headers: {
+            'User-Agent' => "Kinde-SDK: Ruby/#{KindeSdk::VERSION}"
+          }
+        )
+        .to_return(
+          status: 200,
+          body: jwks_hash.to_json,
           headers: { "content-type" => "application/json;charset=UTF-8" }
         )
     end
@@ -137,7 +160,7 @@ describe KindeSdk do
         "scp" => ["openid", "offline"],
         "sub" => "kp:b17adf719f7d4b87b611d1a88a09fd15" }
     end
-    let(:token) { JWT.encode(hash_to_encode, nil, "none") }
+    let(:token) { JWT.encode(hash_to_encode, jwk.signing_key, jwk[:alg], kid: jwk[:kid]) }
     let(:expires_at) { Time.now.to_i + 10000000 }
     let(:client) { described_class.client({ "access_token": token, "expires_at": expires_at }) }
 
@@ -229,3 +252,5 @@ describe KindeSdk do
     end
   end
 end
+
+
