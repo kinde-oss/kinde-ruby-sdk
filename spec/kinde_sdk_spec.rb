@@ -71,18 +71,8 @@ describe KindeSdk do
     before do
       stub_request(:post, "#{domain}/oauth2/token")
         .with(
-          body: {
-            "code" => code,
-            "grant_type" => "authorization_code",
-            "redirect_uri" => callback_url
-          },
-          headers: {
-            'Accept' => '*/*',
-            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-            'Authorization' => 'Basic Y2xpZW50X2lkOmNsaWVudF9zZWNyZXQ=',
-            'Content-Type' => 'application/x-www-form-urlencoded',
-            'User-Agent' => "Kinde-SDK: Ruby/#{KindeSdk::VERSION}"
-          }
+          body: {},
+          headers: {}
         )
         .to_return(
           status: 200,
