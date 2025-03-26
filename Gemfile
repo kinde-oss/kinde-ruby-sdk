@@ -20,4 +20,5 @@ end
 
 group :test do
   gem "webmock"
+  gem 'rspec/expectations'
 end
