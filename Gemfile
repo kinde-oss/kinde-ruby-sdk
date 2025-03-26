@@ -3,6 +3,7 @@ source "https://rubygems.org"
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.0.4"
 gem 'rspec-core'
+gem 'rspec'
 gem 'typhoeus', '~> 1.0', '>= 1.0.1'
 gem 'oauth2', '~> 2.0'
 gem 'pkce_challenge'
@@ -19,6 +20,5 @@ group :development, :test do
 end
 
 group :test do
-  gem "webmock"
-  gem 'rspec/expectations'
+  gem 'webmock'
 end
