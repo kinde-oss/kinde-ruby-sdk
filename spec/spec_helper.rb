@@ -1,3 +1,6 @@
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)              # For kinde_sdk
+$LOAD_PATH.unshift File.expand_path('../kinde_api/lib', __dir__)    # For kinde_api
+
 require "kinde_sdk"
 require "webmock/rspec"
 
