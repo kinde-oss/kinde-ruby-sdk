@@ -4,4 +4,4 @@ KindeSdk::Engine.routes.draw do
     get "logout" => "auth#logout"
     get "logout_callback" => "auth#logout_callback"
     get "client_credentials_auth" => "auth#client_credentials_auth"
-  end
+end
