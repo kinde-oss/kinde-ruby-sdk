@@ -1,3 +1,3 @@
 Rails.application.routes.draw do
-  mount Kinde::Ruby::Sdk::Engine => "/kinde-ruby-sdk"
+  mount KindeSdk::Engine => "/kinde-sdk"
 end
