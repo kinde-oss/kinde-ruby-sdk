@@ -1,9 +1,9 @@
 require "logger"
+require "rails"
 require "kinde_sdk/version"
 require "kinde_sdk/configuration"
 require "kinde_sdk/client/feature_flags"
 require "kinde_sdk/client/permissions"
-require "kinde_sdk/controllers/auth_controller"
 require "kinde_sdk/client"
 require 'securerandom'
 require 'oauth2'
@@ -18,6 +18,10 @@ require 'base64'
 module KindeSdk
   class << self
     attr_accessor :config
+
+    if defined?(Rails)
+      require "kinde_sdk/engine"
+    end
 
     def configure
       if block_given?

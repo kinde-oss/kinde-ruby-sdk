@@ -1,4 +1,4 @@
-require "kinde_api"
+require_relative '../../kinde_api/lib/kinde_api'
 
 module KindeSdk
   class Client
