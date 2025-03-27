@@ -3,6 +3,8 @@
 SDK_PATH = "kinde_api"
 
 $LOAD_PATH.push File.expand_path("lib", __dir__)
+$LOAD_PATH.push File.expand_path("app", __dir__)
+$LOAD_PATH.push File.expand_path("config", __dir__)
 $LOAD_PATH.push File.expand_path("#{SDK_PATH}/lib", __dir__)
 
 require "kinde_sdk/version"
@@ -30,7 +32,7 @@ Gem::Specification.new do |s|
   
   s.add_development_dependency "rspec", "~> 3.6", ">= 3.6.0"
 
-  s.files = Dir.glob(['lib/**/*', 'kinde_api/**/*']).reject do |f|
+  s.files = Dir.glob(['lib/**/*', 'kinde_api/**/*', 'config/**/*', 'app/**/*']).reject do |f|
     File.directory?(f) || f.start_with?('kinde_api/spec/')
   end
   
