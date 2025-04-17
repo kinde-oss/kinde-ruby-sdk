@@ -29,6 +29,9 @@ module KindeSdk
     # @return [Hash]
     # @example {name: "scp", value: ["openid", "offline"]}
     def get_claim(claim, token_type = :access_token)
+      # Validate the token before attempting to decode it
+      KindeSdk.validate_jwt_token(tokens_hash)
+
       token = tokens_hash[token_type]
       return unless token
 
