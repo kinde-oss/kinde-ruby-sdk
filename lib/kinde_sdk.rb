@@ -145,8 +145,6 @@ module KindeSdk
       audience: "#{@config.domain}/api",
       domain: @config.domain
     )
-      validate_jwt_token(hash)
-      
       OAuth2::AccessToken.from_hash(@config.oauth_client(
         client_id: client_id, 
         client_secret: client_secret,
@@ -162,8 +160,6 @@ module KindeSdk
       audience: "#{@config.domain}/api",
       domain: @config.domain
     )
-      validate_jwt_token(hash)
-      
       OAuth2::AccessToken.from_hash(@config.oauth_client(
         client_id: client_id, 
         client_secret: client_secret,
@@ -188,16 +184,6 @@ module KindeSdk
       KindeApi::ApiClient.new(config)
     end
 
-    private
-
-    def url_scheme(default_scheme)
-      parsed_url = URI.parse(@config.domain.to_s)
-      parsed_url.scheme || default_scheme
-    rescue URI::InvalidURIError
-      default_scheme
-    end
-
-
     def validate_jwt_token(token_hash)
       token_hash.each do |key, token|
         next unless %w[access_token id_token].include?(key.to_s.downcase)
@@ -210,6 +196,14 @@ module KindeSdk
       end
     end
 
+    private
+
+    def url_scheme(default_scheme)
+      parsed_url = URI.parse(@config.domain.to_s)
+      parsed_url.scheme || default_scheme
+    rescue URI::InvalidURIError
+      default_scheme
+    end
 
     # Method to validate a JWT token with caching for JWKS
     def jwt_validation(jwt_token, jwks_url, expected_issuer, expected_audience)
@@ -223,8 +217,6 @@ module KindeSdk
         validate_token(jwt_token, @cached_jwks, expected_issuer, expected_audience)
       end
     end
-
-    private
 
     # Fetch JWKS from the URL
     def fetch_jwks(jwks_url)

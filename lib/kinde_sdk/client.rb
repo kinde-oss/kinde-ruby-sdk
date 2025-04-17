@@ -29,6 +29,9 @@ module KindeSdk
     # @return [Hash]
     # @example {name: "scp", value: ["openid", "offline"]}
     def get_claim(claim, token_type = :access_token)
+      # Validate the token before attempting to decode it
+      KindeSdk.validate_jwt_token(tokens_hash)
+
       token = tokens_hash[token_type]
       return unless token
 
@@ -49,6 +52,9 @@ module KindeSdk
     private
 
     def set_hash_related_data(tokens_hash)
+      # Validate tokens before setting them
+      KindeSdk.validate_jwt_token(tokens_hash)
+      
       @tokens_hash = tokens_hash.transform_keys(&:to_sym)
       @bearer_token = @tokens_hash[:access_token]
       @expires_at = @tokens_hash[:expires_at]
