@@ -289,8 +289,8 @@ describe KindeSdk do
           end
 
           it "attempts to refresh the token" do
-            expect(KindeSdk).to receive(:refresh_token).and_call_original
-            client.token_expired?
+            expect(KindeSdk).to receive(:refresh_token).with(hash_to_encode).and_call_original
+            client.refresh_token
           end
         end
 
@@ -309,6 +309,7 @@ describe KindeSdk do
       let(:expires_at) { Time.now.to_i - 1 }
       let(:new_token) { "new_token" }
       let(:new_expires_at) { Time.now.to_i + 3600 }
+      let(:tokens_hash) { { access_token: token, expires_at: expires_at, refresh_token: "refresh_token" } }
 
       before do
         stub_request(:post, "#{domain}/oauth2/token")
@@ -317,7 +318,7 @@ describe KindeSdk do
               "grant_type" => "refresh_token",
               "client_id" => client_id,
               "client_secret" => client_secret,
-              "refresh_token" => hash_to_encode["refresh_token"]
+              "refresh_token" => "refresh_token"
             }
           )
           .to_return(
@@ -334,8 +335,8 @@ describe KindeSdk do
         let(:auto_refresh_tokens) { true }
 
         it "attempts to refresh the token during initialization" do
-          expect(KindeSdk).to receive(:refresh_token).and_call_original
-          described_class.client({ access_token: token, expires_at: expires_at })
+          expect(KindeSdk).to receive(:refresh_token).with(tokens_hash).and_call_original
+          described_class.client(tokens_hash)
         end
       end
 
@@ -344,7 +345,7 @@ describe KindeSdk do
 
         it "raises an error during initialization" do
           expect {
-            described_class.client({ access_token: token, expires_at: expires_at })
+            described_class.client(tokens_hash)
           }.to raise_error(StandardError)
         end
       end
