@@ -262,6 +262,91 @@ describe KindeSdk do
         let(:expires_at) { Time.now.to_i - 1 }
 
         it { expect(client.token_expired?).to be(true) }
+
+        context "with auto_refresh_tokens enabled" do
+          let(:auto_refresh_tokens) { true }
+          let(:new_token) { "new_token" }
+          let(:new_expires_at) { Time.now.to_i + 3600 }
+
+          before do
+            stub_request(:post, "#{domain}/oauth2/token")
+              .with(
+                body: {
+                  "grant_type" => "refresh_token",
+                  "client_id" => client_id,
+                  "client_secret" => client_secret,
+                  "refresh_token" => hash_to_encode["refresh_token"]
+                }
+              )
+              .to_return(
+                status: 200,
+                body: { 
+                  "access_token" => new_token,
+                  "expires_at" => new_expires_at,
+                  "refresh_token" => "new_refresh_token"
+                }.to_json
+              )
+          end
+
+          it "attempts to refresh the token" do
+            expect(KindeSdk).to receive(:refresh_token).and_call_original
+            client.token_expired?
+          end
+        end
+
+        context "with auto_refresh_tokens disabled" do
+          let(:auto_refresh_tokens) { false }
+
+          it "does not attempt to refresh the token" do
+            expect(KindeSdk).not_to receive(:refresh_token)
+            client.token_expired?
+          end
+        end
+      end
+    end
+
+    context "when initializing with expired token" do
+      let(:expires_at) { Time.now.to_i - 1 }
+      let(:new_token) { "new_token" }
+      let(:new_expires_at) { Time.now.to_i + 3600 }
+
+      before do
+        stub_request(:post, "#{domain}/oauth2/token")
+          .with(
+            body: {
+              "grant_type" => "refresh_token",
+              "client_id" => client_id,
+              "client_secret" => client_secret,
+              "refresh_token" => hash_to_encode["refresh_token"]
+            }
+          )
+          .to_return(
+            status: 200,
+            body: { 
+              "access_token" => new_token,
+              "expires_at" => new_expires_at,
+              "refresh_token" => "new_refresh_token"
+            }.to_json
+          )
+      end
+
+      context "with auto_refresh_tokens enabled" do
+        let(:auto_refresh_tokens) { true }
+
+        it "attempts to refresh the token during initialization" do
+          expect(KindeSdk).to receive(:refresh_token).and_call_original
+          described_class.client({ access_token: token, expires_at: expires_at })
+        end
+      end
+
+      context "with auto_refresh_tokens disabled" do
+        let(:auto_refresh_tokens) { false }
+
+        it "raises an error during initialization" do
+          expect {
+            described_class.client({ access_token: token, expires_at: expires_at })
+          }.to raise_error(StandardError)
+        end
       end
     end
   end
