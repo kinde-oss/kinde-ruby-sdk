@@ -56,8 +56,15 @@ module KindeSdk
     private
 
     def set_hash_related_data(tokens_hash)
-      # Validate tokens before setting them
-      KindeSdk.validate_jwt_token(tokens_hash)
+      begin
+        KindeSdk.validate_jwt_token(tokens_hash)
+      rescue StandardError
+        if auto_refresh_tokens
+          tokens_hash = KindeSdk.refresh_token(tokens_hash)
+        else
+          raise
+        end
+      end
       
       @tokens_hash = tokens_hash.transform_keys(&:to_sym)
       @bearer_token = @tokens_hash[:access_token]
