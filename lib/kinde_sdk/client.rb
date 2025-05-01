@@ -14,7 +14,12 @@ module KindeSdk
     end
 
     def token_expired?
-      expires_at.to_i > 0 && (expires_at <= Time.now.to_i)
+      begin
+        KindeSdk.validate_jwt_token(@tokens_hash)
+        expires_at.to_i > 0 && (expires_at <= Time.now.to_i)
+      rescue StandardError
+        true
+      end
     end
 
     def refresh_token
@@ -29,8 +34,7 @@ module KindeSdk
     # @return [Hash]
     # @example {name: "scp", value: ["openid", "offline"]}
     def get_claim(claim, token_type = :access_token)
-      # Validate the token before attempting to decode it
-      KindeSdk.validate_jwt_token(tokens_hash)
+      refresh_token if auto_refresh_tokens && token_expired?
 
       token = tokens_hash[token_type]
       return unless token

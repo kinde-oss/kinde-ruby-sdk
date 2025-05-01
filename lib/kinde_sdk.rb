@@ -145,12 +145,17 @@ module KindeSdk
       audience: "#{@config.domain}/api",
       domain: @config.domain
     )
-      OAuth2::AccessToken.from_hash(@config.oauth_client(
-        client_id: client_id, 
-        client_secret: client_secret,
-        domain: domain,
-        authorize_url: "#{domain}/oauth2/auth",
-        token_url: "#{domain}/oauth2/token"), hash).expired?
+      begin
+        validate_jwt_token(hash)
+        OAuth2::AccessToken.from_hash(@config.oauth_client(
+          client_id: client_id, 
+          client_secret: client_secret,
+          domain: domain,
+          authorize_url: "#{domain}/oauth2/auth",
+          token_url: "#{domain}/oauth2/token"), hash).expired?
+      rescue StandardError
+        true
+      end
     end
 
     # @return [Hash]
@@ -160,6 +165,7 @@ module KindeSdk
       audience: "#{@config.domain}/api",
       domain: @config.domain
     )
+    
       OAuth2::AccessToken.from_hash(@config.oauth_client(
         client_id: client_id, 
         client_secret: client_secret,
