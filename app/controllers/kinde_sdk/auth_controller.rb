@@ -89,8 +89,8 @@ module KindeSdk
   
     def validate_state
       # Check if nonce and state exist in session
-      unless session[:auth_nonce] && session[:auth_state]
-        Rails.logger.warn("Missing session state or nonce [#{session[:auth_nonce]}] [#{session[:auth_state]}]")
+      unless session[:auth_state]
+        Rails.logger.warn("Missing session state [#{session[:auth_state]}]")
         redirect_to "/", alert: "Invalid authentication state"
         return
       end

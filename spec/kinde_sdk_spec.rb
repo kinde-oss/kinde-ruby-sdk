@@ -17,6 +17,7 @@ describe KindeSdk do
   let(:jwk) { JWT::JWK.new(rsa_key, optional_parameters) }
   let(:payload) { { data: 'data' } }
   let(:token) { JWT.encode(payload, jwk.signing_key, jwk[:alg], kid: jwk[:kid]) }
+  let(:refresh_token) { JWT.encode(payload, jwk.signing_key, jwk[:alg], kid: jwk[:kid]) }
   let(:jwks_hash) { JWT::JWK::Set.new(jwk).export }
 
   before do
@@ -260,7 +261,7 @@ describe KindeSdk do
 
       context "when token expired" do
         let(:expires_at) { Time.now.to_i - 1 }
-        let(:tokens_hash) { { "access_token" => token, "expires_at" => expires_at } }
+        let(:tokens_hash) { { access_token: token, expires_at: expires_at, refresh_token: refresh_token } }
 
         it { expect(client.token_expired?).to be(true) }
 
@@ -276,26 +277,12 @@ describe KindeSdk do
                 body: jwks_hash.to_json,
                 headers: { "content-type" => "application/json;charset=UTF-8" }
               )
-
-            stub_request(:post, "#{domain}/oauth2/token")
-              .with(
-                body: {
-                  "grant_type" => "refresh_token",
-                  "client_id" => client_id,
-                  "client_secret" => client_secret,
-                  "refresh_token" => "refresh_token"
-                }
-              )
-              .to_return(
-                status: 200,
-                body: { 
-                  "access_token" => new_token,
-                  "expires_at" => new_expires_at,
-                  "refresh_token" => "new_refresh_token"
-                }.to_json
-              )
           end
 
+          it "attempts to refresh the token when getting a claim" do
+            expect(KindeSdk).to receive(:refresh_token).and_return(tokens_hash)
+            client.get_claim("scp")
+          end
         end
 
         context "with auto_refresh_tokens disabled" do
@@ -303,7 +290,7 @@ describe KindeSdk do
 
           it "does not attempt to refresh the token" do
             expect(KindeSdk).not_to receive(:refresh_token)
-            client.token_expired?
+            client.get_claim("scp")
           end
         end
       end
