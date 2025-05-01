@@ -62,7 +62,7 @@ module KindeSdk
         if auto_refresh_tokens
           tokens_hash = KindeSdk.refresh_token(tokens_hash)
         else
-          raise
+          raise StandardError, "Token is expired and auto_refresh_tokens is disabled"
         end
       end
       

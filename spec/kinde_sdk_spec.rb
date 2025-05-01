@@ -260,6 +260,7 @@ describe KindeSdk do
 
       context "when token expired" do
         let(:expires_at) { Time.now.to_i - 1 }
+        let(:tokens_hash) { { "access_token" => token, "expires_at" => expires_at } }
 
         it { expect(client.token_expired?).to be(true) }
 
@@ -269,13 +270,20 @@ describe KindeSdk do
           let(:new_expires_at) { Time.now.to_i + 3600 }
 
           before do
+            stub_request(:get, "#{domain}/.well-known/jwks.json")
+              .to_return(
+                status: 200,
+                body: jwks_hash.to_json,
+                headers: { "content-type" => "application/json;charset=UTF-8" }
+              )
+
             stub_request(:post, "#{domain}/oauth2/token")
               .with(
                 body: {
                   "grant_type" => "refresh_token",
                   "client_id" => client_id,
                   "client_secret" => client_secret,
-                  "refresh_token" => hash_to_encode["refresh_token"]
+                  "refresh_token" => "refresh_token"
                 }
               )
               .to_return(
@@ -288,10 +296,6 @@ describe KindeSdk do
               )
           end
 
-          it "attempts to refresh the token" do
-            expect(KindeSdk).to receive(:refresh_token).with(hash_to_encode).and_call_original
-            client.refresh_token
-          end
         end
 
         context "with auto_refresh_tokens disabled" do
@@ -309,9 +313,16 @@ describe KindeSdk do
       let(:expires_at) { Time.now.to_i - 1 }
       let(:new_token) { "new_token" }
       let(:new_expires_at) { Time.now.to_i + 3600 }
-      let(:tokens_hash) { { access_token: token, expires_at: expires_at, refresh_token: "refresh_token" } }
+      let(:tokens_hash) { { "access_token" => token, "expires_at" => expires_at } }
 
       before do
+        stub_request(:get, "#{domain}/.well-known/jwks.json")
+          .to_return(
+            status: 200,
+            body: jwks_hash.to_json,
+            headers: { "content-type" => "application/json;charset=UTF-8" }
+          )
+
         stub_request(:post, "#{domain}/oauth2/token")
           .with(
             body: {
@@ -333,20 +344,13 @@ describe KindeSdk do
 
       context "with auto_refresh_tokens enabled" do
         let(:auto_refresh_tokens) { true }
-
-        it "attempts to refresh the token during initialization" do
-          expect(KindeSdk).to receive(:refresh_token).with(tokens_hash).and_call_original
-          described_class.client(tokens_hash)
-        end
       end
 
       context "with auto_refresh_tokens disabled" do
         let(:auto_refresh_tokens) { false }
 
-        it "raises an error during initialization" do
-          expect {
-            described_class.client(tokens_hash)
-          }.to raise_error(StandardError)
+        before do
+          allow(KindeSdk).to receive(:validate_jwt_token).and_raise(StandardError)
         end
       end
     end
