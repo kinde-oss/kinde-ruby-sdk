@@ -331,6 +331,12 @@ describe KindeSdk do
 
       context "with auto_refresh_tokens enabled" do
         let(:auto_refresh_tokens) { true }
+
+        it "attempts to refresh the token during initialization" do
+           expect(KindeSdk).to receive(:refresh_token).and_return(tokens_hash)
+           new_client = KindeSdk.client({ access_token: token, expires_at: expires_at })
+           new_client.get_claim("scp")
+         end
       end
 
       context "with auto_refresh_tokens disabled" do
@@ -338,6 +344,7 @@ describe KindeSdk do
 
         before do
           allow(KindeSdk).to receive(:validate_jwt_token).and_raise(StandardError)
+          KindeSdk.client({ access_token: token, expires_at: expires_at })
         end
       end
     end
