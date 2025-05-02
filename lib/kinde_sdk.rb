@@ -165,7 +165,6 @@ module KindeSdk
       audience: "#{@config.domain}/api",
       domain: @config.domain
     )
-    
       OAuth2::AccessToken.from_hash(@config.oauth_client(
         client_id: client_id, 
         client_secret: client_secret,
