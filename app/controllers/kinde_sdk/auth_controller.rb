@@ -7,8 +7,10 @@ require 'jwt'
 
 module KindeSdk
   class AuthController < ActionController::Base
-    # Add before_action to validate nonce in callback
+    include AuthHelper
+    
     before_action :validate_state, only: :callback
+    before_action :clear_auth_session, only: [:logout_callback, :logout]
   
     def auth
       # Generate a secure random nonce
@@ -26,39 +28,23 @@ module KindeSdk
       }
       
       redirect_to auth_data[:url], allow_other_host: true
+    rescue StandardError => e
+      handle_error("Auth initialization failed", e)
     end
   
     def callback
-      tokens = KindeSdk.fetch_tokens(
-        params[:code],
-        code_verifier: KindeSdk.config.pkce_enabled ? session[:code_verifier] : nil
-      ).slice(:access_token, :id_token, :refresh_token, :expires_at)
-  
-
-      # Validate nonce in ID token
-      id_token = tokens[:id_token]
-      issuer = KindeSdk.config.domain
-      client_id = KindeSdk.config.client_id
-      original_nonce = session[:auth_nonce]
-      unless validate_nonce(id_token, original_nonce, issuer, client_id)
-        Rails.logger.warn("Nonce validation failed")
-        redirect_to "/", alert: "Invalid authentication nonce"
-        return
-      end
+      tokens = fetch_and_validate_tokens
+      return if performed?
 
       # Store tokens and user in session
-      session[:kinde_auth] = OAuth2::AccessToken.from_hash(KindeSdk.config.oauth_client, tokens).to_hash
-        .slice(:access_token, :refresh_token, :expires_at)
-      session[:kinde_user] = KindeSdk.client(tokens).oauth.get_user.to_hash
+      set_session_tokens(tokens)
       
-      # Clear nonce and state after successful authentication
-      session.delete(:auth_nonce)
-      session.delete(:auth_state)
-      session.delete(:code_verifier)
+      # Clear auth session data
+      clear_auth_session
+      
       redirect_to "/"
     rescue StandardError => e
-      Rails.logger.error("Authentication callback failed: #{e.message}")
-      redirect_to "/", alert: "Authentication failed"
+      handle_error("Authentication callback failed", e)
     end
   
     def client_credentials_auth
@@ -68,12 +54,25 @@ module KindeSdk
       )
   
       if result["error"].present?
-        Rails.logger.error("Client credentials auth failed: #{result['error']}")
         raise result["error"]
       end
   
       $redis.set("kinde_m2m_token", result["access_token"], ex: result["expires_in"].to_i)
       redirect_to mgmt_path
+    rescue StandardError => e
+      handle_error("Client credentials authentication failed", e)
+    end
+
+    def refresh_token
+      return redirect_with_error("No valid session found") unless session[:kinde_token_store].present?
+
+      if refresh_session_tokens
+        redirect_to "/"
+      else
+        redirect_with_error("Failed to refresh token")
+      end
+    rescue StandardError => e
+      handle_error("Token refresh failed", e)
     end
   
     def logout
@@ -81,17 +80,37 @@ module KindeSdk
     end
   
     def logout_callback
-      reset_session
       redirect_to "/"
     end
   
     private
+
+    def fetch_and_validate_tokens
+      tokens = KindeSdk.fetch_tokens(
+        params[:code],
+        code_verifier: KindeSdk.config.pkce_enabled ? session[:code_verifier] : nil,
+        redirect_uri: KindeSdk.config.callback_url
+      )
+
+      # Validate nonce in ID token
+      unless validate_nonce(tokens[:id_token], session[:auth_nonce], KindeSdk.config.domain, KindeSdk.config.client_id)
+        redirect_with_error("Invalid authentication nonce")
+        return nil
+      end
+
+      tokens
+    end
+
+    def clear_auth_session
+      session.delete(:auth_nonce)
+      session.delete(:auth_state)
+      session.delete(:code_verifier)
+    end
   
     def validate_state
       # Check if nonce and state exist in session
       unless session[:auth_state]
-        Rails.logger.warn("Missing session state [#{session[:auth_state]}]")
-        redirect_to "/", alert: "Invalid authentication state"
+        redirect_with_error("Invalid authentication state")
         return
       end
   
@@ -107,27 +126,37 @@ module KindeSdk
 
       # Verify returned state matches the state extracted from the redirect_url
       unless returned_state.present? && returned_state == stored_state_from_url
-        Rails.logger.warn("State validation failed: returned=#{returned_state}, expected=#{stored_state_from_url}")
-        redirect_to "/", alert: "Invalid authentication state"
+        redirect_with_error("Invalid authentication state")
         return
       end
 
-      # Optional: Check state age (e.g., expires after 15 minutes)
+      # Check state age (expires after 15 minutes)
       if Time.current.to_i - stored_state["requested_at"] > 900
-        Rails.logger.warn("Authentication state expired")
-        redirect_to "/", alert: "Authentication session expired"
+        redirect_with_error("Authentication session expired")
         return
       end
     end
 
-
     def validate_nonce(id_token, original_nonce, issuer, client_id)
-      jwks_uri = URI.parse("#{issuer}/.well-known/jwks.json")
-      jwks_response = Net::HTTP.get(jwks_uri)
-      jwks = JSON.parse(jwks_response)
-    
-      decoded_token = JWT.decode(
-        id_token,
+      return false unless id_token && original_nonce && issuer && client_id
+
+      decoded_token = decode_jwt_token(id_token, issuer, client_id)
+      return false unless decoded_token
+
+      payload = decoded_token[0]
+      nonce_from_token = payload['nonce']
+      
+      nonce_from_token == original_nonce
+    rescue StandardError => e
+      false
+    end
+
+    def decode_jwt_token(token, issuer, client_id)
+      jwks = fetch_jwks(issuer)
+      return nil unless jwks
+
+      JWT.decode(
+        token,
         nil,
         true,
         algorithm: 'RS256',
@@ -137,16 +166,24 @@ module KindeSdk
         verify_aud: true,
         jwks: { keys: jwks['keys'] }
       )
-    
-      payload = decoded_token[0]
-      nonce_from_token = payload['nonce']
-      
-      nonce_from_token == original_nonce
     rescue StandardError => e
-      Rails.logger.error("Nonce validation error: #{e.message}")
-      false
+      nil
     end
-    
-    
+
+    def fetch_jwks(issuer)
+      jwks_uri = URI.parse("#{issuer}/.well-known/jwks.json")
+      jwks_response = Net::HTTP.get(jwks_uri)
+      JSON.parse(jwks_response)
+    rescue StandardError => e
+      nil
+    end
+
+    def handle_error(message, error)
+      redirect_with_error(message)
+    end
+
+    def redirect_with_error(message)
+      redirect_to "/", alert: message
+    end
   end
 end
