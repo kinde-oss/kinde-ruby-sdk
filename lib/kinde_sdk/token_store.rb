@@ -15,15 +15,15 @@ module KindeSdk
 
     def to_session
       {
-        tokens: @tokens,
-        bearer_token: @bearer_token,
+        access_token: @bearer_token,
+        refresh_token: @tokens[:refresh_token],
         expires_at: @expires_at
       }
     end
 
     def self.from_session(session_data)
       return nil unless session_data
-      new(session_data[:tokens])
+      new(session_data)
     end
   end
 end 

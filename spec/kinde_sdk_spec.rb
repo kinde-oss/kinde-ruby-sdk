@@ -260,8 +260,9 @@ RSpec.describe KindeSdk do
         client.refresh_token
 
         expect(mock_session[:kinde_token_store]).to be_present
-        expect(mock_session[:kinde_token_store][:tokens][:access_token]).to eq(token)
-        expect(mock_session[:kinde_token_store][:tokens][:refresh_token]).to eq(refresh_token)
+        expect(mock_session[:kinde_token_store][:access_token]).to eq(token)
+        expect(mock_session[:kinde_token_store][:refresh_token]).to eq(refresh_token)
+        expect(mock_session[:kinde_token_store][:expires_at]).to eq(expires_at)
       end
 
       it "creates client without session" do
