@@ -2,6 +2,7 @@ source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.0.4"
+gem 'mutex_m'  # Required for Ruby 3.4.0+
 gem 'rspec-core'
 gem 'rspec'
 gem 'typhoeus', '~> 1.0', '>= 1.0.1'
