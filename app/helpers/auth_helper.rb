@@ -1,4 +1,7 @@
 module AuthHelper
+  # Sets up session tokens and user information after successful authentication
+  # @param tokens [Hash] The authentication tokens received from Kinde
+  # @return [void]
   def set_session_tokens(tokens)
     # Create token store from tokens
     token_store = KindeSdk::TokenManager.create_store(tokens)
@@ -13,6 +16,10 @@ module AuthHelper
     # Get and store minimal user info
     client = KindeSdk.client(tokens)
     user_info = client.oauth.get_user.to_hash
+    
+    # Validate user info before storing
+    raise ArgumentError, "Invalid user info received" unless user_info[:id].present?
+    
     session[:kinde_user] = {
       id: user_info[:id],
       email: user_info[:preferred_email],
@@ -21,19 +28,39 @@ module AuthHelper
     }
   end
   
+  # Checks if the user is currently logged in
+  # @return [Boolean] true if the user is logged in and token is valid
   def logged_in?
+    !token_expired?
+  end
+
+  # Checks if the session contains token data
+  # @return [Boolean] true if session contains token data
+  def session_present_in?
     session[:kinde_token_store].present?
   end
 
+  # Checks if the current token has expired
+  # @return [Boolean] true if token is expired or invalid
   def token_expired?
-    return false unless session[:kinde_token_store].present?
-    expires_at = session[:kinde_token_store][:expires_at]
-    return false if expires_at.nil?
-    expires_at.to_i > 0 && (expires_at <= Time.now.to_i)
+    return true unless session[:kinde_token_store].present?
+    
+    client = get_client
+    return true unless client
+    
+    client.token_expired?
+  rescue JWT::DecodeError => e
+    Rails.logger.error("JWT decode error: #{e.message}")
+    true
+  rescue StandardError => e
+    Rails.logger.error("Error checking token expiration: #{e.message}")
+    true
   end
 
+  # Attempts to refresh the session tokens
+  # @return [Boolean] true if refresh was successful
   def refresh_session_tokens
-    return unless session[:kinde_token_store].present?
+    return false unless session[:kinde_token_store].present?
     
     # Create token store from session data
     token_store = KindeSdk::TokenStore.new(session[:kinde_token_store])
@@ -46,8 +73,13 @@ module AuthHelper
     else
       false
     end
+  rescue StandardError => e
+    Rails.logger.error("Error refreshing tokens: #{e.message}")
+    false
   end
 
+  # Gets a Kinde client instance for the current session
+  # @return [KindeSdk::Client, nil] The client instance or nil if no valid session
   def get_client
     return nil unless session[:kinde_token_store].present?
     KindeSdk.client(session[:kinde_token_store])

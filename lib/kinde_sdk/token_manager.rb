@@ -14,11 +14,12 @@ module KindeSdk
     end
 
     def token_expired?
-      return false unless @tokens.present?
+      return true unless @tokens.present?
       begin
         KindeSdk.validate_jwt_token(@tokens)
         @expires_at.to_i > 0 && (@expires_at <= Time.now.to_i)
-      rescue JWT::DecodeError, StandardError
+      rescue Exception => e
+        Rails.logger.error("Error checking token expiration: #{e.message}")
         true
       end
     end
