@@ -60,12 +60,8 @@ module KindeSdk
 
       def token_expired?(store)
         return true unless store&.tokens
-        begin
-          validate_tokens(store)
-          store.expires_at.to_i > 0 && (store.expires_at <= Time.now.to_i)
-        rescue StandardError
-          true
-        end
+        return true unless validate_tokens(store)
+        store.expires_at.to_i > 0 && (store.expires_at <= Time.now.to_i)
       end
 
       def clear_tokens(store, session = nil)
