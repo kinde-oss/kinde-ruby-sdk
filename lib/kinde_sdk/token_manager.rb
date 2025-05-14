@@ -38,6 +38,7 @@ module KindeSdk
       def refresh_tokens(store, session = nil)
         return nil unless store&.tokens
         new_tokens = KindeSdk.refresh_token(store.tokens)
+        return nil unless new_tokens
         store.set_tokens(new_tokens)
         # Update session if provided
         if (session || Current.session) && new_tokens
