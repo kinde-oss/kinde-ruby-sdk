@@ -152,7 +152,8 @@ module KindeSdk
           domain: domain,
           authorize_url: "#{domain}/oauth2/auth",
           token_url: "#{domain}/oauth2/token"), hash).expired?
-      rescue StandardError
+      rescue JWT::DecodeError, OAuth2::Error => e
+        Rails.logger.error("Error checking token expiration: #{e.message}")
         true
       end
     end
