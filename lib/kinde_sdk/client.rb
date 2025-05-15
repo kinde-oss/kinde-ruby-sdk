@@ -43,7 +43,8 @@ module KindeSdk
 
     def refresh_token
       new_tokens_hash = TokenManager.refresh_tokens(@token_store, Current.session)
-      @kinde_api_client = KindeSdk.api_client(new_tokens_hash["access_token"])
+      @token_store.set_tokens(new_tokens_hash)
+      @kinde_api_client = KindeSdk.api_client(@token_store.bearer_token)
       new_tokens_hash
     end
 
