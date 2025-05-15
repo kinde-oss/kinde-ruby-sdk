@@ -55,7 +55,7 @@ module KindeSdk
     def get_claim(claim, token_type = :access_token)
       refresh_token if auto_refresh_tokens && token_expired?
 
-      token = @token_store.tokens[token_type]
+      token = @token_store.tokens[token_type.to_sym]
       return unless token
 
       value = JWT.decode(token, nil, false)[0][claim]
