@@ -37,14 +37,10 @@ module KindeSdk
 
       def refresh_tokens(store, session = nil)
         return nil unless store&.tokens
-        new_tokens = KindeSdk.refresh_token(store.tokens)
+        new_tokens = safe_refresh(store.tokens)
         return nil unless new_tokens
         store.set_tokens(new_tokens)
-        # Update session if provided
-        if (session || Current.session) && new_tokens
-          target_session = session || Current.session
-          target_session[:kinde_token_store] = store.to_session
-        end
+        sync_session(store, session)
         new_tokens
       end
 
@@ -68,6 +64,21 @@ module KindeSdk
         store.set_tokens(nil)
         target_session = session || Current.session
         target_session&.delete(:kinde_token_store)
+      end
+
+      private
+
+      def safe_refresh(tokens)
+        KindeSdk.refresh_token(tokens)
+      rescue StandardError => e
+        Rails.logger.error("Token refresh failed: #{e.message}")
+        nil
+      end
+
+      def sync_session(store, session)
+        return unless (session || Current.session) && store.tokens
+        target_session = session || Current.session
+        target_session[:kinde_token_store] = store.to_session
       end
     end
   end
