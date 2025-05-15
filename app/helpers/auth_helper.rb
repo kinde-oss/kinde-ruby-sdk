@@ -75,6 +75,7 @@ module AuthHelper
     end
   rescue StandardError => e
     Rails.logger.error("Error refreshing tokens: #{e.message}")
+    session.delete(:kinde_token_store)
     false
   end
 
