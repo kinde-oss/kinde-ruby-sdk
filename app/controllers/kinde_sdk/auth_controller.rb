@@ -112,6 +112,11 @@ module KindeSdk
         redirect_uri: KindeSdk.config.callback_url
       )
 
+      if tokens[:error].present?
+        redirect_with_error("Token exchange failed: #{tokens[:error]}")
+        return nil
+      end
+
       # Validate nonce in ID token to prevent replay attacks
       unless validate_nonce(tokens[:id_token], session[:auth_nonce], KindeSdk.config.domain, KindeSdk.config.client_id)
         redirect_with_error("Invalid authentication nonce")
