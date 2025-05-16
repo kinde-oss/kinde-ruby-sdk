@@ -92,12 +92,34 @@ module KindeSdk
     # Initiates the logout process by redirecting to Kinde's logout endpoint
     # @return [void] Redirects to Kinde's logout URL
     def logout
-      redirect_to KindeSdk.logout_url, allow_other_host: true
+      # Ensure we have a valid logout URL configured
+      unless KindeSdk.config.logout_url.present?
+        redirect_with_error("Logout URL not configured")
+        return
+      end
+
+      # Get the logout URL with our callback URL
+      logout_url = KindeSdk.logout_url(
+        logout_url: KindeSdk.config.logout_url,
+        domain: KindeSdk.config.domain
+      )
+
+      # Clear local session before redirecting to Kinde
+      session.delete(:kinde_token_store)
+      session.delete(:kinde_user)
+      clear_auth_session
+
+      # Redirect to Kinde's logout endpoint
+      redirect_to logout_url, allow_other_host: true
+    rescue StandardError => e
+      handle_error("Logout initialization failed", e)
     end
   
     # Handles the callback after successful logout
     # @return [void] Redirects to root path
     def logout_callback
+      # Session is already cleared in logout method
+      # Just redirect to home page
       redirect_to "/"
     end
   
@@ -117,13 +139,22 @@ module KindeSdk
         return nil
       end
 
-      # Validate nonce in ID token to prevent replay attacks
-      unless validate_nonce(tokens[:id_token], session[:auth_nonce], KindeSdk.config.domain, KindeSdk.config.client_id)
-        redirect_with_error("Invalid authentication nonce")
-        return nil
-      end
+      # Validate tokens using SDK's built-in validation
+      begin
+        KindeSdk.validate_jwt_token(tokens)
+        
+        # Validate nonce in ID token to prevent replay attacks
+        decoded_token = JWT.decode(tokens[:id_token], nil, false)[0]
+        unless decoded_token['nonce'] == session[:auth_nonce]
+          redirect_with_error("Invalid authentication nonce")
+          return nil
+        end
 
-      tokens
+        tokens
+      rescue JWT::DecodeError => e
+        redirect_with_error("Token validation failed: #{e.message}")
+        nil
+      end
     end
 
     # Clears temporary authentication data from the session
@@ -165,61 +196,6 @@ module KindeSdk
         redirect_with_error("Authentication session expired")
         return
       end
-    end
-
-    # Validates the nonce in the ID token
-    # @param id_token [String] The JWT ID token
-    # @param original_nonce [String] The original nonce sent during auth
-    # @param issuer [String] The token issuer (Kinde domain)
-    # @param client_id [String] The client ID
-    # @return [Boolean] True if nonce is valid, false otherwise
-    def validate_nonce(id_token, original_nonce, issuer, client_id)
-      return false unless id_token && original_nonce && issuer && client_id
-
-      decoded_token = decode_jwt_token(id_token, issuer, client_id)
-      return false unless decoded_token
-
-      payload = decoded_token[0]
-      nonce_from_token = payload['nonce']
-      
-      nonce_from_token == original_nonce
-    rescue StandardError => e
-      false
-    end
-
-    # Decodes and validates a JWT token using the JWKS endpoint
-    # @param token [String] The JWT token to decode
-    # @param issuer [String] The token issuer
-    # @param client_id [String] The client ID
-    # @return [Array] The decoded token payload and header, or nil if invalid
-    def decode_jwt_token(token, issuer, client_id)
-      jwks = fetch_jwks(issuer)
-      return nil unless jwks
-
-      JWT.decode(
-        token,
-        nil,
-        true,
-        algorithm: 'RS256',
-        iss: issuer,
-        aud: client_id,
-        verify_iss: true,
-        verify_aud: true,
-        jwks: { keys: jwks['keys'] }
-      )
-    rescue StandardError => e
-      nil
-    end
-
-    # Fetches the JSON Web Key Set (JWKS) from the issuer
-    # @param issuer [String] The token issuer
-    # @return [Hash] The JWKS data or nil if fetch fails
-    def fetch_jwks(issuer)
-      jwks_uri = URI.parse("#{issuer}/.well-known/jwks.json")
-      jwks_response = Net::HTTP.get(jwks_uri)
-      JSON.parse(jwks_response)
-    rescue StandardError => e
-      nil
     end
 
     # Handles errors during authentication
