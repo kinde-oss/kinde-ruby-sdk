@@ -1,26 +1,52 @@
 require_relative '../../kinde_api/lib/kinde_api'
+require_relative 'token_manager'
+require_relative 'token_store'
+require_relative 'current'
 
 module KindeSdk
   class Client
     include FeatureFlags
     include Permissions
 
-    attr_accessor :kinde_api_client, :auto_refresh_tokens, :bearer_token, :tokens_hash, :expires_at
+    attr_accessor :kinde_api_client, :auto_refresh_tokens, :token_store
 
     def initialize(sdk_api_client, tokens_hash, auto_refresh_tokens)
       @kinde_api_client = sdk_api_client
       @auto_refresh_tokens = auto_refresh_tokens
-      set_hash_related_data(tokens_hash)
+      @token_store = TokenManager.create_store(tokens_hash)
+
+      # refresh the token if it's expired and auto_refresh_tokens is enabled
+      refresh_token if auto_refresh_tokens && TokenManager.token_expired?(@token_store)
+    end
+
+    # Returns the bearer token for backwards compatibility
+    # @return [String]
+    def bearer_token
+      @token_store.bearer_token
+    end
+
+    # Returns the tokens hash for backwards compatibility
+    # @return [Hash]
+    def tokens_hash
+      @token_store.tokens
+    end
+
+    # Returns the token expiration time for backwards compatibility
+    # @return [Integer]
+    def expires_at
+      @token_store.expires_at
     end
 
     def token_expired?
-      expires_at.to_i > 0 && (expires_at <= Time.now.to_i)
+      TokenManager.token_expired?(@token_store)
     end
 
     def refresh_token
-      new_tokens_hash = KindeSdk.refresh_token(tokens_hash)
-      set_hash_related_data(new_tokens_hash)
-      @kinde_api_client = KindeSdk.api_client(tokens_hash["access_token"])
+      new_tokens_hash = TokenManager.refresh_tokens(@token_store, Current.session)
+      return nil unless new_tokens_hash
+
+      @token_store.set_tokens(new_tokens_hash)
+      @kinde_api_client = KindeSdk.api_client(@token_store.bearer_token)
       new_tokens_hash
     end
 
@@ -29,10 +55,9 @@ module KindeSdk
     # @return [Hash]
     # @example {name: "scp", value: ["openid", "offline"]}
     def get_claim(claim, token_type = :access_token)
-      # Validate the token before attempting to decode it
-      KindeSdk.validate_jwt_token(tokens_hash)
+      refresh_token if auto_refresh_tokens && token_expired?
 
-      token = tokens_hash[token_type]
+      token = @token_store.tokens[token_type.to_sym]
       return unless token
 
       value = JWT.decode(token, nil, false)[0][claim]
@@ -51,16 +76,6 @@ module KindeSdk
 
     private
 
-    def set_hash_related_data(tokens_hash)
-      # Validate tokens before setting them
-      KindeSdk.validate_jwt_token(tokens_hash)
-      
-      @tokens_hash = tokens_hash.transform_keys(&:to_sym)
-      @bearer_token = @tokens_hash[:access_token]
-      @expires_at = @tokens_hash[:expires_at]
-    end
-
-    # going from another side: prepending each api_client's public method to check token for expiration
     def init_instance_api(api_klass)
       instance = api_klass.new(kinde_api_client)
       main_client = self

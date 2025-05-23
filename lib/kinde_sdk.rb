@@ -5,6 +5,7 @@ require "kinde_sdk/configuration"
 require "kinde_sdk/client/feature_flags"
 require "kinde_sdk/client/permissions"
 require "kinde_sdk/client"
+require "kinde_sdk/current"
 require 'securerandom'
 require 'oauth2'
 require 'pkce_challenge'
@@ -109,11 +110,9 @@ module KindeSdk
     #  "token_type"=>"bearer"}
     #
     # @return [KindeSdk::Client]
-    def client(tokens_hash)
-      validate_jwt_token(tokens_hash)
-      
+    def client(tokens_hash, auto_refresh_tokens = @config.auto_refresh_tokens)
       sdk_api_client = api_client(tokens_hash[:access_token] || tokens_hash["access_token"])
-      KindeSdk::Client.new(sdk_api_client, tokens_hash, @config.auto_refresh_tokens)
+      KindeSdk::Client.new(sdk_api_client, tokens_hash, auto_refresh_tokens)
     end
 
     def logout_url(logout_url: @config.logout_url, domain: @config.domain)
@@ -145,12 +144,18 @@ module KindeSdk
       audience: "#{@config.domain}/api",
       domain: @config.domain
     )
-      OAuth2::AccessToken.from_hash(@config.oauth_client(
-        client_id: client_id, 
-        client_secret: client_secret,
-        domain: domain,
-        authorize_url: "#{domain}/oauth2/auth",
-        token_url: "#{domain}/oauth2/token"), hash).expired?
+      begin
+        validate_jwt_token(hash)
+        OAuth2::AccessToken.from_hash(@config.oauth_client(
+          client_id: client_id, 
+          client_secret: client_secret,
+          domain: domain,
+          authorize_url: "#{domain}/oauth2/auth",
+          token_url: "#{domain}/oauth2/token"), hash).expired?
+      rescue JWT::DecodeError, OAuth2::Error => e
+        Rails.logger.error("Error checking token expiration: #{e.message}")
+        true
+      end
     end
 
     # @return [Hash]

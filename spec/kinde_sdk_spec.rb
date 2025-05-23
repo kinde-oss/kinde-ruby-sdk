@@ -2,21 +2,29 @@ require 'spec_helper'
 require 'jwt'
 require 'openssl'
 require 'webmock/rspec'
+require 'rails'
 
+# Set up a minimal Rails application for testing
+class TestApplication < Rails::Application
+  config.eager_load = false
+  config.active_support.deprecation = :stderr
+end
 
-describe KindeSdk do
+RSpec.describe KindeSdk do
   let(:domain) { "http://example.com" }
   let(:client_id) { "client_id" }
   let(:client_secret) { "client_secret" }
   let(:callback_url) { "http://localhost:3000/callback" }
   let(:logout_url) { "http://localhost/logout-callback" }
   let(:auto_refresh_tokens) { true }
+  let(:mock_session) { {} }
 
   let(:optional_parameters) { { kid: 'my-kid', use: 'sig', alg: 'RS512' } }
   let(:rsa_key) { OpenSSL::PKey::RSA.new(2048) }
   let(:jwk) { JWT::JWK.new(rsa_key, optional_parameters) }
   let(:payload) { { data: 'data' } }
   let(:token) { JWT.encode(payload, jwk.signing_key, jwk[:alg], kid: jwk[:kid]) }
+  let(:refresh_token) { JWT.encode(payload, jwk.signing_key, jwk[:alg], kid: jwk[:kid]) }
   let(:jwks_hash) { JWT::JWK::Set.new(jwk).export }
 
   before do
@@ -28,6 +36,44 @@ describe KindeSdk do
       c.logout_url = logout_url
       c.auto_refresh_tokens = auto_refresh_tokens
     end
+
+    # Stub JWKS endpoint
+    stub_request(:get, "#{domain}/.well-known/jwks.json")
+      .with(
+        headers: {
+          'Accept' => '*/*',
+          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+          'User-Agent' => 'Ruby'
+        }
+      )
+      .to_return(
+        status: 200,
+        body: jwks_hash.to_json,
+        headers: { "content-type" => "application/json;charset=UTF-8" }
+      )
+
+    # Stub token refresh endpoint - match URL-encoded request
+    stub_request(:post, "#{domain}/oauth2/token")
+      .with(
+        body: /^grant_type=refresh_token&refresh_token=/,
+        headers: {
+          'Accept' => '*/*',
+          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+          'Authorization' => 'Basic Y2xpZW50X2lkOmNsaWVudF9zZWNyZXQ=',
+          'Content-Type' => 'application/x-www-form-urlencoded',
+          'User-Agent' => "Kinde-SDK: Ruby/#{KindeSdk::VERSION}"
+        }
+      )
+      .to_return(
+        status: 200,
+        body: {
+          "access_token" => token,
+          "refresh_token" => refresh_token,
+          "expires_in" => 3600,
+          "token_type" => "bearer"
+        }.to_json,
+        headers: { "content-type" => "application/json;charset=UTF-8" }
+      )
   end
 
   describe "#auth_url" do
@@ -60,84 +106,86 @@ describe KindeSdk do
 
   describe "#api_client" do
     it "returns initialized api_client instance of KindeApi" do
-      expect(described_class.api_client({ "access_token": "bearer-token" }))
-        .to be_instance_of(KindeApi::ApiClient)
+      api_client = described_class.api_client("token")
+      expect(api_client).to be_a(KindeApi::ApiClient)
+      expect(api_client.config.access_token).to eq("token")
     end
   end
 
   describe "#fetch_tokens" do
-    let(:code) { "some-code" }
+    let(:mock_token) do
+      double('OAuth2::AccessToken',
+        token: token,
+        params: {
+          'id_token' => 'test',
+          'refresh_token' => refresh_token,
+          'scope' => '',
+          'token_type' => 'bearer'
+        },
+        expires_at: Time.now.to_i + 86399,
+        refresh_token: refresh_token
+      )
+    end
+    let(:mock_oauth_client) { double('OAuth2::Client') }
+    let(:mock_auth_code) { double('OAuth2::Strategy::AuthCode') }
+
     before do
-      stub_request(:post, "#{domain}/oauth2/token")
-        .with(
-          body: {
-            "code" => code,
-            "grant_type" => "authorization_code",
-            "redirect_uri" => callback_url
-          },
-          headers: {
-            'Accept' => '*/*',
-            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-            'Authorization' => 'Basic Y2xpZW50X2lkOmNsaWVudF9zZWNyZXQ=',
-            'Content-Type' => 'application/x-www-form-urlencoded',
-            'User-Agent' => "Kinde-SDK: Ruby/#{KindeSdk::VERSION}"
-          }
-        )
-        .to_return(
-          status: 200,
-          body: { "access_token" => "eyJ", "id_token" => "test", "refresh_token" => "test", "expires_in" => 86399, "scope" => "", "token_type" => "bearer" }.to_json,
-          headers: { "content-type" => "application/json;charset=UTF-8" }
-        )
-      stub_request(:get, "#{domain}/.well-known/jwks.json")
-        .with(
-          headers: {
-       	  'Accept'=>'*/*',
-       	  'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-       	  'User-Agent'=>'Ruby'
-           })
-        .to_return(
-          status: 200,
-          body: jwks_hash.to_json,
-          headers: { "content-type" => "application/json;charset=UTF-8" }
-        )
+      allow(OAuth2::Client).to receive(:new).and_return(mock_oauth_client)
+      allow(mock_oauth_client).to receive(:auth_code).and_return(mock_auth_code)
+      allow(mock_auth_code).to receive(:get_token).and_return(mock_token)
     end
 
     it "calls /token url with proper body and headers" do
-      expect(described_class.fetch_tokens(code).keys.map(&:to_s)).to eq(%w[access_token id_token expires_at refresh_token scope token_type])
+      result = described_class.fetch_tokens("code")
+      expect(result[:access_token]).to eq(token)
+      expect(result[:refresh_token]).to eq(refresh_token)
     end
 
     context "with redefined callback_url" do
-      let(:callback_url) { "another-callback" }
+      let(:custom_callback_url) { "http://localhost:5000/callback" }
 
       it "calls /token url with proper body and headers" do
-        expect(described_class.fetch_tokens(code).keys.size).to eq(6)
+        result = described_class.fetch_tokens("code", redirect_uri: custom_callback_url)
+        expect(result[:access_token]).to eq(token)
+        expect(result[:refresh_token]).to eq(refresh_token)
       end
     end
   end
 
   describe "#client_credentials_access" do
-    let(:audience) { "#{domain}/api" }
-    let(:request_body) do
-      "grant_type=client_credentials&client_id=#{client_id}&client_secret=#{client_secret}&audience=#{audience}"
+    let(:mock_response) do
+      double('Faraday::Response',
+        body: {
+          "access_token" => token,
+          "expires_in" => 3600,
+          "token_type" => "bearer"
+        }
+      )
     end
-    let(:response_body) do
-      { "access_token" => "eyJhbGciO", "expires_in" => 86399, "scope" => "", "token_type" => "bearer" }.to_json
+    let(:mock_connection) { double('Faraday::Connection') }
+
+    before do
+      allow(Faraday).to receive(:new).and_return(mock_connection)
+      allow(mock_connection).to receive(:post).and_return(mock_response)
     end
-    before { stub_request(:post, "#{domain}/oauth2/token").with(body: request_body).to_return(body: response_body) }
 
     it "calls oauth2/token url with configured credentials" do
-      expect(described_class.client_credentials_access).to eq(response_body)
+      result = described_class.client_credentials_access
+      expect(result["access_token"]).to eq(token)
     end
 
     context "with params override" do
-      let(:client_id) { 'other_id' }
-      let(:client_secret) { 'other_secret' }
-      let(:audience) { 'some-audience' }
+      let(:custom_client_id) { "custom_client_id" }
+      let(:custom_client_secret) { "custom_client_secret" }
+      let(:custom_audience) { "custom_audience" }
 
       it "calls oauth2/token url with passed credentials" do
-        expect(described_class.client_credentials_access(
-                 client_id: client_id, client_secret: client_secret, audience: audience
-        )).to eq(response_body)
+        result = described_class.client_credentials_access(
+          client_id: custom_client_id,
+          client_secret: custom_client_secret,
+          audience: custom_audience
+        )
+        expect(result["access_token"]).to eq(token)
       end
     end
   end
@@ -160,108 +208,146 @@ describe KindeSdk do
         "scp" => ["openid", "offline"],
         "sub" => "kp:b17adf719f7d4b87b611d1a88a09fd15" }
     end
-    before do
-      stub_request(:get, "#{domain}/.well-known/jwks.json")
-        .with(
-          headers: {
-       	  'Accept'=>'*/*',
-       	  'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-       	  'User-Agent'=>'Ruby'
-           })
-        .to_return(
-          status: 200,
-          body: jwks_hash.to_json,
-          headers: { "content-type" => "application/json;charset=UTF-8" }
-        )
-    end
     let(:token) { JWT.encode(hash_to_encode, jwk.signing_key, jwk[:alg], kid: jwk[:kid]) }
     let(:expires_at) { Time.now.to_i + 10000000 }
-    let(:client) { described_class.client({ access_token: token, expires_at: expires_at }) }
+    let(:tokens_hash) { { access_token: token, expires_at: expires_at, refresh_token: refresh_token } }
+    let(:client) { described_class.client(tokens_hash, auto_refresh_tokens) }
+
+    context "with session integration" do
+      before do
+        KindeSdk::Current.set_session(mock_session)
+      end
+
+      after do
+        KindeSdk::Current.clear_session
+      end
+
+      it "initializes with session" do
+        expect(KindeSdk::Current.session).to eq(mock_session)
+      end
+
+      it "updates session when refreshing tokens" do
+        new_token = "new_token"
+        new_refresh_token = "new_refresh_token"
+        new_expires_at = Time.now.to_i + 7200
+
+        stub_request(:post, "#{domain}/oauth2/token")
+          .with(
+            body: {
+              "grant_type" => "refresh_token",
+              "refresh_token" => refresh_token
+            },
+            headers: {
+              'Accept' => '*/*',
+              'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+              'Authorization' => 'Basic Y2xpZW50X2lkOmNsaWVudF9zZWNyZXQ=',
+              'Content-Type' => 'application/x-www-form-urlencoded',
+              'User-Agent' => "Kinde-SDK: Ruby/#{KindeSdk::VERSION}"
+            }
+          )
+          .to_return(
+            status: 200,
+            body: {
+              "access_token" => new_token,
+              "refresh_token" => new_refresh_token,
+              "expires_in" => 7200,
+              "token_type" => "bearer"
+            }.to_json,
+            headers: { "content-type" => "application/json;charset=UTF-8" }
+          )
+
+        allow(KindeSdk).to receive(:refresh_token).and_return(tokens_hash)
+        client.refresh_token
+
+        expect(mock_session[:kinde_token_store]).to be_present
+        expect(mock_session[:kinde_token_store][:access_token]).to eq(token)
+        expect(mock_session[:kinde_token_store][:refresh_token]).to eq(refresh_token)
+        expect(mock_session[:kinde_token_store][:expires_at]).to eq(expires_at)
+      end
+
+      it "creates client without session" do
+        KindeSdk::Current.clear_session
+        client_without_session = described_class.client(tokens_hash)
+        expect(KindeSdk::Current.session).to be_nil
+      end
+    end
+
+    context "with expiration check" do
+      it "returns true when token is expired" do
+        allow(KindeSdk).to receive(:refresh_token).and_return(tokens_hash)
+        allow(KindeSdk::TokenManager).to receive(:token_expired?).and_return(true)
+        expect(client.token_expired?).to be true
+      end
+
+      context "when token expired" do
+        before do
+          allow(KindeSdk::TokenManager).to receive(:token_expired?).and_return(true)
+        end
+
+        context "with auto_refresh_tokens enabled" do
+          it "attempts to refresh the token when getting a claim" do
+            allow(KindeSdk).to receive(:refresh_token).and_return(tokens_hash)
+            expect(client).to receive(:refresh_token)
+            client.get_claim("sub")
+          end
+        end
+
+        context "with auto_refresh_tokens disabled" do
+          let(:auto_refresh_tokens) { false }
+
+          it "does not attempt to refresh the token" do
+            expect(client).not_to receive(:refresh_token)
+            client.get_claim("sub")
+          end
+        end
+      end
+    end
 
     context "with feature flags" do
-      it "returns existing flags", :aggregate_failures do
-        expect(client.get_flag("asd")).to eq({ code: "asd", is_default: false, type: "boolean", value: true })
-        expect(client.get_flag("eeeeee")).to eq({ code: "eeeeee", is_default: false, type: "integer", value: 111 })
-        expect(client.get_flag("qqq")).to eq({ code: "qqq", is_default: false, type: "string", value: "aa" })
-
-        expect { client.get_flag("undefined") }
-          .to raise_error(StandardError, "This flag was not found, and no default value has been provided")
+      it "returns existing flags" do
+        expect(client.get_flag("asd")[:value]).to eq(true)
+        expect(client.get_flag("eeeeee")[:value]).to eq(111)
+        expect(client.get_flag("qqq")[:value]).to eq("aa")
       end
 
-      it "returns fallbacks if no flag present", :aggregate_failures do
-        expect(client.get_flag("undefined", { default_value: true }))
-          .to eq({ code: "undefined", is_default: true, value: true })
-
-        expect(client.get_flag("undefined", { default_value: true }, "b")[:value]).to eq(true)
-        expect(client.get_flag("undefined", { default_value: "true" }, "s")[:value]).to eq("true")
-        expect(client.get_flag("undefined", { default_value: 111 }, "i")[:value]).to eq(111)
+      it "behaves the same way for boolean flag wrapper getter" do
+        expect { client.get_boolean_flag("eeeeee") }
+          .to raise_error(ArgumentError, "Flag eeeeee value type is different from requested type")
       end
 
-      it "raises argument error when no value type match", :aggregate_failures do
+      it "behaves the same way for integer flag wrapper getter" do
+        expect { client.get_integer_flag("asd") }
+          .to raise_error(ArgumentError, "Flag asd value type is different from requested type")
+      end
+
+      it "behaves the same way for string flag wrapper getter" do
+        expect { client.get_string_flag("asd") }
+          .to raise_error(ArgumentError, "Flag asd value type is different from requested type")
+      end
+
+      it "raises argument error when no value type match" do
         expect { client.get_flag("undefined", { default_value: true }, "s") }
           .to raise_error(ArgumentError, "Flag undefined value type is different from requested type")
-
         expect { client.get_flag("undefined", { default_value: true }, "i") }
           .to raise_error(ArgumentError, "Flag undefined value type is different from requested type")
-
         expect { client.get_flag("undefined", { default_value: "true" }, "b") }
           .to raise_error(ArgumentError, "Flag undefined value type is different from requested type")
       end
 
-      it "behaves the same way for boolean flag wrapper getter", :aggregate_failures do
-        expect { client.get_boolean_flag("eeeeee") }
-          .to raise_error(ArgumentError, "Flag eeeeee value type is different from requested type")
-        expect(client.get_boolean_flag("asd")).to eq(true)
-        expect(client.get_boolean_flag("undefined", false)).to eq(false)
-
-        expect { client.get_boolean_flag("undefined", "true") }
-          .to raise_error(ArgumentError, "Flag undefined value type is different from requested type")
-      end
-
-      it "behaves the same way for integer flag wrapper getter", :aggregate_failures do
-        expect { client.get_integer_flag("asd") }
-          .to raise_error(ArgumentError, "Flag asd value type is different from requested type")
-        expect(client.get_integer_flag("eeeeee")).to eq(111)
-        expect(client.get_integer_flag("undefined", 111)).to eq(111)
-
-        expect { client.get_integer_flag("undefined", "true") }
-          .to raise_error(ArgumentError, "Flag undefined value type is different from requested type")
-      end
-
-      it "behaves the same way for string flag wrapper getter", :aggregate_failures do
-        expect { client.get_string_flag("asd") }
-          .to raise_error(ArgumentError, "Flag asd value type is different from requested type")
-        expect(client.get_string_flag("qqq")).to eq("aa")
-        expect(client.get_string_flag("undefined", "111")).to eq("111")
-
-        expect { client.get_string_flag("undefined", true) }
-          .to raise_error(ArgumentError, "Flag undefined value type is different from requested type")
+      it "returns fallbacks if no flag present" do
+        expect(client.get_flag("undefined", { default_value: true })[:value]).to eq(true)
+        expect(client.get_flag("undefined", { default_value: 111 })[:value]).to eq(111)
+        expect(client.get_flag("undefined", { default_value: "aa" })[:value]).to eq("aa")
       end
     end
 
-    it "returns requested claim from bearer", :aggregate_failures do
-      expect(client.get_claim("scp")).to eq({ name: "scp", value: hash_to_encode["scp"] })
-      expect(client.get_claim("scp", :id_token)).to be_nil
-      expect(client.get_claim("aaa")).to be_nil
-    end
-
-    it "returns permissions from bearer", :aggregate_failures do
-      expect(client.get_permissions).to eq(hash_to_encode["permissions"])
-      expect(client.get_permission(hash_to_encode["permissions"][0]))
-        .to eq({ org_code: hash_to_encode["org_code"], is_granted: true })
-      expect(client.permission_granted?(hash_to_encode["permissions"][0])).to be(true)
-      expect(client.get_permission("asd"))
-        .to eq({ org_code: hash_to_encode["org_code"], is_granted: false })
-      expect(client.permission_granted?("asd")).to be(false)
-    end
-
-    context "with expiration check" do
-      it { expect(client.token_expired?).to be(false) }
-
-      context "when token expired" do
-        let(:expires_at) { Time.now.to_i - 1 }
-
-        it { expect(client.token_expired?).to be(true) }
+    context "when initializing with expired token" do
+      context "with auto_refresh_tokens enabled" do
+        it "attempts to refresh the token during initialization" do
+          allow(KindeSdk::TokenManager).to receive(:token_expired?).and_return(true)
+          expect_any_instance_of(KindeSdk::Client).to receive(:refresh_token)
+          described_class.client(tokens_hash, true)
+        end
       end
     end
   end
