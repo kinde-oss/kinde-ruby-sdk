@@ -1,19 +1,19 @@
 # KindeApi::IndustriesApi
 
-All URIs are relative to *https://app.kinde.com*
+All URIs are relative to *https://your_kinde_subdomain.kinde.com*
 
 | Method | HTTP request | Description |
 | ------ | ------------ | ----------- |
-| [**get_industries**](IndustriesApi.md#get_industries) | **GET** /api/v1/industries | List industries and industry keys. |
+| [**get_industries**](IndustriesApi.md#get_industries) | **GET** /api/v1/industries | Get industries |
 
 
 ## get_industries
 
-> <SuccessResponse> get_industries(opts)
+> <GetIndustriesResponse> get_industries
 
-List industries and industry keys.
+Get industries
 
-Get a list of industries and associated industry keys.
+Get a list of industries and associated industry keys.  <div>   <code>read:industries</code> </div> 
 
 ### Examples
 
@@ -27,14 +27,10 @@ KindeApi.configure do |config|
 end
 
 api_instance = KindeApi::IndustriesApi.new
-opts = {
-  industry_key: 'industry_key_example', # String | Industry Key.
-  name: 'name_example' # String | Industry name.
-}
 
 begin
-  # List industries and industry keys.
-  result = api_instance.get_industries(opts)
+  # Get industries
+  result = api_instance.get_industries
   p result
 rescue KindeApi::ApiError => e
   puts "Error when calling IndustriesApi->get_industries: #{e}"
@@ -45,15 +41,15 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<SuccessResponse>, Integer, Hash)> get_industries_with_http_info(opts)
+> <Array(<GetIndustriesResponse>, Integer, Hash)> get_industries_with_http_info
 
 ```ruby
 begin
-  # List industries and industry keys.
-  data, status_code, headers = api_instance.get_industries_with_http_info(opts)
+  # Get industries
+  data, status_code, headers = api_instance.get_industries_with_http_info
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <SuccessResponse>
+  p data # => <GetIndustriesResponse>
 rescue KindeApi::ApiError => e
   puts "Error when calling IndustriesApi->get_industries_with_http_info: #{e}"
 end
@@ -61,14 +57,11 @@ end
 
 ### Parameters
 
-| Name | Type | Description | Notes |
-| ---- | ---- | ----------- | ----- |
-| **industry_key** | **String** | Industry Key. | [optional] |
-| **name** | **String** | Industry name. | [optional] |
+This endpoint does not need any parameter.
 
 ### Return type
 
-[**SuccessResponse**](SuccessResponse.md)
+[**GetIndustriesResponse**](GetIndustriesResponse.md)
 
 ### Authorization
 
@@ -77,5 +70,5 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json; charset=utf-8
+- **Accept**: application/json
 

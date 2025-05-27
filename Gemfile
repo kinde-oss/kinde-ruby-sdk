@@ -18,6 +18,7 @@ group :development, :test do
   gem "rubocop"
   gem "rubocop-rake", require: false
   gem "rubocop-rspec", require: false
+  gem "open-uri"
 end
 
 group :test do

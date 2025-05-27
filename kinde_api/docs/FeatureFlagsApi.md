@@ -1,6 +1,6 @@
 # KindeApi::FeatureFlagsApi
 
-All URIs are relative to *https://app.kinde.com*
+All URIs are relative to *https://your_kinde_subdomain.kinde.com*
 
 | Method | HTTP request | Description |
 | ------ | ------------ | ----------- |
@@ -15,7 +15,7 @@ All URIs are relative to *https://app.kinde.com*
 
 Create Feature Flag
 
-Create feature flag.
+Create feature flag.  <div>   <code>create:feature_flags</code> </div> 
 
 ### Examples
 
@@ -84,7 +84,7 @@ end
 
 Delete Feature Flag
 
-Delete feature flag
+Delete feature flag  <div>   <code>delete:feature_flags</code> </div> 
 
 ### Examples
 
@@ -153,7 +153,7 @@ end
 
 Replace Feature Flag
 
-Update feature flag.
+Update feature flag.  <div>   <code>update:feature_flags</code> </div> 
 
 ### Examples
 

@@ -6,7 +6,7 @@
 | ---- | ---- | ----------- | ----- |
 | **code** | **String** | Response code. | [optional] |
 | **message** | **String** | Response message. | [optional] |
-| **organizations** | [**Array&lt;Organization&gt;**](Organization.md) |  | [optional] |
+| **organizations** | [**Array&lt;OrganizationItemSchema&gt;**](OrganizationItemSchema.md) |  | [optional] |
 | **next_token** | **String** | Pagination token. | [optional] |
 
 ## Example
@@ -15,10 +15,10 @@
 require 'kinde_api'
 
 instance = KindeApi::GetOrganizationsResponse.new(
-  code: null,
-  message: null,
+  code: OK,
+  message: Success,
   organizations: null,
-  next_token: null
+  next_token: Mjo5Om1hbWVfYZNj
 )
 ```
 

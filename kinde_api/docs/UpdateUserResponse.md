@@ -4,7 +4,7 @@
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **id** | **String** | Unique id of the user in Kinde. | [optional] |
+| **id** | **String** | Unique ID of the user in Kinde. | [optional] |
 | **given_name** | **String** | User&#39;s first name. | [optional] |
 | **family_name** | **String** | User&#39;s last name. | [optional] |
 | **email** | **String** | User&#39;s preferred email. | [optional] |

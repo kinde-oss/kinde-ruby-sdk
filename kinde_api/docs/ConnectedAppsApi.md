@@ -1,6 +1,6 @@
 # KindeApi::ConnectedAppsApi
 
-All URIs are relative to *https://app.kinde.com*
+All URIs are relative to *https://your_kinde_subdomain.kinde.com*
 
 | Method | HTTP request | Description |
 | ------ | ------------ | ----------- |
@@ -15,7 +15,7 @@ All URIs are relative to *https://app.kinde.com*
 
 Get Connected App URL
 
-Get a URL that authenticates and authorizes a user to a third-party connected app.
+Get a URL that authenticates and authorizes a user to a third-party connected app.  <div>   <code>read:connected_apps</code> </div> 
 
 ### Examples
 
@@ -92,7 +92,7 @@ end
 
 Get Connected App Token
 
-Get an access token that can be used to call the third-party provider linked to the connected app.
+Get an access token that can be used to call the third-party provider linked to the connected app.  <div>   <code>read:connected_apps</code> </div> 
 
 ### Examples
 
@@ -106,7 +106,7 @@ KindeApi.configure do |config|
 end
 
 api_instance = KindeApi::ConnectedAppsApi.new
-session_id = 'session_id_example' # String | The unique sesssion id reprensenting the login session of a user.
+session_id = 'session_id_example' # String | The unique sesssion id representing the login session of a user.
 
 begin
   # Get Connected App Token
@@ -139,7 +139,7 @@ end
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **session_id** | **String** | The unique sesssion id reprensenting the login session of a user. |  |
+| **session_id** | **String** | The unique sesssion id representing the login session of a user. |  |
 
 ### Return type
 
@@ -161,7 +161,7 @@ end
 
 Revoke Connected App Token
 
-Revoke the tokens linked to the connected app session.
+Revoke the tokens linked to the connected app session.  <div>   <code>create:connected_apps</code> </div> 
 
 ### Examples
 
@@ -175,7 +175,7 @@ KindeApi.configure do |config|
 end
 
 api_instance = KindeApi::ConnectedAppsApi.new
-session_id = 'session_id_example' # String | The unique sesssion id reprensenting the login session of a user.
+session_id = 'session_id_example' # String | The unique sesssion id representing the login session of a user.
 
 begin
   # Revoke Connected App Token
@@ -208,7 +208,7 @@ end
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **session_id** | **String** | The unique sesssion id reprensenting the login session of a user. |  |
+| **session_id** | **String** | The unique sesssion id representing the login session of a user. |  |
 
 ### Return type
 

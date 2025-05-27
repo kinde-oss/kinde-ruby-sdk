@@ -1,16 +1,16 @@
 # KindeApi::CallbacksApi
 
-All URIs are relative to *https://app.kinde.com*
+All URIs are relative to *https://your_kinde_subdomain.kinde.com*
 
 | Method | HTTP request | Description |
 | ------ | ------------ | ----------- |
-| [**add_logout_redirect_urls**](CallbacksApi.md#add_logout_redirect_urls) | **POST** /api/v1/applications/{app_id}/auth_logout_urls | Add Logout Redirect URLs |
+| [**add_logout_redirect_urls**](CallbacksApi.md#add_logout_redirect_urls) | **POST** /api/v1/applications/{app_id}/auth_logout_urls | Add logout redirect URLs |
 | [**add_redirect_callback_urls**](CallbacksApi.md#add_redirect_callback_urls) | **POST** /api/v1/applications/{app_id}/auth_redirect_urls | Add Redirect Callback URLs |
 | [**delete_callback_urls**](CallbacksApi.md#delete_callback_urls) | **DELETE** /api/v1/applications/{app_id}/auth_redirect_urls | Delete Callback URLs |
 | [**delete_logout_urls**](CallbacksApi.md#delete_logout_urls) | **DELETE** /api/v1/applications/{app_id}/auth_logout_urls | Delete Logout URLs |
 | [**get_callback_urls**](CallbacksApi.md#get_callback_urls) | **GET** /api/v1/applications/{app_id}/auth_redirect_urls | List Callback URLs |
-| [**get_logout_urls**](CallbacksApi.md#get_logout_urls) | **GET** /api/v1/applications/{app_id}/auth_logout_urls | List Logout URLs |
-| [**replace_logout_redirect_urls**](CallbacksApi.md#replace_logout_redirect_urls) | **PUT** /api/v1/applications/{app_id}/auth_logout_urls | Replace Logout Redirect URLs |
+| [**get_logout_urls**](CallbacksApi.md#get_logout_urls) | **GET** /api/v1/applications/{app_id}/auth_logout_urls | List logout URLs |
+| [**replace_logout_redirect_urls**](CallbacksApi.md#replace_logout_redirect_urls) | **PUT** /api/v1/applications/{app_id}/auth_logout_urls | Replace logout redirect URls |
 | [**replace_redirect_callback_urls**](CallbacksApi.md#replace_redirect_callback_urls) | **PUT** /api/v1/applications/{app_id}/auth_redirect_urls | Replace Redirect Callback URLs |
 
 
@@ -18,9 +18,9 @@ All URIs are relative to *https://app.kinde.com*
 
 > <SuccessResponse> add_logout_redirect_urls(app_id, replace_logout_redirect_urls_request)
 
-Add Logout Redirect URLs
+Add logout redirect URLs
 
-Add additional logout redirect URLs. 
+Add additional logout redirect URLs.  <div>   <code>create:application_logout_uris</code> </div> 
 
 ### Examples
 
@@ -38,7 +38,7 @@ app_id = 'app_id_example' # String | The identifier for the application.
 replace_logout_redirect_urls_request = KindeApi::ReplaceLogoutRedirectURLsRequest.new # ReplaceLogoutRedirectURLsRequest | Callback details.
 
 begin
-  # Add Logout Redirect URLs
+  # Add logout redirect URLs
   result = api_instance.add_logout_redirect_urls(app_id, replace_logout_redirect_urls_request)
   p result
 rescue KindeApi::ApiError => e
@@ -54,7 +54,7 @@ This returns an Array which contains the response data, status code and headers.
 
 ```ruby
 begin
-  # Add Logout Redirect URLs
+  # Add logout redirect URLs
   data, status_code, headers = api_instance.add_logout_redirect_urls_with_http_info(app_id, replace_logout_redirect_urls_request)
   p status_code # => 2xx
   p headers # => { ... }
@@ -82,7 +82,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: application/json; charset=utf-8
+- **Accept**: application/json
 
 
 ## add_redirect_callback_urls
@@ -91,7 +91,7 @@ end
 
 Add Redirect Callback URLs
 
-Add additional redirect callback URLs. 
+Add additional redirect callback URLs.  <div>   <code>create:applications_redirect_uris</code> </div> 
 
 ### Examples
 
@@ -162,7 +162,7 @@ end
 
 Delete Callback URLs
 
-Delete callback URLs. 
+Delete callback URLs.  <div>   <code>delete:applications_redirect_uris</code> </div> 
 
 ### Examples
 
@@ -233,7 +233,7 @@ end
 
 Delete Logout URLs
 
-Delete logout URLs. 
+Delete logout URLs.  <div>   <code>delete:application_logout_uris</code> </div> 
 
 ### Examples
 
@@ -295,7 +295,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json, application/json; charset=utf-8
+- **Accept**: application/json
 
 
 ## get_callback_urls
@@ -304,7 +304,7 @@ end
 
 List Callback URLs
 
-Returns an application's redirect callback URLs. 
+Returns an application's redirect callback URLs.  <div>   <code>read:applications_redirect_uris</code> </div> 
 
 ### Examples
 
@@ -371,9 +371,9 @@ end
 
 > <LogoutRedirectUrls> get_logout_urls(app_id)
 
-List Logout URLs
+List logout URLs
 
-Returns an application's logout redirect URLs. 
+Returns an application's logout redirect URLs.  <div>   <code>read:application_logout_uris</code> </div> 
 
 ### Examples
 
@@ -390,7 +390,7 @@ api_instance = KindeApi::CallbacksApi.new
 app_id = 'app_id_example' # String | The identifier for the application.
 
 begin
-  # List Logout URLs
+  # List logout URLs
   result = api_instance.get_logout_urls(app_id)
   p result
 rescue KindeApi::ApiError => e
@@ -406,7 +406,7 @@ This returns an Array which contains the response data, status code and headers.
 
 ```ruby
 begin
-  # List Logout URLs
+  # List logout URLs
   data, status_code, headers = api_instance.get_logout_urls_with_http_info(app_id)
   p status_code # => 2xx
   p headers # => { ... }
@@ -433,16 +433,16 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json, application/json; charset=utf-8
+- **Accept**: application/json
 
 
 ## replace_logout_redirect_urls
 
 > <SuccessResponse> replace_logout_redirect_urls(app_id, replace_logout_redirect_urls_request)
 
-Replace Logout Redirect URLs
+Replace logout redirect URls
 
-Replace all logout redirect URLs. 
+Replace all logout redirect URLs.  <div>   <code>update:application_logout_uris</code> </div> 
 
 ### Examples
 
@@ -460,7 +460,7 @@ app_id = 'app_id_example' # String | The identifier for the application.
 replace_logout_redirect_urls_request = KindeApi::ReplaceLogoutRedirectURLsRequest.new # ReplaceLogoutRedirectURLsRequest | Callback details.
 
 begin
-  # Replace Logout Redirect URLs
+  # Replace logout redirect URls
   result = api_instance.replace_logout_redirect_urls(app_id, replace_logout_redirect_urls_request)
   p result
 rescue KindeApi::ApiError => e
@@ -476,7 +476,7 @@ This returns an Array which contains the response data, status code and headers.
 
 ```ruby
 begin
-  # Replace Logout Redirect URLs
+  # Replace logout redirect URls
   data, status_code, headers = api_instance.replace_logout_redirect_urls_with_http_info(app_id, replace_logout_redirect_urls_request)
   p status_code # => 2xx
   p headers # => { ... }
@@ -504,7 +504,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: application/json; charset=utf-8
+- **Accept**: application/json
 
 
 ## replace_redirect_callback_urls
@@ -513,7 +513,7 @@ end
 
 Replace Redirect Callback URLs
 
-Replace all redirect callback URLs. 
+Replace all redirect callback URLs.  <div>   <code>update:applications_redirect_uris</code> </div> 
 
 ### Examples
 

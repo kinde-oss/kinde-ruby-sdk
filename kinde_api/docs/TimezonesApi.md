@@ -1,19 +1,19 @@
 # KindeApi::TimezonesApi
 
-All URIs are relative to *https://app.kinde.com*
+All URIs are relative to *https://your_kinde_subdomain.kinde.com*
 
 | Method | HTTP request | Description |
 | ------ | ------------ | ----------- |
-| [**get_timezones**](TimezonesApi.md#get_timezones) | **GET** /api/v1/timezones | List timezones and timezone IDs. |
+| [**get_timezones**](TimezonesApi.md#get_timezones) | **GET** /api/v1/timezones | Get timezones |
 
 
 ## get_timezones
 
-> <SuccessResponse> get_timezones(opts)
+> <GetTimezonesResponse> get_timezones
 
-List timezones and timezone IDs.
+Get timezones
 
-Get a list of timezones and associated timezone keys.
+Get a list of timezones and associated timezone keys.  <div>   <code>read:timezones</code> </div> 
 
 ### Examples
 
@@ -27,14 +27,10 @@ KindeApi.configure do |config|
 end
 
 api_instance = KindeApi::TimezonesApi.new
-opts = {
-  timezone_key: 'timezone_key_example', # String | Timezone Key.
-  name: 'name_example' # String | Timezone.
-}
 
 begin
-  # List timezones and timezone IDs.
-  result = api_instance.get_timezones(opts)
+  # Get timezones
+  result = api_instance.get_timezones
   p result
 rescue KindeApi::ApiError => e
   puts "Error when calling TimezonesApi->get_timezones: #{e}"
@@ -45,15 +41,15 @@ end
 
 This returns an Array which contains the response data, status code and headers.
 
-> <Array(<SuccessResponse>, Integer, Hash)> get_timezones_with_http_info(opts)
+> <Array(<GetTimezonesResponse>, Integer, Hash)> get_timezones_with_http_info
 
 ```ruby
 begin
-  # List timezones and timezone IDs.
-  data, status_code, headers = api_instance.get_timezones_with_http_info(opts)
+  # Get timezones
+  data, status_code, headers = api_instance.get_timezones_with_http_info
   p status_code # => 2xx
   p headers # => { ... }
-  p data # => <SuccessResponse>
+  p data # => <GetTimezonesResponse>
 rescue KindeApi::ApiError => e
   puts "Error when calling TimezonesApi->get_timezones_with_http_info: #{e}"
 end
@@ -61,14 +57,11 @@ end
 
 ### Parameters
 
-| Name | Type | Description | Notes |
-| ---- | ---- | ----------- | ----- |
-| **timezone_key** | **String** | Timezone Key. | [optional] |
-| **name** | **String** | Timezone. | [optional] |
+This endpoint does not need any parameter.
 
 ### Return type
 
-[**SuccessResponse**](SuccessResponse.md)
+[**GetTimezonesResponse**](GetTimezonesResponse.md)
 
 ### Authorization
 
@@ -77,5 +70,5 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json; charset=utf-8
+- **Accept**: application/json
 

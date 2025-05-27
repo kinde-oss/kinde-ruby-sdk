@@ -7,8 +7,8 @@
 | **active** | **Boolean** | Indicates the status of the token. | [optional] |
 | **aud** | **Array&lt;String&gt;** | Array of intended token recipients. | [optional] |
 | **client_id** | **String** | Identifier for the requesting client. | [optional] |
-| **exp** | **String** | Token expiration timestamp. | [optional] |
-| **iat** | **String** | Token issuance timestamp. | [optional] |
+| **exp** | **Integer** | Token expiration timestamp. | [optional] |
+| **iat** | **Integer** | Token issuance timestamp. | [optional] |
 
 ## Example
 
@@ -18,9 +18,9 @@ require 'kinde_api'
 instance = KindeApi::TokenIntrospect.new(
   active: null,
   aud: null,
-  client_id: null,
-  exp: null,
-  iat: null
+  client_id: 3b0b5c6c8fcc464fab397f4969b5f482,
+  exp: 1612345678,
+  iat: 1612345678
 )
 ```
 
