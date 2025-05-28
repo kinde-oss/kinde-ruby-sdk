@@ -66,6 +66,38 @@ module KindeSdk
       { name: claim, value: value }
     end
 
+    # Generate a profile URL for the Kinde portal
+    #
+    # @param return_url [String] The URL to return to after portal interaction
+    # @param sub_nav [String] The sub-navigation section to show
+    # @return [Hash] A hash containing the generated URL
+    # @raise [StandardError] If the request fails or returns invalid data
+    def generate_profile_url(return_url:, sub_nav:)
+      refresh_token if auto_refresh_tokens && token_expired?
+
+      response = Faraday.get("#{@kinde_api_client.config.host}/account_api/v1/portal_link") do |req|
+        req.params['return_url'] = return_url
+        req.params['sub_nav'] = sub_nav
+        req.headers['Authorization'] = "Bearer #{@token_store.bearer_token}"
+      end
+
+      unless response.success?
+        raise StandardError, "Failed to fetch profile URL: #{response.status} #{response.reason_phrase}"
+      end
+
+      result = JSON.parse(response.body)
+      unless result['url'].is_a?(String)
+        raise StandardError, "Invalid URL received from API"
+      end
+
+      begin
+        { url: URI.parse(result['url']) }
+      rescue URI::InvalidURIError => e
+        Rails.logger.error(e)
+        raise StandardError, "Invalid URL format received from API: #{result['url']}"
+      end
+    end
+
     ::KindeApi.constants.filter { |klass| klass.to_s.end_with?("Api") }.each do |klass|
       api_klass = Kernel.const_get("KindeApi::#{klass}")
 

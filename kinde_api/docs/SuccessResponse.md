@@ -13,8 +13,8 @@
 require 'kinde_api'
 
 instance = KindeApi::SuccessResponse.new(
-  message: null,
-  code: null
+  message: Success,
+  code: OK
 )
 ```
 

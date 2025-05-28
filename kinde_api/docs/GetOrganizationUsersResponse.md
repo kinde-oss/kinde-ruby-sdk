@@ -15,8 +15,8 @@
 require 'kinde_api'
 
 instance = KindeApi::GetOrganizationUsersResponse.new(
-  code: null,
-  message: null,
+  code: OK,
+  message: Success,
   organization_users: null,
   next_token: null
 )
