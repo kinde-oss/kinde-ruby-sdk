@@ -68,17 +68,15 @@ module KindeSdk
 
     # Generate a profile URL for the Kinde portal
     #
-    # @param org_code [String] The organization code
     # @param return_url [String] The URL to return to after portal interaction
     # @param sub_nav [String] The sub-navigation section to show
     # @return [Hash] A hash containing the generated URL
     # @raise [StandardError] If the request fails or returns invalid data
-    def generate_profile_url(org_code:, return_url:, sub_nav:)
+    def generate_profile_url(return_url:, sub_nav:)
       refresh_token if auto_refresh_tokens && token_expired?
 
-      response = Faraday.get("#{@kinde_api_client.config.host}/frontend_api/get_portal_link") do |req|
+      response = Faraday.get("#{@kinde_api_client.config.host}/account_api/v1/portal_link") do |req|
         req.params['return_url'] = return_url
-        req.params['org_code'] = org_code
         req.params['sub_nav'] = sub_nav
         req.headers['Authorization'] = "Bearer #{@token_store.bearer_token}"
       end
