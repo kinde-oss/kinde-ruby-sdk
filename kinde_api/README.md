@@ -120,7 +120,7 @@ Class | Method | HTTP request | Description
 *KindeApi::ApplicationsApi* | [**update_application**](docs/ApplicationsApi.md#update_application) | **PATCH** /api/v1/applications/{application_id} | Update Application
 *KindeApi::ApplicationsApi* | [**update_application_tokens**](docs/ApplicationsApi.md#update_application_tokens) | **PATCH** /api/v1/applications/{application_id}/tokens | Update application tokens
 *KindeApi::ApplicationsApi* | [**update_applications_property**](docs/ApplicationsApi.md#update_applications_property) | **PUT** /api/v1/applications/{application_id}/properties/{property_key} | Update property
-*KindeApi::BillingAgreementsApi* | [**create_billing_agreement**](docs/BillingAgreementsApi.md#create_billing_agreement) | **POST** /api/v1/billing/agreements | 
+*KindeApi::BillingAgreementsApi* | [**create_billing_agreement**](docs/BillingAgreementsApi.md#create_billing_agreement) | **POST** /api/v1/billing/agreements | Create billing agreement
 *KindeApi::BillingAgreementsApi* | [**get_billing_agreements**](docs/BillingAgreementsApi.md#get_billing_agreements) | **GET** /api/v1/billing/agreements | Get billing agreements
 *KindeApi::BillingEntitlementsApi* | [**get_billing_entitlements**](docs/BillingEntitlementsApi.md#get_billing_entitlements) | **GET** /api/v1/billing/entitlements | Get billing entitlements
 *KindeApi::BillingMeterUsageApi* | [**create_meter_usage_record**](docs/BillingMeterUsageApi.md#create_meter_usage_record) | **POST** /api/v1/billing/meter_usage | Create meter usage record

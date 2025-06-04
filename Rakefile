@@ -37,7 +37,8 @@ namespace :api do
       "gemHomepage=https://github.com/kinde-oss/kinde-ruby-sdk",
       "gemDescription='Ruby SDK for the Kinde Management API'",
       "gemAuthor=Kinde",
-      "gemAuthorEmail=support@kinde.com"
+      "gemAuthorEmail=support@kinde.com",
+      "useAutoload=true"
     ].join(",")
 
     cmd = "npx @openapitools/openapi-generator-cli generate -i tmp/kinde-api-spec.yaml -g ruby -o kinde_api --additional-properties=\"#{properties}\""

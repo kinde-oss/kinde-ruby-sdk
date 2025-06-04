@@ -19,6 +19,7 @@ module KindeApi
     def initialize(api_client = ApiClient.default)
       @api_client = api_client
     end
+    # Create billing agreement
     # Creates a new billing agreement based on the plan code passed, and cancels the customer's existing agreements  <div>   <code>create:billing_agreements</code> </div> 
     # @param create_billing_agreement_request [CreateBillingAgreementRequest] New agreement request values
     # @param [Hash] opts the optional parameters
@@ -28,6 +29,7 @@ module KindeApi
       data
     end
 
+    # Create billing agreement
     # Creates a new billing agreement based on the plan code passed, and cancels the customer&#39;s existing agreements  &lt;div&gt;   &lt;code&gt;create:billing_agreements&lt;/code&gt; &lt;/div&gt; 
     # @param create_billing_agreement_request [CreateBillingAgreementRequest] New agreement request values
     # @param [Hash] opts the optional parameters

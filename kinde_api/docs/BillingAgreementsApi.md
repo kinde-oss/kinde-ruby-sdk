@@ -4,7 +4,7 @@ All URIs are relative to *https://your_kinde_subdomain.kinde.com*
 
 | Method | HTTP request | Description |
 | ------ | ------------ | ----------- |
-| [**create_billing_agreement**](BillingAgreementsApi.md#create_billing_agreement) | **POST** /api/v1/billing/agreements |  |
+| [**create_billing_agreement**](BillingAgreementsApi.md#create_billing_agreement) | **POST** /api/v1/billing/agreements | Create billing agreement |
 | [**get_billing_agreements**](BillingAgreementsApi.md#get_billing_agreements) | **GET** /api/v1/billing/agreements | Get billing agreements |
 
 
@@ -12,7 +12,7 @@ All URIs are relative to *https://your_kinde_subdomain.kinde.com*
 
 > <SuccessResponse> create_billing_agreement(create_billing_agreement_request)
 
-
+Create billing agreement
 
 Creates a new billing agreement based on the plan code passed, and cancels the customer's existing agreements  <div>   <code>create:billing_agreements</code> </div> 
 
@@ -31,7 +31,7 @@ api_instance = KindeApi::BillingAgreementsApi.new
 create_billing_agreement_request = KindeApi::CreateBillingAgreementRequest.new({customer_id: 'customer_0195ac80a14c2ca2cec97d026d864de0', plan_code: 'pro'}) # CreateBillingAgreementRequest | New agreement request values
 
 begin
-  
+  # Create billing agreement
   result = api_instance.create_billing_agreement(create_billing_agreement_request)
   p result
 rescue KindeApi::ApiError => e
@@ -47,7 +47,7 @@ This returns an Array which contains the response data, status code and headers.
 
 ```ruby
 begin
-  
+  # Create billing agreement
   data, status_code, headers = api_instance.create_billing_agreement_with_http_info(create_billing_agreement_request)
   p status_code # => 2xx
   p headers # => { ... }
