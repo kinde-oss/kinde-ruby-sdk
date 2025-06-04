@@ -4,6 +4,16 @@ require_relative 'token_store'
 require_relative 'current'
 
 module KindeSdk
+  # Constants for portal page navigation
+  module PortalPage
+    ORGANIZATION_DETAILS = 'organization_details'
+    ORGANIZATION_MEMBERS = 'organization_members'
+    ORGANIZATION_PLAN_DETAILS = 'organization_plan_details'
+    ORGANIZATION_PAYMENT_DETAILS = 'organization_payment_details'
+    ORGANIZATION_PLAN_SELECTION = 'organization_plan_selection'
+    PROFILE = 'profile'
+  end
+
   class Client
     include FeatureFlags
     include Permissions
@@ -66,6 +76,46 @@ module KindeSdk
       { name: claim, value: value }
     end
 
+    # Generate a URL to the user profile portal
+    #
+    # @param domain [String] The domain of the Kinde instance
+    # @param return_url [String] URL to redirect to after completing the profile flow
+    # @param sub_nav [String] Sub-navigation section to display
+    # @return [Hash] A hash containing the generated URL
+    # @raise [StandardError] If the request fails or returns invalid data
+    def generate_portal_url(domain:, return_url:, sub_nav: PortalPage::PROFILE)
+      refresh_token if auto_refresh_tokens && token_expired?
+
+      unless return_url.start_with?('http')
+        raise StandardError, 'generatePortalUrl: returnUrl must be an absolute URL'
+      end
+
+      params = {
+        'return_url' => return_url,
+        'sub_nav' => sub_nav
+      }
+
+      response = Faraday.get("#{domain}/account_api/v1/portal_link", params) do |req|
+        req.headers['Authorization'] = "Bearer #{@token_store.bearer_token}"
+      end
+
+      unless response.success?
+        raise StandardError, "Failed to fetch profile URL: #{response.status} #{response.reason_phrase}"
+      end
+
+      result = JSON.parse(response.body)
+      unless result['url'].is_a?(String)
+        raise StandardError, "Invalid URL received from API"
+      end
+
+      begin
+        { url: URI.parse(result['url']) }
+      rescue URI::InvalidURIError => e
+        Rails.logger.error(e)
+        raise StandardError, "Invalid URL format received from API: #{result['url']}"
+      end
+    end
+
     ::KindeApi.constants.filter { |klass| klass.to_s.end_with?("Api") }.each do |klass|
       api_klass = Kernel.const_get("KindeApi::#{klass}")
 
@@ -77,9 +127,13 @@ module KindeSdk
     private
 
     def init_instance_api(api_klass)
+      
       instance = api_klass.new(kinde_api_client)
+      
+      
       main_client = self
       methods_to_prepend = instance.public_methods(false).reject { |m| m.to_s.start_with?("api_client") }
+      
       methods_to_prepend.each do |method_name|
         original = instance.method(method_name)
         instance.define_singleton_method(method_name) do |*args, &block|

@@ -4,9 +4,11 @@
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **id** | **String** | Unique id of the user in Kinde. | [optional] |
-| **provided_id** | **String** | External id for user. | [optional] |
+| **id** | **String** | Unique ID of the user in Kinde. | [optional] |
+| **provided_id** | **String** | External ID for user. | [optional] |
 | **email** | **String** | Default email address of the user in Kinde. | [optional] |
+| **phone** | **String** | User&#39;s primary phone number. | [optional] |
+| **username** | **String** | Primary username of the user in Kinde. | [optional] |
 | **last_name** | **String** | User&#39;s last name. | [optional] |
 | **first_name** | **String** | User&#39;s first name. | [optional] |
 | **is_suspended** | **Boolean** | Whether the user is currently suspended or not. | [optional] |
@@ -27,6 +29,8 @@ instance = KindeApi::UsersResponseUsersInner.new(
   id: null,
   provided_id: null,
   email: null,
+  phone: null,
+  username: null,
   last_name: null,
   first_name: null,
   is_suspended: null,

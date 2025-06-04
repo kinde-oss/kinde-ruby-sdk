@@ -15,16 +15,16 @@ module AuthHelper
     
     # Get and store minimal user info
     client = KindeSdk.client(tokens)
-    user_info = client.oauth.get_user.to_hash
+    user_info = client.oauth.get_user_profile_v2.to_hash
     
     # Validate user info before storing
     raise ArgumentError, "Invalid user info received" unless user_info[:id].present?
     
     session[:kinde_user] = {
       id: user_info[:id],
-      email: user_info[:preferred_email],
-      first_name: user_info[:first_name],
-      last_name: user_info[:last_name]
+      email: user_info[:email],
+      first_name: user_info[:given_name],
+      last_name: user_info[:family_name]
     }
   end
   
