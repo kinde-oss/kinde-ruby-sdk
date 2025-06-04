@@ -127,9 +127,13 @@ module KindeSdk
     private
 
     def init_instance_api(api_klass)
+      
       instance = api_klass.new(kinde_api_client)
+      
+      
       main_client = self
       methods_to_prepend = instance.public_methods(false).reject { |m| m.to_s.start_with?("api_client") }
+      
       methods_to_prepend.each do |method_name|
         original = instance.method(method_name)
         instance.define_singleton_method(method_name) do |*args, &block|

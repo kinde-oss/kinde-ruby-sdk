@@ -203,6 +203,7 @@ module KindeSdk
     # @param error [Exception] The exception that occurred
     # @return [void]
     def handle_error(message, error)
+      Rails.logger.error("Error: #{error.message}")
       redirect_with_error(message)
     end
 
@@ -210,6 +211,7 @@ module KindeSdk
     # @param message [String] The error message
     # @return [void]
     def redirect_with_error(message)
+      Rails.logger.error("Redirecting with error: #{message}")
       redirect_to "/", alert: message
     end
   end
