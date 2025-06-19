@@ -1,0 +1,20 @@
+# Ignore OpenAPI generated code
+kinde_api/
+openapitools.json
+tmp/kinde-api-spec.yaml
+
+# Ignore generated API client files
+kinde_api/lib/kinde_api/api/
+kinde_api/lib/kinde_api/models/
+kinde_api/docs/
+kinde_api/spec/
+kinde_api/.openapi-generator/
+
+# Ignore generated gemspec and configuration files
+kinde_api/kinde_api.gemspec
+kinde_api/.openapi-generator-ignore
+kinde_api/.gitlab-ci.yml
+kinde_api/.travis.yml
+
+# Ignore generated gem file
+kinde_sdk-*.gem 

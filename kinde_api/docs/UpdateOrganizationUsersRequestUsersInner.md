@@ -15,8 +15,8 @@
 require 'kinde_api'
 
 instance = KindeApi::UpdateOrganizationUsersRequestUsersInner.new(
-  id: null,
-  operation: null,
+  id: kp_057ee6debc624c70947b6ba512908c35,
+  operation: delete,
   roles: null,
   permissions: null
 )

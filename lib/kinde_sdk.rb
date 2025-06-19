@@ -177,15 +177,18 @@ module KindeSdk
     #
     # @return [KindeApi::ApiClient]
     def api_client(bearer_token)
-      config = KindeApi::Configuration.default
+      config = KindeApi::Configuration.new  # Create a new instance instead of using default
       config.configure do |c|
         c.access_token = bearer_token
-        c.host = @config.domain
+        c.host = URI.parse(@config.domain).host
+        c.scheme = url_scheme(c.scheme)
+        c.base_path = ''  # Set empty base path since we're using the root
         c.debugging = @config.debugging
         c.logger = @config.logger
-        c.scheme = url_scheme(c.scheme)
+        # Set server configuration
+        c.server_index = nil  # Force direct URL construction
+        c.server_variables = { 'subdomain' => URI.parse(@config.domain).host.split('.').first }
       end
-
       KindeApi::ApiClient.new(config)
     end
 

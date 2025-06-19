@@ -1,6 +1,6 @@
 # KindeApi::PermissionsApi
 
-All URIs are relative to *https://app.kinde.com*
+All URIs are relative to *https://your_kinde_subdomain.kinde.com*
 
 | Method | HTTP request | Description |
 | ------ | ------------ | ----------- |
@@ -16,7 +16,7 @@ All URIs are relative to *https://app.kinde.com*
 
 Create Permission
 
-Create a new permission.
+Create a new permission.  <div>   <code>create:permissions</code> </div> 
 
 ### Examples
 
@@ -87,7 +87,7 @@ end
 
 Delete Permission
 
-Delete permission
+Delete permission  <div>   <code>delete:permissions</code> </div> 
 
 ### Examples
 
@@ -156,7 +156,7 @@ end
 
 List Permissions
 
-The returned list can be sorted by permission name or permission ID in ascending or descending order. The number of records to return at a time can also be controlled using the `page_size` query string parameter. 
+The returned list can be sorted by permission name or permission ID in ascending or descending order. The number of records to return at a time can also be controlled using the `page_size` query string parameter.  <div>   <code>read:permissions</code> </div> 
 
 ### Examples
 
@@ -231,7 +231,7 @@ end
 
 Update Permission
 
-Update permission
+Update permission  <div>   <code>update:permissions</code> </div> 
 
 ### Examples
 
@@ -245,7 +245,7 @@ KindeApi.configure do |config|
 end
 
 api_instance = KindeApi::PermissionsApi.new
-permission_id = 56 # Integer | The identifier for the permission.
+permission_id = 'permission_id_example' # String | The identifier for the permission.
 opts = {
   create_permission_request: KindeApi::CreatePermissionRequest.new # CreatePermissionRequest | Permission details.
 }
@@ -281,7 +281,7 @@ end
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **permission_id** | **Integer** | The identifier for the permission. |  |
+| **permission_id** | **String** | The identifier for the permission. |  |
 | **create_permission_request** | [**CreatePermissionRequest**](CreatePermissionRequest.md) | Permission details. | [optional] |
 
 ### Return type

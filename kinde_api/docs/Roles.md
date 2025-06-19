@@ -4,10 +4,11 @@
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **id** | **String** | The role&#39;s id. | [optional] |
+| **id** | **String** | The role&#39;s ID. | [optional] |
 | **key** | **String** | The role identifier to use in code. | [optional] |
 | **name** | **String** | The role&#39;s name. | [optional] |
 | **description** | **String** | The role&#39;s description. | [optional] |
+| **is_default_role** | **Boolean** | Whether the role is the default role. | [optional] |
 
 ## Example
 
@@ -18,7 +19,8 @@ instance = KindeApi::Roles.new(
   id: null,
   key: null,
   name: null,
-  description: null
+  description: null,
+  is_default_role: null
 )
 ```
 
