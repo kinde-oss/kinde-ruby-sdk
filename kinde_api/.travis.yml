@@ -8,4 +8,4 @@ script:
   - bundle install --path vendor/bundle
   - bundle exec rspec
   - gem build kinde_api.gemspec
-  - gem install ./kinde_api-1.0.0.gem
+  - gem install ./kinde_api-1.6.3.gem

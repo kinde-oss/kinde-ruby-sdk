@@ -11,5 +11,5 @@ OpenAPI Generator version: 6.4.0
 =end
 
 module KindeApi
-  VERSION = '1.0.0'
+  VERSION = '1.6.3'
 end
