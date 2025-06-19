@@ -1,3 +1,3 @@
 module KindeSdk
-  VERSION = "1.6.3"
+  VERSION = "1.6.5"
 end
