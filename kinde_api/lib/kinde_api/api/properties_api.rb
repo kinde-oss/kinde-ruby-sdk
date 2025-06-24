@@ -223,6 +223,69 @@ module KindeApi
       return data, status_code, headers
     end
 
+    # Get properties
+    # Returns all properties for the user 
+    # @param [Hash] opts the optional parameters
+    # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
+    # @option opts [String] :starting_after The ID of the property to start after.
+    # @return [GetUserPropertiesResponse]
+    def get_user_properties(opts = {})
+      data, _status_code, _headers = get_user_properties_with_http_info(opts)
+      data
+    end
+
+    # Get properties
+    # Returns all properties for the user 
+    # @param [Hash] opts the optional parameters
+    # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
+    # @option opts [String] :starting_after The ID of the property to start after.
+    # @return [Array<(GetUserPropertiesResponse, Integer, Hash)>] GetUserPropertiesResponse data, response status code and response headers
+    def get_user_properties_with_http_info(opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: PropertiesApi.get_user_properties ...'
+      end
+      # resource path
+      local_var_path = '/account_api/v1/properties'
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+      query_params[:'page_size'] = opts[:'page_size'] if !opts[:'page_size'].nil?
+      query_params[:'starting_after'] = opts[:'starting_after'] if !opts[:'starting_after'].nil?
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body]
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'GetUserPropertiesResponse'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
+
+      new_options = opts.merge(
+        :operation => :"PropertiesApi.get_user_properties",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: PropertiesApi#get_user_properties\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
     # Update Property
     # Update property.  <div>   <code>update:properties</code> </div> 
     # @param property_id [String] The unique identifier for the property.

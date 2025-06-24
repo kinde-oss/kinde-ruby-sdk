@@ -47,7 +47,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json; charset=utf-8'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
       # HTTP header 'Content-Type'
       content_type = @api_client.select_header_content_type(['application/json'])
       if !content_type.nil?
@@ -216,6 +216,69 @@ module KindeApi
       return data, status_code, headers
     end
 
+    # Get permissions
+    # Returns all the permissions the user has 
+    # @param [Hash] opts the optional parameters
+    # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
+    # @option opts [String] :starting_after The ID of the permission to start after.
+    # @return [GetUserPermissionsResponse]
+    def get_user_permissions(opts = {})
+      data, _status_code, _headers = get_user_permissions_with_http_info(opts)
+      data
+    end
+
+    # Get permissions
+    # Returns all the permissions the user has 
+    # @param [Hash] opts the optional parameters
+    # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
+    # @option opts [String] :starting_after The ID of the permission to start after.
+    # @return [Array<(GetUserPermissionsResponse, Integer, Hash)>] GetUserPermissionsResponse data, response status code and response headers
+    def get_user_permissions_with_http_info(opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: PermissionsApi.get_user_permissions ...'
+      end
+      # resource path
+      local_var_path = '/account_api/v1/permissions'
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+      query_params[:'page_size'] = opts[:'page_size'] if !opts[:'page_size'].nil?
+      query_params[:'starting_after'] = opts[:'starting_after'] if !opts[:'starting_after'].nil?
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body]
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'GetUserPermissionsResponse'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
+
+      new_options = opts.merge(
+        :operation => :"PermissionsApi.get_user_permissions",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: PermissionsApi#get_user_permissions\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
     # Update Permission
     # Update permission  <div>   <code>update:permissions</code> </div> 
     # @param permission_id [String] The identifier for the permission.
@@ -250,7 +313,7 @@ module KindeApi
       # header parameters
       header_params = opts[:header_params] || {}
       # HTTP header 'Accept' (if needed)
-      header_params['Accept'] = @api_client.select_header_accept(['application/json; charset=utf-8'])
+      header_params['Accept'] = @api_client.select_header_accept(['application/json', 'application/json; charset=utf-8'])
       # HTTP header 'Content-Type'
       content_type = @api_client.select_header_content_type(['application/json'])
       if !content_type.nil?

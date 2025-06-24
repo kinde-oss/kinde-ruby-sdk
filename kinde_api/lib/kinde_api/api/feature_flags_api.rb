@@ -150,6 +150,69 @@ module KindeApi
       return data, status_code, headers
     end
 
+    # Get feature flags
+    # Returns all the feature flags that affect the user 
+    # @param [Hash] opts the optional parameters
+    # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
+    # @option opts [String] :starting_after The ID of the flag to start after.
+    # @return [GetFeatureFlagsResponse]
+    def get_feature_flags(opts = {})
+      data, _status_code, _headers = get_feature_flags_with_http_info(opts)
+      data
+    end
+
+    # Get feature flags
+    # Returns all the feature flags that affect the user 
+    # @param [Hash] opts the optional parameters
+    # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
+    # @option opts [String] :starting_after The ID of the flag to start after.
+    # @return [Array<(GetFeatureFlagsResponse, Integer, Hash)>] GetFeatureFlagsResponse data, response status code and response headers
+    def get_feature_flags_with_http_info(opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: FeatureFlagsApi.get_feature_flags ...'
+      end
+      # resource path
+      local_var_path = '/account_api/v1/feature_flags'
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+      query_params[:'page_size'] = opts[:'page_size'] if !opts[:'page_size'].nil?
+      query_params[:'starting_after'] = opts[:'starting_after'] if !opts[:'starting_after'].nil?
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body]
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'GetFeatureFlagsResponse'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
+
+      new_options = opts.merge(
+        :operation => :"FeatureFlagsApi.get_feature_flags",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: FeatureFlagsApi#get_feature_flags\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
     # Replace Feature Flag
     # Update feature flag.  <div>   <code>update:feature_flags</code> </div> 
     # @param feature_flag_key [String] The key identifier for the feature flag.

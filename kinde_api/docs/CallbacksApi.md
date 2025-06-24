@@ -153,7 +153,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: application/json; charset=utf-8
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## delete_callback_urls
@@ -575,5 +575,5 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: application/json; charset=utf-8
+- **Accept**: application/json, application/json; charset=utf-8
 

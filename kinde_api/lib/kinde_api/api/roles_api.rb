@@ -561,6 +561,69 @@ module KindeApi
       return data, status_code, headers
     end
 
+    # Get roles
+    # Returns all roles for the user 
+    # @param [Hash] opts the optional parameters
+    # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
+    # @option opts [String] :starting_after The ID of the role to start after.
+    # @return [GetUserRolesResponse]
+    def get_user_roles(opts = {})
+      data, _status_code, _headers = get_user_roles_with_http_info(opts)
+      data
+    end
+
+    # Get roles
+    # Returns all roles for the user 
+    # @param [Hash] opts the optional parameters
+    # @option opts [Integer] :page_size Number of results per page. Defaults to 10 if parameter not sent.
+    # @option opts [String] :starting_after The ID of the role to start after.
+    # @return [Array<(GetUserRolesResponse, Integer, Hash)>] GetUserRolesResponse data, response status code and response headers
+    def get_user_roles_with_http_info(opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: RolesApi.get_user_roles ...'
+      end
+      # resource path
+      local_var_path = '/account_api/v1/roles'
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+      query_params[:'page_size'] = opts[:'page_size'] if !opts[:'page_size'].nil?
+      query_params[:'starting_after'] = opts[:'starting_after'] if !opts[:'starting_after'].nil?
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json'])
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body]
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'GetUserRolesResponse'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['kindeBearerAuth']
+
+      new_options = opts.merge(
+        :operation => :"RolesApi.get_user_roles",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: RolesApi#get_user_roles\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
     # Remove role permission
     # Remove a permission from a role.  <div>   <code>delete:role_permissions</code> </div> 
     # @param role_id [String] The role&#39;s public id.

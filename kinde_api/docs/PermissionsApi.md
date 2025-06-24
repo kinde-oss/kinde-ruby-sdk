@@ -7,6 +7,7 @@ All URIs are relative to *https://your_kinde_subdomain.kinde.com*
 | [**create_permission**](PermissionsApi.md#create_permission) | **POST** /api/v1/permissions | Create Permission |
 | [**delete_permission**](PermissionsApi.md#delete_permission) | **DELETE** /api/v1/permissions/{permission_id} | Delete Permission |
 | [**get_permissions**](PermissionsApi.md#get_permissions) | **GET** /api/v1/permissions | List Permissions |
+| [**get_user_permissions**](PermissionsApi.md#get_user_permissions) | **GET** /account_api/v1/permissions | Get permissions |
 | [**update_permissions**](PermissionsApi.md#update_permissions) | **PATCH** /api/v1/permissions/{permission_id} | Update Permission |
 
 
@@ -78,7 +79,7 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: application/json; charset=utf-8
+- **Accept**: application/json, application/json; charset=utf-8
 
 
 ## delete_permission
@@ -225,6 +226,79 @@ end
 - **Accept**: application/json, application/json; charset=utf-8
 
 
+## get_user_permissions
+
+> <GetUserPermissionsResponse> get_user_permissions(opts)
+
+Get permissions
+
+Returns all the permissions the user has 
+
+### Examples
+
+```ruby
+require 'time'
+require 'kinde_api'
+# setup authorization
+KindeApi.configure do |config|
+  # Configure Bearer authorization (JWT): kindeBearerAuth
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = KindeApi::PermissionsApi.new
+opts = {
+  page_size: 56, # Integer | Number of results per page. Defaults to 10 if parameter not sent.
+  starting_after: 'perm_1234567890abcdef' # String | The ID of the permission to start after.
+}
+
+begin
+  # Get permissions
+  result = api_instance.get_user_permissions(opts)
+  p result
+rescue KindeApi::ApiError => e
+  puts "Error when calling PermissionsApi->get_user_permissions: #{e}"
+end
+```
+
+#### Using the get_user_permissions_with_http_info variant
+
+This returns an Array which contains the response data, status code and headers.
+
+> <Array(<GetUserPermissionsResponse>, Integer, Hash)> get_user_permissions_with_http_info(opts)
+
+```ruby
+begin
+  # Get permissions
+  data, status_code, headers = api_instance.get_user_permissions_with_http_info(opts)
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => <GetUserPermissionsResponse>
+rescue KindeApi::ApiError => e
+  puts "Error when calling PermissionsApi->get_user_permissions_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+| Name | Type | Description | Notes |
+| ---- | ---- | ----------- | ----- |
+| **page_size** | **Integer** | Number of results per page. Defaults to 10 if parameter not sent. | [optional] |
+| **starting_after** | **String** | The ID of the permission to start after. | [optional] |
+
+### Return type
+
+[**GetUserPermissionsResponse**](GetUserPermissionsResponse.md)
+
+### Authorization
+
+[kindeBearerAuth](../README.md#kindeBearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+
 ## update_permissions
 
 > <SuccessResponse> update_permissions(permission_id, opts)
@@ -295,5 +369,5 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: application/json; charset=utf-8
+- **Accept**: application/json, application/json; charset=utf-8
 

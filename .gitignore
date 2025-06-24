@@ -4,4 +4,5 @@ Gemfile.lock
 
 *.gem
 log/*
-tmp/*spec/examples.txt
+tmp/*
+spec/examples.txt
