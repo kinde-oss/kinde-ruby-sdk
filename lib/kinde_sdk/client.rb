@@ -124,6 +124,32 @@ module KindeSdk
       end
     end
 
+    # Custom oauth method that provides backward compatibility
+    def oauth
+      oauth_api = init_instance_api(KindeApi::OAuthApi)
+      
+      # Add backward compatibility for get_user method
+      unless oauth_api.respond_to?(:get_user)
+        oauth_api.define_singleton_method(:get_user) do |opts = {}|
+          # Call the new method
+          user_profile_v2 = get_user_profile_v2(opts)
+          
+          # Convert UserProfileV2 to UserProfile format as a hash
+          # This provides backward compatibility without depending on the UserProfile class
+          {
+            id: user_profile_v2.id || user_profile_v2.sub,
+            preferred_email: user_profile_v2.email,
+            provided_id: user_profile_v2.provided_id,
+            last_name: user_profile_v2.family_name,
+            first_name: user_profile_v2.given_name,
+            picture: user_profile_v2.picture
+          }
+        end
+      end
+      
+      oauth_api
+    end
+
     private
 
     def init_instance_api(api_klass)

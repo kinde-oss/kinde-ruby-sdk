@@ -351,6 +351,100 @@ RSpec.describe KindeSdk do
       end
     end
   end
+
+  it "has a version number" do
+    expect(KindeSdk::VERSION).not_to be nil
+  end
+
+  describe 'backward compatibility' do
+    let(:mock_user_profile_v2) do
+      double('UserProfileV2',
+        id: 'test_id',
+        sub: 'test_sub',
+        email: 'test@example.com',
+        provided_id: 'external_id',
+        family_name: 'Doe',
+        given_name: 'John',
+        picture: 'https://example.com/picture.jpg'
+      )
+    end
+
+    # Use a real Ruby class for the OAuthApi mock to allow dynamic method addition
+    let(:mock_oauth_api_class) do
+      Class.new do
+        attr_accessor :user_profile_v2
+        def initialize(user_profile_v2)
+          @user_profile_v2 = user_profile_v2
+        end
+        def get_user_profile_v2(*)
+          @user_profile_v2
+        end
+        def token_introspection(*); end
+        def token_revocation(*); end
+      end
+    end
+
+    let(:mock_oauth_api) { mock_oauth_api_class.new(mock_user_profile_v2) }
+    let(:mock_kinde_api_client) { double('KindeApiClient') }
+    let(:tokens_hash) { { access_token: 'test_token' } }
+
+    before do
+      allow(KindeApi::OAuthApi).to receive(:new) { mock_oauth_api_class.new(mock_user_profile_v2) }
+    end
+
+    it 'supports both get_user and get_user_profile_v2 methods' do
+      client = KindeSdk::Client.new(mock_kinde_api_client, tokens_hash, false)
+      user_profile = client.oauth.get_user
+      expect(user_profile).to be_a(Hash)
+      expect(user_profile[:id]).to eq('test_id')
+      expect(user_profile[:preferred_email]).to eq('test@example.com')
+      expect(user_profile[:first_name]).to eq('John')
+      expect(user_profile[:last_name]).to eq('Doe')
+      expect(user_profile[:picture]).to eq('https://example.com/picture.jpg')
+
+      user_profile_v2 = client.oauth.get_user_profile_v2
+      expect(user_profile_v2.id).to eq('test_id')
+      expect(user_profile_v2.email).to eq('test@example.com')
+      expect(user_profile_v2.given_name).to eq('John')
+      expect(user_profile_v2.family_name).to eq('Doe')
+      expect(user_profile_v2.picture).to eq('https://example.com/picture.jpg')
+    end
+
+    it 'handles missing id field by using sub field' do
+      mock_user_profile_v2_no_id = double('UserProfileV2',
+        id: nil,
+        sub: 'test_sub',
+        email: 'test@example.com',
+        provided_id: 'external_id',
+        family_name: 'Doe',
+        given_name: 'John',
+        picture: 'https://example.com/picture.jpg'
+      )
+      allow(KindeApi::OAuthApi).to receive(:new).and_return(
+        mock_oauth_api_class.new(mock_user_profile_v2_no_id)
+      )
+      client = KindeSdk::Client.new(mock_kinde_api_client, tokens_hash, false)
+      user_profile = client.oauth.get_user
+      expect(user_profile[:id]).to eq('test_sub')
+    end
+
+    it 'only adds get_user method once per oauth instance' do
+      client = KindeSdk::Client.new(mock_kinde_api_client, tokens_hash, false)
+      oauth1 = client.oauth
+      oauth2 = client.oauth
+      expect(oauth1.respond_to?(:get_user)).to be true
+      expect(oauth2.respond_to?(:get_user)).to be true
+    end
+
+    it 'preserves all original oauth methods' do
+      client = KindeSdk::Client.new(mock_kinde_api_client, tokens_hash, false)
+      oauth = client.oauth
+      expect(oauth.respond_to?(:get_user_profile_v2)).to be true
+      expect(oauth.respond_to?(:token_introspection)).to be true
+      expect(oauth.respond_to?(:token_revocation)).to be true
+      expect(oauth.respond_to?(:get_user)).to be true
+    end
+  end
 end
 
 
