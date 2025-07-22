@@ -47,6 +47,7 @@ module KindeSdk
         redirect_uri: redirect_uri,
         state: SecureRandom.hex,
         scope: @config.scope,
+        supports_reauth: "true"
       }.merge(**kwargs)
       return { url: @config.oauth_client(
         client_id: client_id,
