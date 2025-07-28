@@ -2,6 +2,8 @@ require_relative '../../kinde_api/lib/kinde_api'
 require_relative 'token_manager'
 require_relative 'token_store'
 require_relative 'current'
+require_relative 'errors'
+require_relative 'internal/frontend_client'
 
 module KindeSdk
   # Constants for portal page navigation
@@ -150,6 +152,114 @@ module KindeSdk
       oauth_api
     end
 
+    # Frontend API access - Internal use only
+    # Uses user access tokens instead of M2M tokens
+    def frontend
+      @frontend_client ||= FrontendClient.new(@kinde_api_client, @token_store, @auto_refresh_tokens)
+    end
+
+    # Internal helper methods for Frontend API - NOT for public consumption
+    private
+
+    def get_user_entitlements(page_size: nil, starting_after: nil)
+      frontend.billing.get_entitlements(page_size: page_size, starting_after: starting_after)
+    end
+
+    def get_user_entitlement(key)
+      frontend.billing.get_entitlement(key: key)
+    end
+
+    def get_user_feature_flags(page_size: nil, starting_after: nil)
+      frontend.feature_flags.get_feature_flags(page_size: page_size, starting_after: starting_after)
+    end
+
+    def get_user_permissions(page_size: nil, starting_after: nil)
+      frontend.permissions.get_user_permissions(page_size: page_size, starting_after: starting_after)
+    end
+
+    def get_user_properties(page_size: nil, starting_after: nil)
+      frontend.properties.get_user_properties(page_size: page_size, starting_after: starting_after)
+    end
+
+    def get_user_roles(page_size: nil, starting_after: nil)
+      frontend.roles.get_user_roles(page_size: page_size, starting_after: starting_after)
+    end
+
+    def get_portal_link(subnav: nil, return_url: nil)
+      frontend.self_serve_portal.get_portal_link(subnav: subnav, return_url: return_url)
+    end
+
+    def get_enhanced_user_profile
+      frontend.oauth.get_user_profile_v2
+    end
+
+    public
+
+    # Public SDK methods that use Frontend API internally
+    def entitlements(page_size: 10, starting_after: nil)
+      frontend_client.get_entitlements(page_size: page_size, starting_after: starting_after)
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch entitlements: #{e.message}")
+      raise KindeSdk::APIError, "Unable to fetch entitlements: #{e.message}"
+    end
+
+    def entitlement(key)
+      frontend_client.get_entitlement(key)
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch entitlement for #{key}: #{e.message}")
+      raise KindeSdk::APIError, "Unable to fetch entitlement: #{e.message}"
+    end
+
+    def has_entitlement?(feature_key)
+      entitlement_response = entitlement(feature_key)
+      entitlement_response&.data&.entitlement.present?
+    rescue StandardError => e
+      Rails.logger.error("Error checking entitlement for #{feature_key}: #{e.message}")
+      false
+    end
+
+    def user_feature_flags(page_size: 10, starting_after: nil)
+      frontend_client.get_feature_flags(page_size: page_size, starting_after: starting_after)
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch feature flags: #{e.message}")
+      raise KindeSdk::APIError, "Unable to fetch feature flags: #{e.message}"
+    end
+
+    def user_permissions(page_size: 10, starting_after: nil)
+      frontend_client.get_user_permissions(page_size: page_size, starting_after: starting_after)
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch permissions: #{e.message}")
+      raise KindeSdk::APIError, "Unable to fetch permissions: #{e.message}"
+    end
+
+    def user_properties(page_size: 10, starting_after: nil)
+      frontend_client.get_user_properties(page_size: page_size, starting_after: starting_after)
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch properties: #{e.message}")
+      raise KindeSdk::APIError, "Unable to fetch properties: #{e.message}"
+    end
+
+    def user_roles(page_size: 10, starting_after: nil)
+      frontend_client.get_user_roles(page_size: page_size, starting_after: starting_after)
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch roles: #{e.message}")
+      raise KindeSdk::APIError, "Unable to fetch roles: #{e.message}"
+    end
+
+    def portal_link(page: nil, return_url: nil)
+      frontend_client.get_portal_link(subnav: page, return_url: return_url)
+    rescue StandardError => e
+      Rails.logger.error("Failed to get portal link: #{e.message}")
+      raise KindeSdk::APIError, "Unable to get portal link: #{e.message}"
+    end
+
+    def enhanced_user_profile
+      frontend_client.get_user_profile_v2
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch enhanced profile: #{e.message}")
+      raise KindeSdk::APIError, "Unable to fetch enhanced profile: #{e.message}"
+    end
+
     private
 
     def init_instance_api(api_klass)
@@ -169,5 +279,68 @@ module KindeSdk
       end
       instance
     end
+
+    def frontend_client
+      @frontend_client ||= KindeSdk::Internal::FrontendClient.new(@token_store, KindeSdk.config.domain)
+    end
+  end
+end
+
+# Frontend Client class - Internal use only
+class FrontendClient
+  def initialize(api_client, token_store, auto_refresh_tokens)
+    @api_client = api_client
+    @token_store = token_store
+    @auto_refresh_tokens = auto_refresh_tokens
+  end
+
+  def billing
+    @billing_api ||= init_frontend_api(KindeApi::Frontend::BillingApi)
+  end
+
+  def feature_flags
+    @feature_flags_api ||= init_frontend_api(KindeApi::Frontend::FeatureFlagsApi)
+  end
+
+  def oauth
+    @oauth_api ||= init_frontend_api(KindeApi::Frontend::OAuthApi)
+  end
+
+  def permissions
+    @permissions_api ||= init_frontend_api(KindeApi::Frontend::PermissionsApi)
+  end
+
+  def properties
+    @properties_api ||= init_frontend_api(KindeApi::Frontend::PropertiesApi)
+  end
+
+  def roles
+    @roles_api ||= init_frontend_api(KindeApi::Frontend::RolesApi)
+  end
+
+  def self_serve_portal
+    @self_serve_portal_api ||= init_frontend_api(KindeApi::Frontend::SelfServePortalApi)
+  end
+
+  private
+
+  def init_frontend_api(api_class)
+    instance = api_class.new(@api_client)
+    
+    # Add auto-refresh capability to all methods
+    methods_to_enhance = instance.public_methods(false).reject { |m| m.to_s.start_with?("api_client") }
+    
+    methods_to_enhance.each do |method_name|
+      original = instance.method(method_name)
+      instance.define_singleton_method(method_name) do |*args, &block|
+        # Refresh token if needed and auto_refresh is enabled
+        if @auto_refresh_tokens && TokenManager.token_expired?(@token_store)
+          TokenManager.refresh_tokens(@token_store, Current.session)
+        end
+        original.call(*args, &block)
+      end
+    end
+    
+    instance
   end
 end

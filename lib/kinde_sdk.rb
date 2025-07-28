@@ -6,6 +6,7 @@ require "kinde_sdk/client/feature_flags"
 require "kinde_sdk/client/permissions"
 require "kinde_sdk/client"
 require "kinde_sdk/current"
+require "kinde_sdk/errors"
 require 'securerandom'
 require 'oauth2'
 require 'pkce_challenge'
@@ -254,4 +255,14 @@ module KindeSdk
     end
 
   end
+end
+
+# Add to lib/kinde_sdk.rb or create lib/kinde_sdk/errors.rb
+
+module KindeSdk
+  class Error < StandardError; end
+  class APIError < Error; end
+  class AuthenticationError < APIError; end
+  class AuthorizationError < APIError; end
+  class RateLimitError < APIError; end
 end
