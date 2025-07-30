@@ -97,6 +97,9 @@ module KindeSdk
           raise KindeSdk::AuthenticationError, "Invalid or expired token"
         when 403
           raise KindeSdk::AuthorizationError, "Insufficient permissions"
+        when 404
+          # For entitlements, return nil when not found (matches PHP SDK behavior)
+          nil
         when 429
           raise KindeSdk::RateLimitError, "Too many requests"
         else
