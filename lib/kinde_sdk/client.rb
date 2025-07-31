@@ -158,39 +158,6 @@ module KindeSdk
       @frontend_client ||= KindeSdk::Internal::FrontendClient.new(@token_store, KindeSdk.config.domain)
     end
 
-    # Internal helper methods for Frontend API - NOT for public consumption
-    def get_user_entitlements(page_size: nil, starting_after: nil)
-      frontend.billing.get_entitlements(page_size: page_size, starting_after: starting_after)
-    end
-
-    def get_user_entitlement(key)
-      frontend.billing.get_entitlement(key: key)
-    end
-
-    def get_user_feature_flags(page_size: nil, starting_after: nil)
-      frontend.feature_flags.get_feature_flags(page_size: page_size, starting_after: starting_after)
-    end
-
-    def get_user_permissions(page_size: nil, starting_after: nil)
-      frontend.permissions.get_user_permissions(page_size: page_size, starting_after: starting_after)
-    end
-
-    def get_user_properties(page_size: nil, starting_after: nil)
-      frontend.properties.get_user_properties(page_size: page_size, starting_after: starting_after)
-    end
-
-    def get_user_roles(page_size: nil, starting_after: nil)
-      frontend.roles.get_user_roles(page_size: page_size, starting_after: starting_after)
-    end
-
-    def get_portal_link(subnav: nil, return_url: nil)
-      frontend.self_serve_portal.get_portal_link(subnav: subnav, return_url: return_url)
-    end
-
-    def get_enhanced_user_profile
-      frontend.oauth.get_user_profile_v2
-    end
-
     # Public SDK methods that use Frontend API internally
     
     # Get entitlements for the authenticated user with pagination support.
@@ -389,39 +356,6 @@ module KindeSdk
     end
 
     private
-
-    # Internal helper methods for Frontend API - NOT for public consumption
-    def get_user_entitlements(page_size: nil, starting_after: nil)
-      frontend.billing.get_entitlements(page_size: page_size, starting_after: starting_after)
-    end
-
-    def get_user_entitlement(key)
-      frontend.billing.get_entitlement(key: key)
-    end
-
-    def get_user_feature_flags(page_size: nil, starting_after: nil)
-      frontend.feature_flags.get_feature_flags(page_size: page_size, starting_after: starting_after)
-    end
-
-    def get_user_permissions(page_size: nil, starting_after: nil)
-      frontend.permissions.get_user_permissions(page_size: page_size, starting_after: starting_after)
-    end
-
-    def get_user_properties(page_size: nil, starting_after: nil)
-      frontend.properties.get_user_properties(page_size: page_size, starting_after: starting_after)
-    end
-
-    def get_user_roles(page_size: nil, starting_after: nil)
-      frontend.roles.get_user_roles(page_size: page_size, starting_after: starting_after)
-    end
-
-    def get_portal_link(subnav: nil, return_url: nil)
-      frontend.self_serve_portal.get_portal_link(subnav: subnav, return_url: return_url)
-    end
-
-    def get_enhanced_user_profile
-      frontend.oauth.get_user_profile_v2
-    end
 
     # Generic pagination helper for all paginated API calls
     #
