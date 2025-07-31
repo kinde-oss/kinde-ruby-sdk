@@ -218,6 +218,13 @@ module KindeSdk
     # Checks state existence, matches returned state with stored state, and validates expiration
     # @return [void]
     def validate_state
+      
+      error_param = params[:error]
+      if error_param.present?
+        if error_param.downcase == "login_link_expired"
+          return
+        end
+      end
       # Check if nonce and state exist in session
       unless session[:auth_state]
         # If no session state but we have a code, check if this could be a reauth scenario
