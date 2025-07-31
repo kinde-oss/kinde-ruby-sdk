@@ -17,7 +17,12 @@ require 'jwt'
 require 'openssl'
 require 'base64'
 
+
+
 module KindeSdk
+
+
+  
   class << self
     attr_accessor :config
 

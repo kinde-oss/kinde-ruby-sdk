@@ -155,12 +155,10 @@ module KindeSdk
     # Frontend API access - Internal use only
     # Uses user access tokens instead of M2M tokens
     def frontend
-      @frontend_client ||= FrontendClient.new(@kinde_api_client, @token_store, @auto_refresh_tokens)
+      @frontend_client ||= KindeSdk::Internal::FrontendClient.new(@token_store, KindeSdk.config.domain)
     end
 
     # Internal helper methods for Frontend API - NOT for public consumption
-    private
-
     def get_user_entitlements(page_size: nil, starting_after: nil)
       frontend.billing.get_entitlements(page_size: page_size, starting_after: starting_after)
     end
@@ -192,8 +190,6 @@ module KindeSdk
     def get_enhanced_user_profile
       frontend.oauth.get_user_profile_v2
     end
-
-    public
 
     # Public SDK methods that use Frontend API internally
     
@@ -431,84 +427,6 @@ module KindeSdk
 
     def frontend_client
       @frontend_client ||= KindeSdk::Internal::FrontendClient.new(@token_store, KindeSdk.config.domain)
-    end
-  end
-end
-
-# Frontend Client class - Internal use only
-class FrontendClient
-  def initialize(api_client, token_store, auto_refresh_tokens)
-    @api_client = api_client
-    @token_store = token_store
-    @auto_refresh_tokens = auto_refresh_tokens
-  end
-
-  def billing
-    @billing_api ||= init_frontend_api(KindeApi::Frontend::BillingApi)
-  end
-
-  def feature_flags
-    @feature_flags_api ||= init_frontend_api(KindeApi::Frontend::FeatureFlagsApi)
-  end
-
-  def oauth
-    @oauth_api ||= init_frontend_api(KindeApi::Frontend::OAuthApi)
-  end
-
-  def permissions
-    @permissions_api ||= init_frontend_api(KindeApi::Frontend::PermissionsApi)
-  end
-
-  def properties
-    @properties_api ||= init_frontend_api(KindeApi::Frontend::PropertiesApi)
-  end
-
-  def roles
-    @roles_api ||= init_frontend_api(KindeApi::Frontend::RolesApi)
-  end
-
-  def self_serve_portal
-    @self_serve_portal_api ||= init_frontend_api(KindeApi::Frontend::SelfServePortalApi)
-  end
-
-  private
-
-  def init_frontend_api(api_class)
-    instance = api_class.new(@api_client)
-    
-    # Add auto-refresh capability to all methods
-    methods_to_enhance = instance.public_methods(false).reject { |m| m.to_s.start_with?("api_client") }
-    
-    methods_to_enhance.each do |method_name|
-      original = instance.method(method_name)
-      instance.define_singleton_method(method_name) do |*args, &block|
-        # Refresh token if needed and auto_refresh is enabled
-        if @auto_refresh_tokens && TokenManager.token_expired?(@token_store)
-          TokenManager.refresh_tokens(@token_store, Current.session)
-        end
-        original.call(*args, &block)
-      end
-    end
-    
-    instance
-  end
-
-  def handle_response(response)
-    case response.code
-    when 200
-      # Parse as OpenStruct for easy access while keeping it internal
-      JSON.parse(response.body, object_class: OpenStruct)
-    when 401
-      raise KindeSdk::AuthenticationError, "Invalid or expired token"
-    when 403
-      raise KindeSdk::AuthorizationError, "Insufficient permissions"
-    when 404
-      # For entitlements, return nil when not found (matches PHP SDK behavior)
-      nil
-    when 429
-      raise KindeSdk::RateLimitError, "Too many requests"
-    else
-      raise KindeSdk::APIError, "API request failed with status #{response.code}: #{response.body}"
     end
   end
 end
