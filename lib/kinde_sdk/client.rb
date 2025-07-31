@@ -215,24 +215,7 @@ module KindeSdk
         raise KindeSdk::APIError, 'User must be authenticated to get entitlements'
       end
 
-      all_entitlements = []
-      starting_after = nil
-      
-      loop do
-        response = entitlements(page_size: 100, starting_after: starting_after)
-        current_entitlements = response&.data&.entitlements || []
-        all_entitlements.concat(current_entitlements)
-        
-        metadata = response&.metadata
-        has_more = metadata&.has_more
-        
-        break unless has_more && current_entitlements.any?
-        
-        starting_after = metadata&.next_page_starting_after
-        break unless starting_after
-      end
-      
-      all_entitlements
+      paginate_all_results('entitlements') { |starting_after| entitlements(page_size: 100, starting_after: starting_after) }
     rescue StandardError => e
       Rails.logger.error("Failed to fetch all entitlements: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch all entitlements: #{e.message}"
@@ -406,6 +389,65 @@ module KindeSdk
     end
 
     private
+
+    # Internal helper methods for Frontend API - NOT for public consumption
+    def get_user_entitlements(page_size: nil, starting_after: nil)
+      frontend.billing.get_entitlements(page_size: page_size, starting_after: starting_after)
+    end
+
+    def get_user_entitlement(key)
+      frontend.billing.get_entitlement(key: key)
+    end
+
+    def get_user_feature_flags(page_size: nil, starting_after: nil)
+      frontend.feature_flags.get_feature_flags(page_size: page_size, starting_after: starting_after)
+    end
+
+    def get_user_permissions(page_size: nil, starting_after: nil)
+      frontend.permissions.get_user_permissions(page_size: page_size, starting_after: starting_after)
+    end
+
+    def get_user_properties(page_size: nil, starting_after: nil)
+      frontend.properties.get_user_properties(page_size: page_size, starting_after: starting_after)
+    end
+
+    def get_user_roles(page_size: nil, starting_after: nil)
+      frontend.roles.get_user_roles(page_size: page_size, starting_after: starting_after)
+    end
+
+    def get_portal_link(subnav: nil, return_url: nil)
+      frontend.self_serve_portal.get_portal_link(subnav: subnav, return_url: return_url)
+    end
+
+    def get_enhanced_user_profile
+      frontend.oauth.get_user_profile_v2
+    end
+
+    # Generic pagination helper for all paginated API calls
+    #
+    # @param data_key [String] The key in the response data containing the array of results
+    # @param block [Proc] Block that makes the API call with starting_after parameter
+    # @return [Array] All paginated results
+    def paginate_all_results(data_key, &block)
+      all_results = []
+      starting_after = nil
+      
+      loop do
+        response = block.call(starting_after)
+        current_results = response&.data&.public_send(data_key) || []
+        all_results.concat(current_results)
+        
+        metadata = response&.metadata
+        has_more = metadata&.has_more
+        
+        break unless has_more && current_results.any?
+        
+        starting_after = metadata&.next_page_starting_after
+        break unless starting_after
+      end
+      
+      all_results
+    end
 
     def init_instance_api(api_klass)
       
