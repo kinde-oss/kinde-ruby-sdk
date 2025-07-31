@@ -30,7 +30,8 @@ module KindeSdk
       session[:auth_state] = {
         requested_at: Time.current.to_i,
         redirect_url: auth_data[:url],
-        supports_reauth: true  # Track that this auth flow supports reauth
+        # Only allow reauth-leniency when reauth_state was provided
+        supports_reauth: params[:reauth_state].present?
       }
       
       redirect_to auth_data[:url], allow_other_host: true
@@ -43,31 +44,7 @@ module KindeSdk
     # @return [void] Redirects to root path on success
     def callback
       # Handle reauth errors first
-      error_param = params[:error]
-      if error_param.present?
-        if error_param.downcase == "login_link_expired"
-          reauth_state = params[:reauth_state]
-          if reauth_state.present?
-            begin
-              decoded_auth_state = Base64.decode64(reauth_state)
-              reauth_data = JSON.parse(decoded_auth_state)
-              
-              if reauth_data.present?
-                # Build new auth URL with the stored parameters
-                auth_params = reauth_data.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')
-                auth_url = "#{request.base_url}#{KindeSdk::Engine.routes.url_helpers.auth_path}"
-                login_route = "#{auth_url}?#{auth_params}"
-                
-                redirect_to login_route, allow_other_host: true
-                return
-              end
-            rescue JSON::ParserError => e
-              handle_error("Unknown Error parsing reauth state", e)
-              return
-            end
-          end
-          return
-        end
+      if handle_reauth_error
         return
       end
 
@@ -155,6 +132,43 @@ module KindeSdk
   
     private
 
+    def handle_reauth_error
+      error_param = params[:error]
+      return false unless error_param.present?
+      
+      if error_param.downcase == "login_link_expired"
+        handle_expired_login_link
+      else
+        Rails.logger.warn("OAuth error received: #{error_param}")
+      end
+      
+      true
+    end
+
+    def handle_expired_login_link
+      reauth_state = params[:reauth_state]
+      return unless reauth_state.present?
+      
+      begin
+        decoded_auth_state = Base64.decode64(reauth_state)
+        reauth_data = JSON.parse(decoded_auth_state)
+        
+        if reauth_data.present?
+          redirect_to build_reauth_url(reauth_data), allow_other_host: true
+        end
+      rescue ArgumentError => e
+        handle_error("Invalid reauth state encoding", e)
+      rescue JSON::ParserError => e
+        handle_error("Invalid reauth state format", e)
+      end
+    end
+
+    def build_reauth_url(reauth_data)
+      auth_url = "#{request.base_url}#{KindeSdk::Engine.routes.url_helpers.auth_path}"
+      query_string = URI.encode_www_form(reauth_data)
+      "#{auth_url}?#{query_string}"
+    end
+
     # Fetches and validates tokens from the authorization code
     # @return [Hash] The validated tokens or nil if validation fails
     def fetch_and_validate_tokens
@@ -240,8 +254,8 @@ module KindeSdk
 
       # If this auth flow supports reauth, be more lenient with validation
       if session[:auth_state]["supports_reauth"]
-        # For reauth-enabled flows, just check that we have a code or valid state
-        return if params[:code].present? || params[:state].present?
+        # Only skip when both code _and_ state are supplied
+        return if params[:code].present? && params[:state].present?
       end
 
       # Normal state validation for non-reauth flows
