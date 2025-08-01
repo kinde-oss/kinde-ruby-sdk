@@ -401,8 +401,5 @@ module KindeSdk
       instance
     end
 
-    def frontend_client
-      @frontend_client ||= KindeSdk::Internal::FrontendClient.new(@token_store, KindeSdk.config.domain)
-    end
   end
 end

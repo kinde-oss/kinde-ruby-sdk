@@ -261,13 +261,3 @@ module KindeSdk
 
   end
 end
-
-# Add to lib/kinde_sdk.rb or create lib/kinde_sdk/errors.rb
-
-module KindeSdk
-  class Error < StandardError; end
-  class APIError < Error; end
-  class AuthenticationError < APIError; end
-  class AuthorizationError < APIError; end
-  class RateLimitError < APIError; end
-end
