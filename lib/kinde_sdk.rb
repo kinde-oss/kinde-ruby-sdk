@@ -6,6 +6,7 @@ require "kinde_sdk/client/feature_flags"
 require "kinde_sdk/client/permissions"
 require "kinde_sdk/client"
 require "kinde_sdk/current"
+require "kinde_sdk/errors"
 require 'securerandom'
 require 'oauth2'
 require 'pkce_challenge'
@@ -16,7 +17,12 @@ require 'jwt'
 require 'openssl'
 require 'base64'
 
+
+
 module KindeSdk
+
+
+  
   class << self
     attr_accessor :config
 

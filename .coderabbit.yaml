@@ -135,6 +135,7 @@ reviews:
     - '!**/*.tfstate'
     - '!**/*.tfstate.backup'
     - '!kinde_api/**'
+    - '!tmp-frontend/**'
   path_instructions: []
   abort_on_close: true
   disable_cache: false

@@ -2,9 +2,11 @@ require_relative '../../kinde_api/lib/kinde_api'
 require_relative 'token_manager'
 require_relative 'token_store'
 require_relative 'current'
+require_relative 'errors'
+require_relative 'internal/frontend_client'
 
 module KindeSdk
-  # Constants for portal page navigation
+  # Constants for portal page navigation - matches PHP SDK exactly
   module PortalPage
     ORGANIZATION_DETAILS = 'organization_details'
     ORGANIZATION_MEMBERS = 'organization_members'
@@ -150,7 +152,236 @@ module KindeSdk
       oauth_api
     end
 
+    # Frontend API access - Internal use only
+    # Uses user access tokens instead of M2M tokens
+    def frontend
+      @frontend_client ||= KindeSdk::Internal::FrontendClient.new(@token_store, KindeSdk.config.domain)
+    end
+
+    # Public SDK methods that use Frontend API internally
+    
+    # Get entitlements for the authenticated user with pagination support.
+    #
+    # @param page_size [Integer] Number of results per page (default: 10)
+    # @param starting_after [String] The ID to start after for pagination
+    # @return [OpenStruct] Response containing entitlements data
+    # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
+    def entitlements(page_size: 10, starting_after: nil)
+      frontend.get_entitlements(page_size: page_size, starting_after: starting_after)
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch entitlements: #{e.message}")
+      raise KindeSdk::APIError, "Unable to fetch entitlements: #{e.message}"
+    end
+
+    # Get all entitlements for the authenticated user, handling pagination automatically.
+    #
+    # @return [Array] All entitlements
+    # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
+    def getAllEntitlements
+      unless token_store.bearer_token
+        raise KindeSdk::APIError, 'User must be authenticated to get entitlements'
+      end
+
+      paginate_all_results('entitlements') { |starting_after| entitlements(page_size: 100, starting_after: starting_after) }
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch all entitlements: #{e.message}")
+      raise KindeSdk::APIError, "Unable to fetch all entitlements: #{e.message}"
+    end
+
+    # Ruby-style alias for getAllEntitlements
+    alias_method :all_entitlements, :getAllEntitlements
+
+    # Get a specific entitlement by key.
+    #
+    # @param key [String] The entitlement key to retrieve
+    # @return [OpenStruct, nil] The entitlement response or nil if not found
+    # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
+    def entitlement(key)
+      frontend.get_entitlement(key)
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch entitlement for #{key}: #{e.message}")
+      raise KindeSdk::APIError, "Unable to fetch entitlement: #{e.message}"
+    end
+
+    # PHP SDK compatible alias for entitlement
+    #
+    # @param key [String] The entitlement key to retrieve
+    # @return [OpenStruct, nil] The entitlement response or nil if not found
+    # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
+    def getEntitlement(key)
+      # Find the specific entitlement from all entitlements (like PHP SDK does)
+      entitlements = getAllEntitlements
+      
+      entitlements.find { |entitlement| entitlement.feature_key == key }
+    rescue StandardError => e
+      Rails.logger.error("Failed to get entitlement for #{key}: #{e.message}")
+      raise KindeSdk::APIError, "Unable to get entitlement: #{e.message}"
+    end
+
+    # Check if the user has a specific entitlement.
+    #
+    # @param feature_key [String] The entitlement key to check
+    # @return [Boolean] True if the user has the entitlement, false otherwise
+    def has_entitlement?(feature_key)
+      entitlement_response = entitlement(feature_key)
+      entitlement_response&.data&.entitlement.present?
+    rescue StandardError => e
+      Rails.logger.error("Error checking entitlement for #{feature_key}: #{e.message}")
+      false
+    end
+
+    # PHP SDK compatible alias for has_entitlement?
+    #
+    # @param key [String] The entitlement key to check
+    # @return [Boolean] True if the user has the entitlement, false otherwise
+    def hasEntitlement(key)
+      getEntitlement(key) != nil
+    rescue StandardError => e
+      Rails.logger.error("Error checking entitlement for #{key}: #{e.message}")
+      false
+    end
+
+    # Get the maximum limit for a specific entitlement.
+    #
+    # @param key [String] The entitlement key
+    # @return [Integer, nil] The maximum limit or nil if not found
+    # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
+    def getEntitlementLimit(key)
+      entitlement = getEntitlement(key)
+      entitlement ? entitlement.entitlement_limit_max : nil
+    rescue StandardError => e
+      Rails.logger.error("Error getting entitlement limit for #{key}: #{e.message}")
+      nil
+    end
+
+    # Ruby-style alias for getEntitlementLimit
+    alias_method :entitlement_limit, :getEntitlementLimit
+
+    # Get user feature flags with pagination support.
+    #
+    # @param page_size [Integer] Number of results per page (default: 10)
+    # @param starting_after [String] The ID to start after for pagination
+    # @return [OpenStruct] Response containing feature flags data
+    # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
+    def user_feature_flags(page_size: 10, starting_after: nil)
+      frontend.get_feature_flags(page_size: page_size, starting_after: starting_after)
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch feature flags: #{e.message}")
+      raise KindeSdk::APIError, "Unable to fetch feature flags: #{e.message}"
+    end
+
+    # Get user permissions with pagination support.
+    #
+    # @param page_size [Integer] Number of results per page (default: 10)
+    # @param starting_after [String] The ID to start after for pagination
+    # @return [OpenStruct] Response containing permissions data
+    # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
+    def user_permissions(page_size: 10, starting_after: nil)
+      frontend.get_user_permissions(page_size: page_size, starting_after: starting_after)
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch permissions: #{e.message}")
+      raise KindeSdk::APIError, "Unable to fetch permissions: #{e.message}"
+    end
+
+    # Get user properties with pagination support.
+    #
+    # @param page_size [Integer] Number of results per page (default: 10)
+    # @param starting_after [String] The ID to start after for pagination
+    # @return [OpenStruct] Response containing properties data
+    # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
+    def user_properties(page_size: 10, starting_after: nil)
+      frontend.get_user_properties(page_size: page_size, starting_after: starting_after)
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch properties: #{e.message}")
+      raise KindeSdk::APIError, "Unable to fetch properties: #{e.message}"
+    end
+
+    # Get user roles with pagination support.
+    #
+    # @param page_size [Integer] Number of results per page (default: 10)
+    # @param starting_after [String] The ID to start after for pagination
+    # @return [OpenStruct] Response containing roles data
+    # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
+    def user_roles(page_size: 10, starting_after: nil)
+      frontend.get_user_roles(page_size: page_size, starting_after: starting_after)
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch roles: #{e.message}")
+      raise KindeSdk::APIError, "Unable to fetch roles: #{e.message}"
+    end
+
+    # Generate a URL to the user profile portal.
+    #
+    # @param return_url [String] URL to redirect to after completing the profile flow
+    # @param sub_nav [String] Sub-navigation section to display (defaults to 'profile')
+    # @return [Hash] A hash containing the generated URL
+    # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
+    def portal_link(return_url:, page: PortalPage::PROFILE)
+      frontend.get_portal_link(subnav: page, return_url: return_url)
+    rescue StandardError => e
+      Rails.logger.error("Failed to get portal link: #{e.message}")
+      raise KindeSdk::APIError, "Unable to get portal link: #{e.message}"
+    end
+
+    # PHP SDK compatible portal URL generation method.
+    #
+    # @param return_url [String] URL to redirect to after completing the profile flow
+    # @param sub_nav [String] Sub-navigation section to display (defaults to 'profile')
+    # @return [Hash] A hash containing the generated URL
+    # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
+    # @raise [ArgumentError] If the return_url is not an absolute URL
+    def generatePortalUrl(return_url, sub_nav = PortalPage::PROFILE)
+      unless token_store.bearer_token
+        raise KindeSdk::APIError, 'generatePortalUrl: Access Token not found'
+      end
+
+      unless return_url.start_with?('http')
+        raise ArgumentError, 'generatePortalUrl: returnUrl must be an absolute URL'
+      end
+
+      frontend.get_portal_link(subnav: sub_nav, return_url: return_url)
+    rescue StandardError => e
+      Rails.logger.error("Failed to generate portal URL: #{e.message}")
+      raise KindeSdk::APIError, "Unable to generate portal URL: #{e.message}"
+    end
+
+    # Get enhanced user profile information.
+    #
+    # @return [OpenStruct] Enhanced user profile data
+    # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
+    def enhanced_user_profile
+      frontend.get_user_profile_v2
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch enhanced profile: #{e.message}")
+      raise KindeSdk::APIError, "Unable to fetch enhanced profile: #{e.message}"
+    end
+
     private
+
+    # Generic pagination helper for all paginated API calls
+    #
+    # @param data_key [String] The key in the response data containing the array of results
+    # @param block [Proc] Block that makes the API call with starting_after parameter
+    # @return [Array] All paginated results
+    def paginate_all_results(data_key, &block)
+      all_results = []
+      starting_after = nil
+      
+      loop do
+        response = block.call(starting_after)
+        current_results = response&.data&.public_send(data_key) || []
+        all_results.concat(current_results)
+        
+        metadata = response&.metadata
+        has_more = metadata&.has_more
+        
+        break unless has_more && current_results.any?
+        
+        starting_after = metadata&.next_page_starting_after
+        break unless starting_after
+      end
+      
+      all_results
+    end
 
     def init_instance_api(api_klass)
       
@@ -169,5 +400,6 @@ module KindeSdk
       end
       instance
     end
+
   end
 end

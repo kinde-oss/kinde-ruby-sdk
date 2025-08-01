@@ -257,6 +257,34 @@ KindeApi.autoload :TimezonesApi, 'kinde_api/api/timezones_api'
 KindeApi.autoload :UsersApi, 'kinde_api/api/users_api'
 KindeApi.autoload :WebhooksApi, 'kinde_api/api/webhooks_api'
 
+# Frontend APIs - Following PHP pattern
+module KindeApi
+  module Frontend
+    # Frontend API classes
+    autoload :BillingApi, 'kinde_api/api/frontend/billing_api'
+    autoload :FeatureFlagsApi, 'kinde_api/api/frontend/feature_flags_api'
+    autoload :OAuthApi, 'kinde_api/api/frontend/o_auth_api'
+    autoload :PermissionsApi, 'kinde_api/api/frontend/permissions_api'
+    autoload :PropertiesApi, 'kinde_api/api/frontend/properties_api'
+    autoload :RolesApi, 'kinde_api/api/frontend/roles_api'
+    autoload :SelfServePortalApi, 'kinde_api/api/frontend/self_serve_portal_api'
+    
+    # Frontend models
+    autoload :Error, 'kinde_api/models/frontend/error'
+    autoload :ErrorResponse, 'kinde_api/models/frontend/error_response'
+    autoload :GetEntitlementResponse, 'kinde_api/models/frontend/get_entitlement_response'
+    autoload :GetEntitlementsResponse, 'kinde_api/models/frontend/get_entitlements_response'
+    autoload :GetFeatureFlagsResponse, 'kinde_api/models/frontend/get_feature_flags_response'
+    autoload :GetUserPermissionsResponse, 'kinde_api/models/frontend/get_user_permissions_response'
+    autoload :GetUserPropertiesResponse, 'kinde_api/models/frontend/get_user_properties_response'
+    autoload :GetUserRolesResponse, 'kinde_api/models/frontend/get_user_roles_response'
+    autoload :PortalLink, 'kinde_api/models/frontend/portal_link'
+    autoload :TokenErrorResponse, 'kinde_api/models/frontend/token_error_response'
+    autoload :TokenIntrospect, 'kinde_api/models/frontend/token_introspect'
+    autoload :UserProfileV2, 'kinde_api/models/frontend/user_profile_v2'
+  end
+end
+
 module KindeApi
   class << self
     # Customize default settings for the SDK using block.
