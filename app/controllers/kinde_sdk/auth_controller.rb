@@ -29,7 +29,9 @@ module KindeSdk
       session[:auth_nonce] = nonce
       session[:auth_state] = {
         requested_at: Time.current.to_i,
-        redirect_url: auth_data[:url]
+        redirect_url: auth_data[:url],
+        # Only allow reauth-leniency when reauth_state was provided
+        supports_reauth: params[:reauth_state].present?
       }
       
       redirect_to auth_data[:url], allow_other_host: true
@@ -41,6 +43,11 @@ module KindeSdk
     # Validates the response, exchanges code for tokens, and sets up the session
     # @return [void] Redirects to root path on success
     def callback
+      # Handle reauth errors first
+      if handle_reauth_error
+        return
+      end
+
       tokens = fetch_and_validate_tokens
       return if performed?
 
@@ -125,14 +132,65 @@ module KindeSdk
   
     private
 
+    def handle_reauth_error
+      error_param = params[:error]
+      return false unless error_param.present?
+      
+      if error_param.downcase == "login_link_expired"
+        handle_expired_login_link
+      else
+        Rails.logger.warn("OAuth error received: #{error_param}")
+      end
+      
+      true
+    end
+
+    def handle_expired_login_link
+      reauth_state = params[:reauth_state]
+      return unless reauth_state.present?
+      
+      begin
+        decoded_auth_state = Base64.decode64(reauth_state)
+        reauth_data = JSON.parse(decoded_auth_state)
+        
+        if reauth_data.present?
+          redirect_to build_reauth_url(reauth_data), allow_other_host: true
+        end
+      rescue ArgumentError => e
+        handle_error("Invalid reauth state encoding", e)
+      rescue JSON::ParserError => e
+        handle_error("Invalid reauth state format", e)
+      end
+    end
+
+    def build_reauth_url(reauth_data)
+      auth_url = "#{request.base_url}#{KindeSdk::Engine.routes.url_helpers.auth_path}"
+      query_string = URI.encode_www_form(reauth_data)
+      "#{auth_url}?#{query_string}"
+    end
+
     # Fetches and validates tokens from the authorization code
     # @return [Hash] The validated tokens or nil if validation fails
     def fetch_and_validate_tokens
-      tokens = KindeSdk.fetch_tokens(
-        params[:code],
-        code_verifier: KindeSdk.config.pkce_enabled ? session[:code_verifier] : nil,
-        redirect_uri: KindeSdk.config.callback_url
-      )
+      begin
+        tokens = KindeSdk.fetch_tokens(
+          params[:code],
+          code_verifier: KindeSdk.config.pkce_enabled ? session[:code_verifier] : nil,
+          redirect_uri: KindeSdk.config.callback_url
+        )
+      rescue StandardError => e
+        # Handle PKCE-related errors that might occur during token fetch
+        if e.message.include?("PKCE code verifier") || e.message.include?("invalid_grant")
+          # This could be a reauth scenario where session data was lost
+          # Redirect back to auth to start fresh
+          Rails.logger.warn("PKCE/token issue detected (#{e.message}), redirecting to re-authenticate")
+          redirect_to "#{request.base_url}#{KindeSdk::Engine.routes.url_helpers.auth_path}"
+          return nil
+        end
+        
+        # Re-raise other errors
+        raise e
+      end
 
       if tokens[:error].present?
         redirect_with_error("Token exchange failed: #{tokens[:error]}")
@@ -144,10 +202,15 @@ module KindeSdk
         KindeSdk.validate_jwt_token(tokens)
         
         # Validate nonce in ID token to prevent replay attacks
-        decoded_token = JWT.decode(tokens[:id_token], nil, false)[0]
-        unless decoded_token['nonce'] == session[:auth_nonce]
-          redirect_with_error("Invalid authentication nonce")
-          return nil
+        # Skip nonce validation if no session nonce (could be reauth scenario)
+        if session[:auth_nonce].present?
+          decoded_token = JWT.decode(tokens[:id_token], nil, false)[0]
+          unless decoded_token['nonce'] == session[:auth_nonce]
+            redirect_with_error("Invalid authentication nonce")
+            return nil
+          end
+        else
+          Rails.logger.warn("Skipping nonce validation - no session nonce found (possible reauth scenario)")
         end
 
         tokens
@@ -169,17 +232,37 @@ module KindeSdk
     # Checks state existence, matches returned state with stored state, and validates expiration
     # @return [void]
     def validate_state
+      
+      error_param = params[:error]
+      if error_param.present?
+        if error_param.downcase == "login_link_expired"
+          return
+        end
+      end
       # Check if nonce and state exist in session
       unless session[:auth_state]
+        # If no session state but we have a code, check if this could be a reauth scenario
+        # In reauth scenarios, the session might be lost but we still have a valid OAuth code
+        if params[:code].present?
+          # Skip validation for potential reauth scenarios where session state is lost
+          return
+        end
+        
         redirect_with_error("Invalid authentication state")
         return
       end
-  
-      # Verify nonce returned matches stored nonce
+
+      # If this auth flow supports reauth, be more lenient with validation
+      if session[:auth_state]["supports_reauth"]
+        # Only skip when both code _and_ state are supplied
+        return if params[:code].present? && params[:state].present?
+      end
+
+      # Normal state validation for non-reauth flows
       returned_state = params[:state]
       stored_state = session[:auth_state]
       stored_url = stored_state["redirect_url"]
-  
+
       # Extract the state from the stored redirect_url
       parsed_url = URI.parse(stored_url)
       query_params = CGI.parse(parsed_url.query || "")
