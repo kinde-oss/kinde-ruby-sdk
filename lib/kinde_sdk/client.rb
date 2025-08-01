@@ -167,7 +167,7 @@ module KindeSdk
     # @return [OpenStruct] Response containing entitlements data
     # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
     def entitlements(page_size: 10, starting_after: nil)
-      frontend_client.get_entitlements(page_size: page_size, starting_after: starting_after)
+      frontend.get_entitlements(page_size: page_size, starting_after: starting_after)
     rescue StandardError => e
       Rails.logger.error("Failed to fetch entitlements: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch entitlements: #{e.message}"
@@ -197,7 +197,7 @@ module KindeSdk
     # @return [OpenStruct, nil] The entitlement response or nil if not found
     # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
     def entitlement(key)
-      frontend_client.get_entitlement(key)
+      frontend.get_entitlement(key)
     rescue StandardError => e
       Rails.logger.error("Failed to fetch entitlement for #{key}: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch entitlement: #{e.message}"
@@ -264,7 +264,7 @@ module KindeSdk
     # @return [OpenStruct] Response containing feature flags data
     # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
     def user_feature_flags(page_size: 10, starting_after: nil)
-      frontend_client.get_feature_flags(page_size: page_size, starting_after: starting_after)
+      frontend.get_feature_flags(page_size: page_size, starting_after: starting_after)
     rescue StandardError => e
       Rails.logger.error("Failed to fetch feature flags: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch feature flags: #{e.message}"
@@ -277,7 +277,7 @@ module KindeSdk
     # @return [OpenStruct] Response containing permissions data
     # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
     def user_permissions(page_size: 10, starting_after: nil)
-      frontend_client.get_user_permissions(page_size: page_size, starting_after: starting_after)
+      frontend.get_user_permissions(page_size: page_size, starting_after: starting_after)
     rescue StandardError => e
       Rails.logger.error("Failed to fetch permissions: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch permissions: #{e.message}"
@@ -290,7 +290,7 @@ module KindeSdk
     # @return [OpenStruct] Response containing properties data
     # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
     def user_properties(page_size: 10, starting_after: nil)
-      frontend_client.get_user_properties(page_size: page_size, starting_after: starting_after)
+      frontend.get_user_properties(page_size: page_size, starting_after: starting_after)
     rescue StandardError => e
       Rails.logger.error("Failed to fetch properties: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch properties: #{e.message}"
@@ -303,7 +303,7 @@ module KindeSdk
     # @return [OpenStruct] Response containing roles data
     # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
     def user_roles(page_size: 10, starting_after: nil)
-      frontend_client.get_user_roles(page_size: page_size, starting_after: starting_after)
+      frontend.get_user_roles(page_size: page_size, starting_after: starting_after)
     rescue StandardError => e
       Rails.logger.error("Failed to fetch roles: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch roles: #{e.message}"
@@ -316,7 +316,7 @@ module KindeSdk
     # @return [Hash] A hash containing the generated URL
     # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
     def portal_link(return_url:, page: PortalPage::PROFILE)
-      frontend_client.get_portal_link(subnav: page, return_url: return_url)
+      frontend.get_portal_link(subnav: page, return_url: return_url)
     rescue StandardError => e
       Rails.logger.error("Failed to get portal link: #{e.message}")
       raise KindeSdk::APIError, "Unable to get portal link: #{e.message}"
@@ -338,7 +338,7 @@ module KindeSdk
         raise ArgumentError, 'generatePortalUrl: returnUrl must be an absolute URL'
       end
 
-      frontend_client.get_portal_link(subnav: sub_nav, return_url: return_url)
+      frontend.get_portal_link(subnav: sub_nav, return_url: return_url)
     rescue StandardError => e
       Rails.logger.error("Failed to generate portal URL: #{e.message}")
       raise KindeSdk::APIError, "Unable to generate portal URL: #{e.message}"
@@ -349,7 +349,7 @@ module KindeSdk
     # @return [OpenStruct] Enhanced user profile data
     # @raise [KindeSdk::APIError] If the user is not authenticated or API request fails
     def enhanced_user_profile
-      frontend_client.get_user_profile_v2
+      frontend.get_user_profile_v2
     rescue StandardError => e
       Rails.logger.error("Failed to fetch enhanced profile: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch enhanced profile: #{e.message}"
