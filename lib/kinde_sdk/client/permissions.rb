@@ -4,7 +4,7 @@ module KindeSdk
       # Get all permissions for the authenticated user
       # Matches the JavaScript SDK API: getPermissions(options?)
       #
-      # @param options [Hash] Options for retrieving permissions
+      # @param options [Hash, Symbol] Options for retrieving permissions, or legacy token_type symbol
       # @option options [Boolean] :force_api (false) If true, calls the API to get fresh permissions,
       #   otherwise extracts from token claims. Useful for ensuring latest permissions but may incur additional API calls
       # @option options [Symbol] :token_type (:access_token) The token type to use for soft check (:access_token or :id_token)
@@ -17,7 +17,16 @@ module KindeSdk
       #   # Hard check (from API)
       #   client.get_permissions(force_api: true)
       #   # => { org_code: "org_123", permissions: ["read:users", "write:posts", "admin:all"] }
+      #
+      #   # Legacy backward compatibility
+      #   client.get_permissions(:id_token)
+      #   # => { org_code: "org_123", permissions: ["read:users", "write:posts"] }
       def get_permissions(options = {})
+        # Handle legacy positional argument for backward compatibility
+        if options.is_a?(Symbol)
+          options = { token_type: options }
+        end
+        
         # Extract options with defaults
         force_api = options[:force_api] || false
         token_type = options[:token_type] || :access_token
@@ -151,13 +160,29 @@ module KindeSdk
             permissions: permission_keys
           }
         rescue KindeSdk::APIError => e
-          Rails.logger.error("API Error getting permissions: #{e.message}")
+          log_error("API Error getting permissions: #{e.message}")
           # Graceful fallback to token-based permissions (matches JS behavior)
           get_permissions_from_token
         rescue StandardError => e
-          Rails.logger.error("Unexpected error getting permissions from API: #{e.message}")
+          log_error("Unexpected error getting permissions from API: #{e.message}")
           # Graceful fallback to token-based permissions
           get_permissions_from_token
+        end
+      end
+
+      # Configurable logging that works with or without Rails
+      #
+      # @param message [String] The error message to log
+      def log_error(message)
+        if defined?(Rails) && Rails.logger
+          Rails.logger.error(message)
+        elsif @logger
+          @logger.error(message)
+        elsif respond_to?(:logger) && logger
+          logger.error(message)
+        else
+          # Fallback to STDERR if no logger available
+          $stderr.puts "[KindeSdk] ERROR: #{message}"
         end
       end
     end
