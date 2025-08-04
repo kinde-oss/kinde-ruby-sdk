@@ -49,21 +49,7 @@ module KindeSdk
           return get_flag_legacy(name, options_or_opts, flag_type)
         end
 
-        # New API-style call: get_flag(name, options)
-        flags = get_flags(options_or_opts)
-        flag = flags.find { |f| (f[:key] || f['key']) == name }
-        
-        if flag
-          {
-            code: flag[:key] || flag['key'],
-            type: flag[:type] || flag['type'],
-            value: flag[:value] || flag['value'],
-            is_default: false
-          }
-        else
-          # Return nil to match JS SDK behavior when flag not found
-          nil
-        end
+        get_flag_new_api(name, options_or_opts)
       end
 
       # Check if user has specific feature flags
@@ -77,16 +63,7 @@ module KindeSdk
         flags = get_flags(options)
         flag_conditions_array = Array(flag_conditions)
         
-        flag_conditions_array.all? do |condition|
-          if condition.is_a?(Hash) && condition.key?(:flag) && condition.key?(:value)
-            # Custom condition with specific value
-            flag = flags.find { |f| (f[:key] || f['key']) == condition[:flag] }
-            flag && (flag[:value] || flag['value']) == condition[:value]
-          else
-            # Simple existence check
-            flags.any? { |f| (f[:key] || f['key']) == condition.to_s }
-          end
-        end
+        flag_conditions_array.all? { |condition| check_flag_condition(condition, flags) }
       end
 
       # Legacy methods for backward compatibility
@@ -111,6 +88,75 @@ module KindeSdk
       alias_method :hasFeatureFlags, :has_feature_flags?
 
       private
+
+      # New API-style get_flag implementation
+      # Handles the modern get_flag(name, options) signature
+      #
+      # @param name [String] The flag name/key to retrieve
+      # @param options [Hash] Options for retrieving flags
+      # @return [Hash, nil] Flag object or nil if not found
+      def get_flag_new_api(name, options)
+        flags = get_flags(options)
+        flag = find_flag_by_key(flags, name)
+        
+        return nil unless flag
+        
+        {
+          code: get_flag_key(flag),
+          type: get_flag_type(flag),
+          value: get_flag_value(flag),
+          is_default: false
+        }
+      end
+
+      # Check a single flag condition against available flags
+      #
+      # @param condition [Hash, String] Flag condition to check
+      # @param flags [Array] Available flags to check against
+      # @return [Boolean] True if condition is met, false otherwise
+      def check_flag_condition(condition, flags)
+        if condition.is_a?(Hash) && condition.key?(:flag) && condition.key?(:value)
+          # Custom condition with specific value
+          flag = find_flag_by_key(flags, condition[:flag])
+          flag && get_flag_value(flag) == condition[:value]
+        else
+          # Simple existence check
+          !!find_flag_by_key(flags, condition.to_s)
+        end
+      end
+
+      # Find a flag by its key in the flags array
+      #
+      # @param flags [Array] Array of flag objects
+      # @param key [String] The key to search for
+      # @return [Hash, nil] Flag object if found, nil otherwise
+      def find_flag_by_key(flags, key)
+        flags.find { |f| get_flag_key(f) == key.to_s }
+      end
+
+      # Extract the key from a flag object (handles both symbol and string keys)
+      #
+      # @param flag [Hash] Flag object
+      # @return [String] The flag key
+      def get_flag_key(flag)
+        flag[:key] || flag['key']
+      end
+
+      # Extract the value from a flag object (handles both symbol and string keys)
+      #
+      # @param flag [Hash] Flag object
+      # @return [Object] The flag value
+      def get_flag_value(flag)
+        flag[:value] || flag['value']
+      end
+
+      # Extract the type from a flag object (handles both symbol and string keys)
+      #
+      # @param flag [Hash] Flag object
+      # @return [String] The flag type
+      def get_flag_type(flag)
+        flag[:type] || flag['type']
+      end
 
       # Legacy get_flag implementation for backward compatibility
       # Handles the 3-parameter signature: get_flag(name, opts, flag_type)
