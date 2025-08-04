@@ -37,18 +37,20 @@ module KindeSdk
       end
 
       # Get a specific feature flag
-      # Matches the JavaScript SDK API: getFlag(name, options?)
+      # Supports both new API-style calls and legacy 3-parameter calls
       #
       # @param name [String] The flag name/key to retrieve
-      # @param options [Hash] Options for retrieving flags (same as get_flags)
+      # @param options_or_opts [Hash] Options for retrieving flags OR legacy opts hash
+      # @param flag_type [String, nil] Legacy flag type parameter (for 3-param calls)
       # @return [Hash, nil] Flag object or nil if not found
-      def get_flag(name, options = {})
-        # For backward compatibility, support the legacy signature
-        if options.is_a?(Hash) && options.key?(:default_value) && !options.key?(:force_api)
-          return get_flag_legacy(name, options)
+      def get_flag(name, options_or_opts = {}, flag_type = nil)
+        # Handle legacy 3-parameter signature: get_flag(name, opts, flag_type)
+        if flag_type || (options_or_opts.is_a?(Hash) && options_or_opts.key?(:default_value) && !options_or_opts.key?(:force_api))
+          return get_flag_legacy(name, options_or_opts, flag_type)
         end
 
-        flags = get_flags(options)
+        # New API-style call: get_flag(name, options)
+        flags = get_flags(options_or_opts)
         flag = flags.find { |f| (f[:key] || f['key']) == name }
         
         if flag
@@ -111,6 +113,7 @@ module KindeSdk
       private
 
       # Legacy get_flag implementation for backward compatibility
+      # Handles the 3-parameter signature: get_flag(name, opts, flag_type)
       def get_flag_legacy(name, opts = {}, flag_type = nil)
         res = get_claim("feature_flags")&.dig(:value, name)
         return try_default_flag(flag_type, name, opts) unless res
