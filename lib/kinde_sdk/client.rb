@@ -4,6 +4,10 @@ require_relative 'token_store'
 require_relative 'current'
 require_relative 'errors'
 require_relative 'internal/frontend_client'
+require_relative 'client/feature_flags'
+require_relative 'client/permissions'
+require_relative 'client/roles'
+require_relative 'client/entitlements'
 
 module KindeSdk
   # Constants for portal page navigation - matches PHP SDK exactly
@@ -19,6 +23,8 @@ module KindeSdk
   class Client
     include FeatureFlags
     include Permissions
+    include Roles
+    include Entitlements
 
     attr_accessor :kinde_api_client, :auto_refresh_tokens, :token_store
 
