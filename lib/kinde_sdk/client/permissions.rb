@@ -113,6 +113,11 @@ module KindeSdk
           org_code = get_claim("x-hasura-org-code", token_type)&.dig(:value)
         end
 
+        # Log warning if no permissions found (helpful for debugging)
+        if permissions.empty?
+          log_warning("No permissions found in token. This may be expected if user has no permissions assigned.")
+        end
+
         {
           org_code: org_code,
           permissions: permissions
@@ -183,6 +188,18 @@ module KindeSdk
         else
           # Fallback to STDERR if no logger available
           $stderr.puts "[KindeSdk] ERROR: #{message}"
+        end
+      end
+
+      def log_warning(message)
+        if defined?(Rails) && Rails.logger
+          Rails.logger.warn(message)
+        elsif @logger
+          @logger.warn(message)
+        elsif respond_to?(:logger) && logger
+          logger.warn(message)
+        else
+          $stderr.puts "[KindeSdk] WARNING: #{message}"
         end
       end
     end
