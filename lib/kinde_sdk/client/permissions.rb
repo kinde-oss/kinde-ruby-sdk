@@ -27,8 +27,8 @@ module KindeSdk
           options = { token_type: options }
         end
         
-        # Extract options with defaults
-        force_api = options[:force_api] || false
+        # Extract options with defaults - use member variable if not overridden
+        force_api = options[:force_api] || @force_api || false
         token_type = options[:token_type] || :access_token
 
         if force_api
@@ -68,7 +68,7 @@ module KindeSdk
       #
       # @return [Hash] Hash containing org_code and permissions array
       def getPermissions
-        get_permissions(force_api: true)
+        get_permissions(force_api: @force_api || true)
       end
 
       # Get all permissions with automatic pagination (hard check)
@@ -76,7 +76,7 @@ module KindeSdk
       #
       # @return [Array] Array of permission keys
       def getAllPermissions
-        permissions_data = get_permissions(force_api: true)
+        permissions_data = get_permissions(force_api: @force_api || true)
         permissions_data[:permissions] || []
       end
 

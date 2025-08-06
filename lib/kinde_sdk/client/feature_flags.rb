@@ -23,8 +23,8 @@ module KindeSdk
           options = { token_type: options }
         end
         
-        # Extract options with defaults
-        force_api = options[:force_api] || false
+        # Extract options with defaults - use member variable if not overridden
+        force_api = options[:force_api] || @force_api || false
         token_type = options[:token_type] || :access_token
 
         if force_api
@@ -81,7 +81,7 @@ module KindeSdk
 
       # PHP SDK compatible alias
       def getFlags
-        get_flags(force_api: true)
+        get_flags(force_api: @force_api || true)
       end
 
       # JavaScript SDK compatible alias

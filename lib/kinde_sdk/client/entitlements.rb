@@ -9,7 +9,8 @@ module KindeSdk
         #   otherwise uses existing getAllEntitlements method
         # @return [Array] Array of entitlement objects
         def get_entitlements(options = {})
-          force_api = options[:force_api] || false
+          # Use member variable if not overridden in options
+          force_api = options[:force_api] || @force_api || false
           
           if force_api
             # Always use API for entitlements (they don't exist in tokens)

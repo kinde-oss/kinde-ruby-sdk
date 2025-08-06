@@ -24,8 +24,8 @@ module KindeSdk
           options = { token_type: options }
         end
         
-        # Extract options with defaults
-        force_api = options[:force_api] || false
+        # Extract options with defaults - use member variable if not overridden
+        force_api = options[:force_api] || @force_api || false
         token_type = options[:token_type] || :access_token
 
         # Smart fallback logic matching js-utils exactly
@@ -70,7 +70,7 @@ module KindeSdk
       #
       # @return [Array] Array of role objects
       def getRoles
-        get_roles(force_api: true)
+        get_roles(force_api: @force_api || true)
       end
 
       # JavaScript SDK compatible alias

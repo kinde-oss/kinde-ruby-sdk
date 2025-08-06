@@ -26,12 +26,13 @@ module KindeSdk
     include Roles
     include Entitlements
 
-    attr_accessor :kinde_api_client, :auto_refresh_tokens, :token_store
+    attr_accessor :kinde_api_client, :auto_refresh_tokens, :token_store, :force_api
 
-    def initialize(sdk_api_client, tokens_hash, auto_refresh_tokens)
+    def initialize(sdk_api_client, tokens_hash, auto_refresh_tokens, force_api = false)
       @kinde_api_client = sdk_api_client
       @auto_refresh_tokens = auto_refresh_tokens
       @token_store = TokenManager.create_store(tokens_hash)
+      @force_api = force_api
 
       # refresh the token if it's expired and auto_refresh_tokens is enabled
       refresh_token if auto_refresh_tokens && TokenManager.token_expired?(@token_store)
