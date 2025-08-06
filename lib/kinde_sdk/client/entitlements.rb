@@ -9,16 +9,9 @@ module KindeSdk
         #   otherwise uses existing getAllEntitlements method
         # @return [Array] Array of entitlement objects
         def get_entitlements(options = {})
-          # Use member variable if not overridden in options
-          force_api = options[:force_api] || @force_api || false
-          
-          if force_api
-            # Always use API for entitlements (they don't exist in tokens)
-            getAllEntitlements
-          else
-            # For entitlements, we always need to use API since they're not in tokens
-            getAllEntitlements
-          end
+          # Entitlements are always fetched from API (they don't exist in tokens)
+          # The options parameter is kept for consistency with other methods
+          getAllEntitlements
         end
   
         # Check if user has billing entitlements
