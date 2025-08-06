@@ -20,6 +20,7 @@ module KindeSdk
     attr_accessor :oauth_client
     attr_accessor :pkce_enabled
     attr_accessor :auto_refresh_tokens
+    attr_accessor :force_api
 
     def initialize
       @authorize_url = '/oauth2/auth'
@@ -32,6 +33,7 @@ module KindeSdk
       @scope = 'openid offline email profile'
       @pkce_enabled = true
       @auto_refresh_tokens = true
+      @force_api = false
 
       yield(self) if block_given?
     end

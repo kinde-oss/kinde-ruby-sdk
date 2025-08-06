@@ -117,9 +117,9 @@ module KindeSdk
     #  "token_type"=>"bearer"}
     #
     # @return [KindeSdk::Client]
-    def client(tokens_hash, auto_refresh_tokens = @config.auto_refresh_tokens)
+    def client(tokens_hash, auto_refresh_tokens = @config.auto_refresh_tokens, force_api = @config.force_api)
       sdk_api_client = api_client(tokens_hash[:access_token] || tokens_hash["access_token"])
-      KindeSdk::Client.new(sdk_api_client, tokens_hash, auto_refresh_tokens)
+      KindeSdk::Client.new(sdk_api_client, tokens_hash, auto_refresh_tokens, force_api)
     end
 
     def logout_url(logout_url: @config.logout_url, domain: @config.domain)
