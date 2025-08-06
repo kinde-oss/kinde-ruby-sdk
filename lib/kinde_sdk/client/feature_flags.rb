@@ -81,7 +81,9 @@ module KindeSdk
 
       # PHP SDK compatible alias
       def getFlags
-        get_flags(force_api: @force_api || true)
+        # Use client's force_api setting, default to true for PHP SDK compatibility
+        force_api_setting = @force_api.nil? ? true : @force_api
+        get_flags(force_api: force_api_setting)
       end
 
       # JavaScript SDK compatible alias

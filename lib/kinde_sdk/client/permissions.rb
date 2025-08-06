@@ -68,7 +68,9 @@ module KindeSdk
       #
       # @return [Hash] Hash containing org_code and permissions array
       def getPermissions
-        get_permissions(force_api: @force_api || true)
+        # Use client's force_api setting, default to true for PHP SDK compatibility
+        force_api_setting = @force_api.nil? ? true : @force_api
+        get_permissions(force_api: force_api_setting)
       end
 
       # Get all permissions with automatic pagination (hard check)
@@ -76,7 +78,9 @@ module KindeSdk
       #
       # @return [Array] Array of permission keys
       def getAllPermissions
-        permissions_data = get_permissions(force_api: @force_api || true)
+        # Use client's force_api setting, default to true for PHP SDK compatibility
+        force_api_setting = @force_api.nil? ? true : @force_api
+        permissions_data = get_permissions(force_api: force_api_setting)
         permissions_data[:permissions] || []
       end
 
