@@ -4,6 +4,10 @@ require_relative 'token_store'
 require_relative 'current'
 require_relative 'errors'
 require_relative 'internal/frontend_client'
+require_relative 'client/feature_flags'
+require_relative 'client/permissions'
+require_relative 'client/roles'
+require_relative 'client/entitlements'
 
 module KindeSdk
   # Constants for portal page navigation - matches PHP SDK exactly
@@ -19,13 +23,16 @@ module KindeSdk
   class Client
     include FeatureFlags
     include Permissions
+    include Roles
+    include Entitlements
 
-    attr_accessor :kinde_api_client, :auto_refresh_tokens, :token_store
+    attr_accessor :kinde_api_client, :auto_refresh_tokens, :token_store, :force_api
 
-    def initialize(sdk_api_client, tokens_hash, auto_refresh_tokens)
+    def initialize(sdk_api_client, tokens_hash, auto_refresh_tokens, force_api = false)
       @kinde_api_client = sdk_api_client
       @auto_refresh_tokens = auto_refresh_tokens
       @token_store = TokenManager.create_store(tokens_hash)
+      @force_api = force_api
 
       # refresh the token if it's expired and auto_refresh_tokens is enabled
       refresh_token if auto_refresh_tokens && TokenManager.token_expired?(@token_store)
