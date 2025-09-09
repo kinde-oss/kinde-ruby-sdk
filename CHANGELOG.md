@@ -113,7 +113,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.6.6] - Previous Release
+## [1.6.6] - 2025-06-25
 
 ### Fixed
 - **Backward compatibility** for `get_user` method that was renamed to `get_user_profile_v2` in 1.6.5
