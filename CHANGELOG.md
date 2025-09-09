@@ -5,7 +5,7 @@ All notable changes to the Kinde Ruby SDK will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.7.0] - 2024-12-19
+## [1.7.0] - 2025-12-19
 
 ### Added
 
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JavaScript SDK compatible aliases: `hasBillingEntitlements`, `hasEntitlements`
 - Full integration with Kinde's entitlements system for feature access control
 
-#### Hardcheck (Force API) Functionality
+#### Hard check (Force API) Functionality
 - **New `force_api` configuration option** for controlling data retrieval method
 - **Soft check mode**: Extract user data from JWT token claims (faster, cached)
 - **Hard check mode**: Fetch fresh data from Kinde API (slower, always current)
