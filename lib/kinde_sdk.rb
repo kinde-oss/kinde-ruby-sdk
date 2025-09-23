@@ -11,6 +11,7 @@ require "kinde_sdk/ksp"
 require "kinde_sdk/storage/storage_enums"
 require "kinde_sdk/storage/base_storage"  
 require "kinde_sdk/storage/enhanced_storage"
+require "kinde_sdk/token_store_enhanced"
 require 'securerandom'
 require 'oauth2'
 require 'pkce_challenge'
