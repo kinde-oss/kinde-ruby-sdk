@@ -274,7 +274,7 @@ module KindeSdk
           return result
         end
         
-        key_exists = ENV['KINDE_KSP_KEY'] && !ENV['KINDE_KSP_KEY'].empty?
+        key_exists = !!(ENV['KINDE_KSP_KEY'] && !ENV['KINDE_KSP_KEY'].empty?)
         result[:key_existed] = key_exists
         
         enabled = enable

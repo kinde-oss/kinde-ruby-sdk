@@ -205,11 +205,14 @@ RSpec.describe KindeSdk::KSP::StorageWrapper do
   describe 'integration scenarios' do
     context 'with session-like storage' do
       let(:session_storage) do
-        storage = {}
-        storage.define_singleton_method(:set_item) { |key, value| storage[key] = value }
-        storage.define_singleton_method(:get_item) { |key, default = nil| storage[key] || default }
-        storage.define_singleton_method(:remove_item) { |key| storage.delete(key) }
-        storage.define_singleton_method(:clear) { storage.clear! }
+        storage_data = {}
+        storage = Object.new
+        storage.define_singleton_method(:set_item) { |key, value| storage_data[key] = value }
+        storage.define_singleton_method(:get_item) { |key, default = nil| storage_data[key] || default }
+        storage.define_singleton_method(:remove_item) { |key| storage_data.delete(key) }
+        storage.define_singleton_method(:clear) { storage_data.clear }
+        storage.define_singleton_method(:[]) { |key| storage_data[key] }
+        storage.define_singleton_method(:data) { storage_data }
         storage
       end
 
@@ -221,10 +224,14 @@ RSpec.describe KindeSdk::KSP::StorageWrapper do
         session_wrapper.set_item('refresh_token', 'secret_refresh_token_456')
         session_wrapper.set_item('user_id', 'user_789')
         
-        # Verify values are encrypted in storage
-        expect(session_storage['access_token']).not_to eq('secret_access_token_123')
-        expect(session_storage['refresh_token']).not_to eq('secret_refresh_token_456')
-        expect(session_storage['user_id']).not_to eq('user_789')
+        # Verify values are encrypted in storage (access raw storage data)
+        stored_access = session_storage.data['access_token']
+        stored_refresh = session_storage.data['refresh_token'] 
+        stored_user = session_storage.data['user_id']
+        
+        expect(stored_access).not_to eq('secret_access_token_123')
+        expect(stored_refresh).not_to eq('secret_refresh_token_456')
+        expect(stored_user).not_to eq('user_789')
         
         # Verify values are decrypted when retrieved
         expect(session_wrapper.get_item('access_token')).to eq('secret_access_token_123')
