@@ -304,11 +304,11 @@ module KindeSdk
       
       def check_requirements
         requirements = {
-          openssl: defined?(OpenSSL),
-          json: defined?(JSON),
-          securerandom: defined?(SecureRandom),
-          base64: defined?(Base64),
-          digest: defined?(Digest)
+          openssl: !!defined?(OpenSSL),
+          json: !!defined?(JSON),
+          securerandom: !!defined?(SecureRandom),
+          base64: !!defined?(Base64),
+          digest: !!defined?(Digest)
         }
         
         begin
@@ -339,21 +339,19 @@ module KindeSdk
           return validate_and_prepare_key(env_key)
         end
         
-        # Auto-generate if allowed and not in strict mode (matches PHP exactly)
-        if auto_generate && !@strict
+        # Auto-generate if allowed
+        if auto_generate
           new_key = generate_key
-          # Match PHP: putenv and $_ENV assignment
           begin
             ENV[env_var] = new_key
           rescue StandardError
             # Ignore ENV assignment errors
           end
-          log_warning("KSP: Auto-generated ephemeral key. For production, set #{env_var} in your environment.")
           return validate_and_prepare_key(new_key)
         end
         
-        # In strict mode, require explicit key
-        if auto_generate && @strict
+        # No key available and auto-generation disabled
+        if @strict
           raise RuntimeError, "No #{env_var} provided in strict mode"
         end
         
@@ -443,7 +441,11 @@ module KindeSdk
       
       def set_item(key, value)
         if value.is_a?(String)
-          value = KindeSdk::KSP.encrypt(value)
+          begin
+            value = KindeSdk::KSP.encrypt(value)
+          rescue StandardError
+            # Graceful fallback - store original value
+          end
         end
         @storage.set_item(key, value)
       end
@@ -451,7 +453,11 @@ module KindeSdk
       def get_item(key, default = nil)
         value = @storage.get_item(key, default)
         if value.is_a?(String) && value != default
-          value = KindeSdk::KSP.decrypt(value)
+          begin
+            value = KindeSdk::KSP.decrypt(value)
+          rescue StandardError
+            # Graceful fallback - return original value
+          end
         end
         value
       end

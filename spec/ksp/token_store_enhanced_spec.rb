@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'kinde_sdk/token_store_enhanced
 
 RSpec.describe KindeSdk::TokenStoreEnhanced do
   before do

@@ -15,11 +15,20 @@ module KindeSdk
     end
 
     def to_session
+      return {} unless @tokens
+      
       session_data = {
         access_token: @bearer_token,
         refresh_token: @tokens[:refresh_token],
         expires_at: @expires_at
       }
+      
+      # Include all other tokens beyond the basic ones
+      @tokens.each do |key, value|
+        unless [:access_token, :refresh_token, :expires_at].include?(key)
+          session_data[key] = value
+        end
+      end
       
       if defined?(KindeSdk::KSP) && KindeSdk::KSP.enabled?
         encrypted_data = {}
@@ -40,12 +49,28 @@ module KindeSdk
         decrypted_data = {}
         session_data.each do |key, value|
           next unless value
-          decrypted_data[key] = KindeSdk::KSP.decrypt(value.to_s)
+          decrypted = KindeSdk::KSP.decrypt(value.to_s)
+          
+          # Convert back to appropriate data type
+          case key
+          when :expires_at, 'expires_at'
+            if decrypted.is_a?(String) && decrypted =~ /^\d+$/
+              decrypted_data[key] = decrypted.to_i
+            else
+              decrypted_data[key] = decrypted
+            end
+          else
+            decrypted_data[key] = decrypted
+          end
         end
         return new(decrypted_data)
       end
       
       new(session_data)
+    end
+
+    def inspect
+      "#<#{self.class.name}:0x#{object_id.to_s(16)} tokens=[FILTERED] bearer_token=[FILTERED] expires_at=#{@expires_at}>"
     end
   end
 end
