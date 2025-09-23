@@ -209,7 +209,7 @@ RSpec.describe KindeSdk::KSP::StorageWrapper do
         storage.define_singleton_method(:set_item) { |key, value| storage[key] = value }
         storage.define_singleton_method(:get_item) { |key, default = nil| storage[key] || default }
         storage.define_singleton_method(:remove_item) { |key| storage.delete(key) }
-        storage.define_singleton_method(:clear) { storage.clear }
+        storage.define_singleton_method(:clear) { storage.clear! }
         storage
       end
 

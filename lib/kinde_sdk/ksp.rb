@@ -73,6 +73,9 @@ module KindeSdk
           
           return true
           
+        rescue ArgumentError => e
+          # Re-raise ArgumentError for invalid keys (don't handle gracefully)
+          raise e
         rescue StandardError => e
           message = "KSP initialization failed: #{e.message}"
           handle_error(message, e)
@@ -261,7 +264,9 @@ module KindeSdk
           key_generated: false,
           key_existed: false,
           enabled: false,
-          status: {}
+          status: {},
+          error: nil,
+          key_fingerprint: nil
         }
         
         unless requirements[:all_passed]
@@ -278,7 +283,9 @@ module KindeSdk
         
         if enabled && @key_id
           result[:key_fingerprint] = @key_id
-          result[:key_generated] = !key_exists if enabled
+          result[:key_generated] = !key_exists
+        elsif !enabled
+          result[:key_generated] = false
         end
         
         result

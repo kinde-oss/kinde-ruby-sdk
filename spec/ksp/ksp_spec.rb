@@ -76,8 +76,7 @@ RSpec.describe KindeSdk::KSP do
       end
 
       it 'fails when no key available in strict mode' do
-        result = described_class.enable(auto_generate: false, strict: true)
-        expect(result).to be false
+        expect { described_class.enable(auto_generate: false, strict: true) }.to raise_error(RuntimeError)
         expect(described_class.enabled?).to be false
       end
     end

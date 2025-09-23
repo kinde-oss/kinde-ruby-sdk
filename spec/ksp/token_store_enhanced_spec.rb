@@ -154,17 +154,18 @@ RSpec.describe KindeSdk::TokenStoreEnhanced do
       end
 
       it 'handles partially encrypted session data' do
+        original_expires_at = Time.now.to_i + 3600
         encrypted_session = {
           access_token: KindeSdk::KSP.encrypt('access_token_123'),
           refresh_token: nil,  # Nil value
-          expires_at: KindeSdk::KSP.encrypt((Time.now.to_i + 3600).to_s)
+          expires_at: KindeSdk::KSP.encrypt(original_expires_at.to_s)
         }
         
         restored_store = described_class.from_session(encrypted_session)
         
         expect(restored_store.bearer_token).to eq('access_token_123')
         expect(restored_store.tokens[:refresh_token]).to be_nil
-        expect(restored_store.expires_at.to_i).to eq(encrypted_session[:expires_at].to_i)
+        expect(restored_store.expires_at).to eq(original_expires_at)
       end
 
       it 'handles corrupted encrypted data gracefully' do
