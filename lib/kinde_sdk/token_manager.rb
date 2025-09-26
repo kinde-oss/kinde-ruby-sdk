@@ -79,6 +79,20 @@ module KindeSdk
         return unless (session || Current.session) && store.tokens
         target_session = session || Current.session
         target_session[:kinde_token_store] = store.to_session
+        
+        # Apply session persistence configuration (matching Next.js SDK pattern)
+        apply_session_persistence(store.persistent, target_session)
+      end
+      
+      # Configure Rails session based on KSP persistence setting
+      # @param persistent [Boolean] Whether session should persist beyond browser close
+      # @param session [ActionDispatch::Session] Rails session object
+      def apply_session_persistence(persistent, session)
+        return unless session.respond_to?(:options) && session.options.is_a?(Hash)
+        
+        session.options[:expire_after] = persistent ? TokenStore::TWENTY_NINE_DAYS_SECONDS : nil
+      rescue StandardError => e
+        Rails.logger&.warn("KSP session configuration failed: #{e.message}")
       end
     end
   end
