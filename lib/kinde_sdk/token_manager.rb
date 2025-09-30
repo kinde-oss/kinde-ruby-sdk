@@ -80,7 +80,7 @@ module KindeSdk
         target_session = session || Current.session
         target_session[:kinde_token_store] = store.to_session
         
-        # Apply session persistence configuration (matching Next.js SDK pattern)
+        # Apply session persistence configuration
         apply_session_persistence(store.persistent, target_session)
       end
       

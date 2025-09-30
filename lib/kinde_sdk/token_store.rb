@@ -1,6 +1,6 @@
 module KindeSdk
   class TokenStore
-    # KSP session duration constants (matching other Kinde SDKs)
+    # KSP session duration constants
     TWENTY_NINE_DAYS_SECONDS = 2505600 # 29 days in seconds
     
     attr_reader :tokens, :bearer_token, :expires_at, :persistent
@@ -52,7 +52,6 @@ module KindeSdk
     private
     
     # Extract KSP persistence claim from JWT access token
-    # Implements same logic as TypeScript SDK: payload.ksp?.persistence ?? true
     # @param access_token [String] JWT access token
     # @return [Boolean] true for persistent sessions, false for session-only
     def extract_ksp_persistence(access_token)
