@@ -40,6 +40,68 @@ module KindeSdk
         end
       end
 
+      # Check if user has specific permissions
+      # Matches JavaScript SDK hasPermissions functionality
+      #
+      # @param permissions [Array<String, Hash>, String] Array of permission keys or permission condition objects, or single permission key
+      # @param options [Hash] Options for retrieving permissions (same as get_permissions)
+      # @option options [Boolean] :force_api (false) If true, calls the API to get fresh permissions
+      # @option options [Symbol] :token_type (:access_token) The token type to use for soft check
+      # @return [Boolean] True if user has all specified permissions, false otherwise
+      # @example
+      #   # Simple permission check
+      #   client.has_permissions?(['read:users', 'write:posts'])
+      #   # => true
+      #
+      #   # Single permission check  
+      #   client.has_permissions?('read:users')
+      #   # => true
+      #
+      #   # Complex condition check with custom logic
+      #   client.has_permissions?([
+      #     'read:users',
+      #     {
+      #       permission: 'admin:users',
+      #       condition: ->(context) { context[:org_code] == 'org_admin' }
+      #     }
+      #   ])
+      #   # => true
+      def has_permissions?(permissions, options = {})
+        return true if permissions.nil? || (permissions.respond_to?(:empty?) && permissions.empty?)
+        
+        begin
+          permissions_data = get_permissions(options)
+          permissions_array = Array(permissions)
+          user_permissions = permissions_data[:permissions] || permissions_data['permissions'] || []
+          org_code = permissions_data[:org_code] || permissions_data['org_code']
+          
+          permissions_array.all? do |permission|
+            if custom_permission_condition?(permission)
+              # Complex condition with custom logic
+              permission_key = permission[:permission] || permission['permission']
+              condition = permission[:condition] || permission['condition']
+              
+              matching_permission = user_permissions.find { |p| p == permission_key }
+              if matching_permission && condition
+                context = {
+                  permission_key: permission_key,
+                  org_code: org_code
+                }
+                condition.call(context)
+              else
+                false
+              end
+            else
+              # Simple string permission check
+              user_permissions.include?(permission.to_s)
+            end
+          end
+        rescue StandardError => e
+          log_error("Error checking permissions: #{e.message}")
+          false
+        end
+      end
+
       # Get a specific permission status
       #
       # @param permission [String] The permission key to check
@@ -84,7 +146,8 @@ module KindeSdk
         permissions_data[:permissions] || []
       end
 
-      # JavaScript SDK compatible alias
+      # JavaScript SDK compatible aliases
+      alias_method :hasPermissions, :has_permissions?
       alias_method :all_permissions, :getAllPermissions
 
       # Backward compatibility method - matches existing Ruby SDK API
@@ -93,6 +156,18 @@ module KindeSdk
       end
 
       private
+
+      # Check if a permission is a custom condition object
+      # Matches js-utils isCustomPermissionsCondition pattern
+      #
+      # @param permission [Object] The permission to check
+      # @return [Boolean] True if it's a custom condition
+      def custom_permission_condition?(permission)
+        permission.is_a?(Hash) && 
+        (permission.key?(:permission) || permission.key?('permission')) &&
+        (permission.key?(:condition) || permission.key?('condition')) &&
+        (permission[:condition]&.respond_to?(:call) || permission['condition']&.respond_to?(:call))
+      end
 
       # Get permissions from token claims (soft check)
       # Matches JavaScript logic exactly: token.permissions || token["x-hasura-permissions"] || []

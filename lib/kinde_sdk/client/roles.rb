@@ -45,19 +45,54 @@ module KindeSdk
       # Check if user has specific roles
       # Matches JavaScript SDK hasRoles functionality
       #
-      # @param role_keys [Array<String>, String] Array of role keys to check, or single role key
+      # @param role_keys [Array<String, Hash>, String] Array of role keys or role condition objects, or single role key
       # @param options [Hash] Options for retrieving roles (same as get_roles)
       # @return [Boolean] True if user has all specified roles, false otherwise
+      # @example
+      #   # Simple role check
+      #   client.has_roles?(['admin', 'user'])
+      #   # => true
+      #
+      #   # Single role check
+      #   client.has_roles?('admin')
+      #   # => true
+      #
+      #   # Complex condition check with custom logic
+      #   client.has_roles?([
+      #     'admin',
+      #     {
+      #       role: 'manager',
+      #       condition: ->(role_obj) { role_obj[:name] == 'Senior Manager' }
+      #     }
+      #   ])
+      #   # => true
       def has_roles?(role_keys, options = {})
         return true if role_keys.nil? || (role_keys.respond_to?(:empty?) && role_keys.empty?)
         
         begin
           user_roles = get_roles(options)
           role_keys_array = Array(role_keys)
-          user_role_keys = user_roles.map { |role| role[:key] || role['key'] }.compact
           
-          result = role_keys_array.all? { |role_key| user_role_keys.include?(role_key.to_s) }
-          log_debug("Role check for #{role_keys_array}: #{result} (user has: #{user_role_keys})")
+          result = role_keys_array.all? do |role|
+            if custom_role_condition?(role)
+              # Complex condition with custom logic
+              role_key = role[:role] || role['role']
+              condition = role[:condition] || role['condition']
+              
+              matching_role = user_roles.find { |r| (r[:key] || r['key']) == role_key }
+              if matching_role && condition
+                condition.call(matching_role)
+              else
+                false
+              end
+            else
+              # Simple string role check
+              user_role_keys = user_roles.map { |r| r[:key] || r['key'] }.compact
+              user_role_keys.include?(role.to_s)
+            end
+          end
+          
+          log_debug("Role check for #{role_keys_array}: #{result} (user has: #{user_roles.map { |r| r[:key] || r['key'] }})")
           result
         rescue StandardError => e
           log_error("Error checking roles: #{e.message}")
@@ -79,6 +114,18 @@ module KindeSdk
       alias_method :hasRoles, :has_roles?
 
       private
+
+      # Check if a role is a custom condition object
+      # Matches js-utils isCustomRolesCondition pattern
+      #
+      # @param role [Object] The role to check
+      # @return [Boolean] True if it's a custom condition
+      def custom_role_condition?(role)
+        role.is_a?(Hash) && 
+        (role.key?(:role) || role.key?('role')) &&
+        (role.key?(:condition) || role.key?('condition')) &&
+        (role[:condition]&.respond_to?(:call) || role['condition']&.respond_to?(:call))
+      end
 
       # Get roles from token claims (soft check)
       # Matches JavaScript logic: token.roles || token["x-hasura-roles"] || []

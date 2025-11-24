@@ -17,9 +17,23 @@ module KindeSdk
         # Check if user has billing entitlements
         # Matches the JavaScript SDK API: hasBillingEntitlements(params)
         #
-        # @param billing_entitlements [Array<String>] Array of billing entitlement price names to check
+        # @param billing_entitlements [Array<String, Hash>] Array of billing entitlement price names or entitlement condition objects to check
         # @param options [Hash] Options for retrieving entitlements
         # @return [Boolean] True if user has all specified billing entitlements, false otherwise
+        # @example
+        #   # Simple entitlement check
+        #   client.has_billing_entitlements?(['premium', 'pro'])
+        #   # => true
+        #
+        #   # Complex condition check with custom logic
+        #   client.has_billing_entitlements?([
+        #     'premium',
+        #     {
+        #       entitlement: 'api-access',
+        #       condition: ->(entitlement) { entitlement.usage_limit > 100 }
+        #     }
+        #   ])
+        #   # => true
         def has_billing_entitlements?(billing_entitlements, options = {})
           return true if billing_entitlements.nil? || billing_entitlements.empty?
           
@@ -27,12 +41,31 @@ module KindeSdk
             entitlements = get_entitlements(options)
             billing_entitlements_array = Array(billing_entitlements)
             
-            # Extract price names from entitlements (billing entitlements use price_name)
-            entitlement_price_names = entitlements.map do |ent|
-              ent.respond_to?(:price_name) ? ent.price_name : ent['price_name']
-            end.compact
-            
-            billing_entitlements_array.all? { |price_name| entitlement_price_names.include?(price_name) }
+            billing_entitlements_array.all? do |entitlement|
+              if custom_entitlement_condition?(entitlement)
+                # Complex condition with custom logic
+                entitlement_key = entitlement[:entitlement] || entitlement['entitlement']
+                condition = entitlement[:condition] || entitlement['condition']
+                
+                matching_entitlement = entitlements.find do |ent|
+                  price_name = ent.respond_to?(:price_name) ? ent.price_name : ent['price_name']
+                  price_name == entitlement_key
+                end
+                
+                if matching_entitlement && condition
+                  condition.call(matching_entitlement)
+                else
+                  false
+                end
+              else
+                # Simple string entitlement check
+                entitlement_price_names = entitlements.map do |ent|
+                  ent.respond_to?(:price_name) ? ent.price_name : ent['price_name']
+                end.compact
+                
+                entitlement_price_names.include?(entitlement)
+              end
+            end
           rescue StandardError => e
             log_error("Error checking billing entitlements: #{e.message}")
             false
@@ -68,6 +101,18 @@ module KindeSdk
         alias_method :hasEntitlements, :has_entitlements?
   
         private
+
+        # Check if an entitlement is a custom condition object
+        # Matches js-utils isCustomEntitlementCondition pattern
+        #
+        # @param entitlement [Object] The entitlement to check
+        # @return [Boolean] True if it's a custom condition
+        def custom_entitlement_condition?(entitlement)
+          entitlement.is_a?(Hash) && 
+          (entitlement.key?(:entitlement) || entitlement.key?('entitlement')) &&
+          (entitlement.key?(:condition) || entitlement.key?('condition')) &&
+          (entitlement[:condition]&.respond_to?(:call) || entitlement['condition']&.respond_to?(:call))
+        end
   
         # Configurable logging that works with or without Rails
         def log_error(message)
