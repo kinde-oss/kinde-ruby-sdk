@@ -20,8 +20,8 @@ require 'base64'
 
 
 module KindeSdk
-
-
+  # Initialize default configuration to prevent NoMethodError in specs
+  @config = Configuration.default
   
   class << self
     attr_accessor :config
@@ -117,9 +117,21 @@ module KindeSdk
     #  "token_type"=>"bearer"}
     #
     # @return [KindeSdk::Client]
-    def client(tokens_hash, auto_refresh_tokens = @config.auto_refresh_tokens, force_api = @config.force_api)
+    def client(tokens_hash, auto_refresh_tokens = nil, force_api = nil)
+      # Use safe config access with fallback to prevent NoMethodError in specs
+      cfg = @config || Configuration.default
+      auto_refresh_tokens ||= cfg.auto_refresh_tokens
+      force_api ||= cfg.force_api
+      
       sdk_api_client = api_client(tokens_hash[:access_token] || tokens_hash["access_token"])
-      KindeSdk::Client.new(sdk_api_client, tokens_hash, auto_refresh_tokens, force_api)
+      client_instance = KindeSdk::Client.new(sdk_api_client, tokens_hash, auto_refresh_tokens, force_api)
+      
+      # Apply KSP session configuration automatically
+      if Current.token_store && Current.session
+        TokenManager.send(:apply_session_persistence, Current.token_store.persistent, Current.session)
+      end
+      
+      client_instance
     end
 
     def logout_url(logout_url: @config.logout_url, domain: @config.domain)
@@ -209,6 +221,13 @@ module KindeSdk
           raise JWT::DecodeError, "Invalid #{key.to_s.capitalize.gsub('_', ' ')}"
         end
       end
+    end
+    
+    # Check if current session is configured for persistence
+    # @return [Boolean] true if session persists beyond browser close, false for session-only
+    def session_persistent?
+      return true unless Current.token_store # Default to persistent when no token store (secure default)
+      Current.token_store.persistent
     end
 
     private

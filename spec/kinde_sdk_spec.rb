@@ -270,6 +270,93 @@ RSpec.describe KindeSdk do
         client_without_session = described_class.client(tokens_hash)
         expect(KindeSdk::Current.session).to be_nil
       end
+
+      context "with KSP session persistence" do
+        let(:persistent_token_payload) do
+          hash_to_encode.merge({
+            "ksp" => { "persistence" => true }
+          })
+        end
+        let(:non_persistent_token_payload) do
+          hash_to_encode.merge({
+            "ksp" => { "persistence" => false }
+          })
+        end
+        let(:persistent_token) { JWT.encode(persistent_token_payload, jwk.signing_key, jwk[:alg], kid: jwk[:kid]) }
+        let(:non_persistent_token) { JWT.encode(non_persistent_token_payload, jwk.signing_key, jwk[:alg], kid: jwk[:kid]) }
+
+        it "applies session persistence configuration when creating client with persistent token" do
+          persistent_tokens_hash = { access_token: persistent_token, expires_at: expires_at, refresh_token: refresh_token }
+          
+          # Set up token store with persistent token
+          token_store = KindeSdk::TokenStore.new(persistent_tokens_hash)
+          KindeSdk::Current.token_store = token_store
+          
+          # Mock session options
+          session_options = {}
+          allow(mock_session).to receive(:respond_to?).and_return(true)
+          allow(mock_session).to receive(:options).and_return(session_options)
+          
+          # Expect TokenManager to apply session persistence
+          expect(KindeSdk::TokenManager).to receive(:send).with(
+            :apply_session_persistence, 
+            true, 
+            mock_session
+          )
+          
+          described_class.client(persistent_tokens_hash)
+        end
+
+        it "applies session persistence configuration when creating client with non-persistent token" do
+          non_persistent_tokens_hash = { access_token: non_persistent_token, expires_at: expires_at, refresh_token: refresh_token }
+          
+          # Set up token store with non-persistent token
+          token_store = KindeSdk::TokenStore.new(non_persistent_tokens_hash)
+          KindeSdk::Current.token_store = token_store
+          
+          # Mock session options
+          session_options = {}
+          allow(mock_session).to receive(:respond_to?).and_return(true)
+          allow(mock_session).to receive(:options).and_return(session_options)
+          
+          # Expect TokenManager to apply session persistence
+          expect(KindeSdk::TokenManager).to receive(:send).with(
+            :apply_session_persistence, 
+            false, 
+            mock_session
+          )
+          
+          described_class.client(non_persistent_tokens_hash)
+        end
+
+        it "skips session persistence when no token store present" do
+          KindeSdk::Current.token_store = nil
+          
+          # Should not call apply_session_persistence when no token store
+          expect(KindeSdk::TokenManager).not_to receive(:send).with(
+            :apply_session_persistence, 
+            anything, 
+            anything
+          )
+          
+          described_class.client(tokens_hash)
+        end
+
+        it "skips session persistence when no session present" do
+          KindeSdk::Current.clear_session
+          token_store = KindeSdk::TokenStore.new(tokens_hash)
+          KindeSdk::Current.token_store = token_store
+          
+          # Should not call apply_session_persistence when no session
+          expect(KindeSdk::TokenManager).not_to receive(:send).with(
+            :apply_session_persistence, 
+            anything, 
+            anything
+          )
+          
+          described_class.client(tokens_hash)
+        end
+      end
     end
 
     context "with expiration check" do
