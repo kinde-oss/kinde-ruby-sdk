@@ -55,6 +55,13 @@ module KindeSdk
         scope: @config.scope,
         supports_reauth: "true"
       }.merge(**kwargs)
+
+      if params[:invitation_code].is_a?(String) && !params[:invitation_code].strip.empty?
+        params[:invitation_code] = params[:invitation_code].strip
+        params[:is_invitation] = "true"
+      else
+        params.delete(:invitation_code)
+      end
       return { url: @config.oauth_client(
         client_id: client_id,
         client_secret: client_secret,
