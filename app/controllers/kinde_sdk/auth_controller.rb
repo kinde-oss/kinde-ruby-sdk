@@ -20,9 +20,17 @@ module KindeSdk
     def auth
       # Generate a secure random nonce for CSRF protection
       nonce = SecureRandom.urlsafe_base64(16)
-      
+
       # Get authorization URL and PKCE code verifier from SDK
-      auth_data = KindeSdk.auth_url(nonce: nonce)
+      auth_params = { nonce: nonce }
+
+      # Check for invitation_code in query parameters
+      # Validate to prevent injection and ensure it's a reasonable length
+      if params[:invitation_code].is_a?(String) && params[:invitation_code].strip.length > 0 && params[:invitation_code].length <= 255
+        auth_params[:invitation_code] = params[:invitation_code].strip
+      end
+
+      auth_data = KindeSdk.auth_url(**auth_params)
       
       # Store PKCE code verifier and nonce in session for validation
       session[:code_verifier] = auth_data[:code_verifier] if auth_data[:code_verifier].present?
