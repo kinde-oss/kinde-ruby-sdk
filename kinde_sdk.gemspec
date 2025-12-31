@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "oauth2", "~> 2.0"
   s.add_runtime_dependency "pkce_challenge"
   s.add_runtime_dependency "faraday-follow_redirects"
-  s.add_runtime_dependency "httparty", "~> 0.23.1"
+  s.add_runtime_dependency "httparty", "~> 0.24.0"
 
   s.add_dependency "rails", ">= 7.0.4"
   s.add_dependency "jwt", "~> 2.2"
