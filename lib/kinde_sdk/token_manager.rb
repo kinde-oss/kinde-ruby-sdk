@@ -20,7 +20,7 @@ module KindeSdk
       begin
         KindeSdk.validate_jwt_token(@tokens)
         @expires_at.to_i > 0 && (@expires_at <= Time.now.to_i)
-      rescue Exception => e
+      rescue StandardError => e
         log_error("Error checking token expiration: #{e.message}")
         true
       end

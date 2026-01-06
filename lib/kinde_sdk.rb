@@ -132,10 +132,16 @@ module KindeSdk
 
     def logout_url(logout_url: @config.logout_url, domain: @config.domain)
       query = logout_url ? URI.encode_www_form(redirect: logout_url) : nil
-      parsed = URI.parse(domain)
-      # Preserve the original scheme (default to https for security)
+      
+      # Handle domains without scheme by prepending https://
+      normalized_domain = domain.to_s
+      normalized_domain = "https://#{normalized_domain}" unless normalized_domain.match?(%r{\A\w+://})
+      
+      parsed = URI.parse(normalized_domain)
       scheme = parsed.scheme || 'https'
-      "#{scheme}://#{parsed.host}/logout#{query ? "?#{query}" : ''}"
+      host_with_port = parsed.port && ![80, 443].include?(parsed.port) ? "#{parsed.host}:#{parsed.port}" : parsed.host
+      
+      "#{scheme}://#{host_with_port}/logout#{query ? "?#{query}" : ''}"
     end
 
     def client_credentials_access(
