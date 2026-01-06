@@ -1,6 +1,7 @@
 module KindeSdk
     class Client
       module Entitlements
+        include KindeSdk::Logging
         # Get all entitlements for the authenticated user
         # Matches the JavaScript SDK API: getEntitlements(options?)
         #
@@ -66,21 +67,6 @@ module KindeSdk
         # JavaScript SDK compatible aliases
         alias_method :hasBillingEntitlements, :has_billing_entitlements?
         alias_method :hasEntitlements, :has_entitlements?
-  
-        private
-  
-        # Configurable logging that works with or without Rails
-        def log_error(message)
-          if defined?(Rails) && Rails.logger
-            Rails.logger.error(message)
-          elsif @logger
-            @logger.error(message)
-          elsif respond_to?(:logger) && logger
-            logger.error(message)
-          else
-            $stderr.puts "[KindeSdk] ERROR: #{message}"
-          end
-        end
       end
     end
   end

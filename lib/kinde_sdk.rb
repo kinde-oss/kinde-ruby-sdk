@@ -1,7 +1,15 @@
 require "logger"
-require "rails"
+
+# Rails is optional - SDK works in non-Rails Ruby applications
+begin
+  require "rails"
+rescue LoadError
+  # Rails not available, that's fine
+end
+
 require "kinde_sdk/version"
 require "kinde_sdk/configuration"
+require "kinde_sdk/logging"
 require "kinde_sdk/client/feature_flags"
 require "kinde_sdk/client/permissions"
 require "kinde_sdk/client"
@@ -124,8 +132,10 @@ module KindeSdk
 
     def logout_url(logout_url: @config.logout_url, domain: @config.domain)
       query = logout_url ? URI.encode_www_form(redirect: logout_url) : nil
-      host = URI::parse(domain).host
-      URI::HTTP.build(host: host, path: '/logout', query: query).to_s
+      parsed = URI.parse(domain)
+      # Preserve the original scheme (default to https for security)
+      scheme = parsed.scheme || 'https'
+      "#{scheme}://#{parsed.host}/logout#{query ? "?#{query}" : ''}"
     end
 
     def client_credentials_access(
@@ -160,7 +170,7 @@ module KindeSdk
           authorize_url: "#{domain}/oauth2/auth",
           token_url: "#{domain}/oauth2/token"), hash).expired?
       rescue JWT::DecodeError, OAuth2::Error => e
-        Rails.logger.error("Error checking token expiration: #{e.message}")
+        sdk_log_error("Error checking token expiration: #{e.message}")
         true
       end
     end
@@ -205,7 +215,7 @@ module KindeSdk
         begin
           jwt_validation(token, "#{@config.domain}#{@config.jwks_url}", @config.expected_issuer, @config.expected_audience)
         rescue JWT::DecodeError
-          Rails.logger.error("Invalid JWT token: #{key}")
+          sdk_log_error("Invalid JWT token: #{key}")
           raise JWT::DecodeError, "Invalid #{key.to_s.capitalize.gsub('_', ' ')}"
         end
       end
@@ -253,11 +263,21 @@ module KindeSdk
       payload, _header = JWT.decode(jwt_token, nil, true, algorithms: algorithms, jwks: jwks)
       { valid: true, payload: payload }
     rescue JWT::DecodeError => e
-      Rails.logger.error("Token validation failed: #{e.message}")
+      sdk_log_error("Token validation failed: #{e.message}")
       raise JWT::DecodeError, "Token validation failed: #{e.message}"
     rescue StandardError => e
-      Rails.logger.error("Unexpected error: #{e.message}")
+      sdk_log_error("Unexpected error: #{e.message}")
       raise StandardError, "Unexpected error: #{e.message}"
+    end
+
+    # Helper for logging in class methods (works with or without Rails)
+    def sdk_log_error(message)
+      formatted_message = "[KindeSdk] #{message}"
+      if defined?(Rails) && Rails.respond_to?(:logger) && Rails.logger
+        Rails.logger.error(formatted_message)
+      else
+        $stderr.puts formatted_message
+      end
     end
 
   end

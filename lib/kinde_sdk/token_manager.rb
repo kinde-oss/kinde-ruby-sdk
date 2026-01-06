@@ -1,5 +1,7 @@
 module KindeSdk
   class TokenManager
+    include Logging
+
     attr_reader :tokens, :bearer_token, :expires_at
 
     def initialize(tokens = nil)
@@ -19,7 +21,7 @@ module KindeSdk
         KindeSdk.validate_jwt_token(@tokens)
         @expires_at.to_i > 0 && (@expires_at <= Time.now.to_i)
       rescue Exception => e
-        Rails.logger.error("Error checking token expiration: #{e.message}")
+        log_error("Error checking token expiration: #{e.message}")
         true
       end
     end
@@ -71,7 +73,7 @@ module KindeSdk
       def safe_refresh(tokens)
         KindeSdk.refresh_token(tokens)
       rescue StandardError => e
-        Rails.logger.error("Token refresh failed: #{e.message}")
+        log_error("Token refresh failed: #{e.message}")
         nil
       end
 
@@ -80,6 +82,16 @@ module KindeSdk
         target_session = session || Current.session
         target_session[:kinde_token_store] = store.to_session
       end
+
+      # Helper for logging in class methods (works with or without Rails)
+      def log_error(message)
+        formatted_message = "[KindeSdk::TokenManager] #{message}"
+        if defined?(Rails) && Rails.respond_to?(:logger) && Rails.logger
+          Rails.logger.error(formatted_message)
+        else
+          $stderr.puts formatted_message
+        end
+      end
     end
   end
-end 
+end
