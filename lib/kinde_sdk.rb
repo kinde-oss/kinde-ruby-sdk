@@ -131,13 +131,17 @@ module KindeSdk
     end
 
     def logout_url(logout_url: @config.logout_url, domain: @config.domain)
+      raise ArgumentError, "domain is required for logout_url" if domain.nil? || domain.to_s.strip.empty?
+      
       query = logout_url ? URI.encode_www_form(redirect: logout_url) : nil
       
       # Handle domains without scheme by prepending https://
-      normalized_domain = domain.to_s
+      normalized_domain = domain.to_s.strip
       normalized_domain = "https://#{normalized_domain}" unless normalized_domain.match?(%r{\A\w+://})
       
       parsed = URI.parse(normalized_domain)
+      raise ArgumentError, "invalid domain format: #{domain}" if parsed.host.nil? || parsed.host.empty?
+      
       scheme = parsed.scheme || 'https'
       host_with_port = parsed.port && ![80, 443].include?(parsed.port) ? "#{parsed.host}:#{parsed.port}" : parsed.host
       
