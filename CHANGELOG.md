@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - **Updated httparty dependency** to address [CVE-2024-22049](https://github.com/jnunemaker/httparty/security/advisories/GHSA-hm5p-x4rq-38w4) (SSRF vulnerability in `base_uri`)
 
+---
+
 ## [1.7.0] - 2025-09-09
 
 ### Added
