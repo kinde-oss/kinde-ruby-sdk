@@ -21,6 +21,7 @@ module KindeSdk
   end
 
   class Client
+    include Logging
     include FeatureFlags
     include Permissions
     include Roles
@@ -120,7 +121,7 @@ module KindeSdk
       begin
         { url: URI.parse(result['url']) }
       rescue URI::InvalidURIError => e
-        Rails.logger.error(e)
+        log_error(e.message)
         raise StandardError, "Invalid URL format received from API: #{result['url']}"
       end
     end
@@ -176,7 +177,7 @@ module KindeSdk
     def entitlements(page_size: 10, starting_after: nil)
       frontend.get_entitlements(page_size: page_size, starting_after: starting_after)
     rescue StandardError => e
-      Rails.logger.error("Failed to fetch entitlements: #{e.message}")
+      log_error("Failed to fetch entitlements: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch entitlements: #{e.message}"
     end
 
@@ -191,7 +192,7 @@ module KindeSdk
 
       paginate_all_results('entitlements') { |starting_after| entitlements(page_size: 100, starting_after: starting_after) }
     rescue StandardError => e
-      Rails.logger.error("Failed to fetch all entitlements: #{e.message}")
+      log_error("Failed to fetch all entitlements: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch all entitlements: #{e.message}"
     end
 
@@ -206,7 +207,7 @@ module KindeSdk
     def entitlement(key)
       frontend.get_entitlement(key)
     rescue StandardError => e
-      Rails.logger.error("Failed to fetch entitlement for #{key}: #{e.message}")
+      log_error("Failed to fetch entitlement for #{key}: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch entitlement: #{e.message}"
     end
 
@@ -221,7 +222,7 @@ module KindeSdk
       
       entitlements.find { |entitlement| entitlement.feature_key == key }
     rescue StandardError => e
-      Rails.logger.error("Failed to get entitlement for #{key}: #{e.message}")
+      log_error("Failed to get entitlement for #{key}: #{e.message}")
       raise KindeSdk::APIError, "Unable to get entitlement: #{e.message}"
     end
 
@@ -231,9 +232,9 @@ module KindeSdk
     # @return [Boolean] True if the user has the entitlement, false otherwise
     def has_entitlement?(feature_key)
       entitlement_response = entitlement(feature_key)
-      entitlement_response&.data&.entitlement.present?
+      !entitlement_response&.data&.entitlement.nil?
     rescue StandardError => e
-      Rails.logger.error("Error checking entitlement for #{feature_key}: #{e.message}")
+      log_error("Error checking entitlement for #{feature_key}: #{e.message}")
       false
     end
 
@@ -244,7 +245,7 @@ module KindeSdk
     def hasEntitlement(key)
       getEntitlement(key) != nil
     rescue StandardError => e
-      Rails.logger.error("Error checking entitlement for #{key}: #{e.message}")
+      log_error("Error checking entitlement for #{key}: #{e.message}")
       false
     end
 
@@ -257,7 +258,7 @@ module KindeSdk
       entitlement = getEntitlement(key)
       entitlement ? entitlement.entitlement_limit_max : nil
     rescue StandardError => e
-      Rails.logger.error("Error getting entitlement limit for #{key}: #{e.message}")
+      log_error("Error getting entitlement limit for #{key}: #{e.message}")
       nil
     end
 
@@ -273,7 +274,7 @@ module KindeSdk
     def user_feature_flags(page_size: 10, starting_after: nil)
       frontend.get_feature_flags(page_size: page_size, starting_after: starting_after)
     rescue StandardError => e
-      Rails.logger.error("Failed to fetch feature flags: #{e.message}")
+      log_error("Failed to fetch feature flags: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch feature flags: #{e.message}"
     end
 
@@ -286,7 +287,7 @@ module KindeSdk
     def user_permissions(page_size: 10, starting_after: nil)
       frontend.get_user_permissions(page_size: page_size, starting_after: starting_after)
     rescue StandardError => e
-      Rails.logger.error("Failed to fetch permissions: #{e.message}")
+      log_error("Failed to fetch permissions: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch permissions: #{e.message}"
     end
 
@@ -299,7 +300,7 @@ module KindeSdk
     def user_properties(page_size: 10, starting_after: nil)
       frontend.get_user_properties(page_size: page_size, starting_after: starting_after)
     rescue StandardError => e
-      Rails.logger.error("Failed to fetch properties: #{e.message}")
+      log_error("Failed to fetch properties: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch properties: #{e.message}"
     end
 
@@ -312,7 +313,7 @@ module KindeSdk
     def user_roles(page_size: 10, starting_after: nil)
       frontend.get_user_roles(page_size: page_size, starting_after: starting_after)
     rescue StandardError => e
-      Rails.logger.error("Failed to fetch roles: #{e.message}")
+      log_error("Failed to fetch roles: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch roles: #{e.message}"
     end
 
@@ -325,7 +326,7 @@ module KindeSdk
     def portal_link(return_url:, page: PortalPage::PROFILE)
       frontend.get_portal_link(subnav: page, return_url: return_url)
     rescue StandardError => e
-      Rails.logger.error("Failed to get portal link: #{e.message}")
+      log_error("Failed to get portal link: #{e.message}")
       raise KindeSdk::APIError, "Unable to get portal link: #{e.message}"
     end
 
@@ -347,7 +348,7 @@ module KindeSdk
 
       frontend.get_portal_link(subnav: sub_nav, return_url: return_url)
     rescue StandardError => e
-      Rails.logger.error("Failed to generate portal URL: #{e.message}")
+      log_error("Failed to generate portal URL: #{e.message}")
       raise KindeSdk::APIError, "Unable to generate portal URL: #{e.message}"
     end
 
@@ -358,7 +359,7 @@ module KindeSdk
     def enhanced_user_profile
       frontend.get_user_profile_v2
     rescue StandardError => e
-      Rails.logger.error("Failed to fetch enhanced profile: #{e.message}")
+      log_error("Failed to fetch enhanced profile: #{e.message}")
       raise KindeSdk::APIError, "Unable to fetch enhanced profile: #{e.message}"
     end
 
