@@ -16,7 +16,7 @@ module KindeSdk
     end
 
     def token_expired?
-      return true unless @tokens.present?
+      return true if @tokens.nil? || @tokens.empty?
       begin
         KindeSdk.validate_jwt_token(@tokens)
         @expires_at.to_i > 0 && (@expires_at <= Time.now.to_i)
@@ -33,6 +33,8 @@ module KindeSdk
     end
 
     class << self
+      extend KindeSdk::Logging
+
       def create_store(tokens = nil)
         TokenStore.new(tokens)
       end
@@ -81,16 +83,6 @@ module KindeSdk
         return unless (session || Current.session) && store.tokens
         target_session = session || Current.session
         target_session[:kinde_token_store] = store.to_session
-      end
-
-      # Helper for logging in class methods (works with or without Rails)
-      def log_error(message)
-        formatted_message = "[KindeSdk::TokenManager] #{message}"
-        if defined?(Rails) && Rails.respond_to?(:logger) && Rails.logger
-          Rails.logger.error(formatted_message)
-        else
-          $stderr.puts formatted_message
-        end
       end
     end
   end

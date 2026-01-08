@@ -32,6 +32,8 @@ module KindeSdk
 
   
   class << self
+    extend Logging
+    
     attr_accessor :config
 
     if defined?(Rails)
@@ -134,16 +136,26 @@ module KindeSdk
       raise ArgumentError, "domain is required for logout_url" if domain.nil? || domain.to_s.strip.empty?
       
       query = logout_url ? URI.encode_www_form(redirect: logout_url) : nil
-      
-      # Handle domains without scheme by prepending https://
       normalized_domain = domain.to_s.strip
-      normalized_domain = "https://#{normalized_domain}" unless normalized_domain.match?(%r{\A\w+://})
+      
+      # Only allow http/https schemes; prepend https:// if no scheme present
+      if normalized_domain.match?(%r{\Ahttps?://}i)
+        # Valid http/https scheme - use as-is
+      elsif normalized_domain.match?(%r{\A\w+://})
+        # Invalid scheme (ftp://, file://, etc.)
+        raise ArgumentError, "invalid scheme in domain: #{domain} (only http/https allowed)"
+      else
+        # No scheme - default to https
+        normalized_domain = "https://#{normalized_domain}"
+      end
       
       parsed = URI.parse(normalized_domain)
       raise ArgumentError, "invalid domain format: #{domain}" if parsed.host.nil? || parsed.host.empty?
       
       scheme = parsed.scheme || 'https'
-      host_with_port = parsed.port && ![80, 443].include?(parsed.port) ? "#{parsed.host}:#{parsed.port}" : parsed.host
+      # Only omit port if it matches the default for the scheme
+      default_port = scheme == 'https' ? 443 : 80
+      host_with_port = parsed.port && parsed.port != default_port ? "#{parsed.host}:#{parsed.port}" : parsed.host
       
       "#{scheme}://#{host_with_port}/logout#{query ? "?#{query}" : ''}"
     end
@@ -180,7 +192,7 @@ module KindeSdk
           authorize_url: "#{domain}/oauth2/auth",
           token_url: "#{domain}/oauth2/token"), hash).expired?
       rescue JWT::DecodeError, OAuth2::Error => e
-        sdk_log_error("Error checking token expiration: #{e.message}")
+        log_error("Error checking token expiration: #{e.message}")
         true
       end
     end
@@ -225,7 +237,7 @@ module KindeSdk
         begin
           jwt_validation(token, "#{@config.domain}#{@config.jwks_url}", @config.expected_issuer, @config.expected_audience)
         rescue JWT::DecodeError
-          sdk_log_error("Invalid JWT token: #{key}")
+          log_error("Invalid JWT token: #{key}")
           raise JWT::DecodeError, "Invalid #{key.to_s.capitalize.gsub('_', ' ')}"
         end
       end
@@ -273,22 +285,13 @@ module KindeSdk
       payload, _header = JWT.decode(jwt_token, nil, true, algorithms: algorithms, jwks: jwks)
       { valid: true, payload: payload }
     rescue JWT::DecodeError => e
-      sdk_log_error("Token validation failed: #{e.message}")
+      log_error("Token validation failed: #{e.message}")
       raise JWT::DecodeError, "Token validation failed: #{e.message}"
     rescue StandardError => e
-      sdk_log_error("Unexpected error: #{e.message}")
+      log_error("Unexpected error: #{e.message}")
       raise StandardError, "Unexpected error: #{e.message}"
-    end
-
-    # Helper for logging in class methods (works with or without Rails)
-    def sdk_log_error(message)
-      formatted_message = "[KindeSdk] #{message}"
-      if defined?(Rails) && Rails.respond_to?(:logger) && Rails.logger
-        Rails.logger.error(formatted_message)
-      else
-        $stderr.puts formatted_message
-      end
     end
 
   end
 end
+

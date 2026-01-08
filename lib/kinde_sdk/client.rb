@@ -232,7 +232,7 @@ module KindeSdk
     # @return [Boolean] True if the user has the entitlement, false otherwise
     def has_entitlement?(feature_key)
       entitlement_response = entitlement(feature_key)
-      entitlement_response&.data&.entitlement.present?
+      !entitlement_response&.data&.entitlement.nil?
     rescue StandardError => e
       log_error("Error checking entitlement for #{feature_key}: #{e.message}")
       false
