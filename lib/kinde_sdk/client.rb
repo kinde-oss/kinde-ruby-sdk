@@ -264,6 +264,98 @@ module KindeSdk
     # Ruby-style alias for getEntitlementLimit
     alias_method :entitlement_limit, :getEntitlementLimit
 
+    # Unified method to check multiple authorization conditions
+    # Matches JavaScript and PHP SDK has functionality
+    #
+    # @param conditions [Hash] Hash containing roles, permissions, feature_flags, and/or billing_entitlements
+    # @param force_api [Boolean, Hash] Boolean to force all API calls, or hash to specify per-type
+    # @option force_api [Boolean] :roles Force API for roles check
+    # @option force_api [Boolean] :permissions Force API for permissions check
+    # @option force_api [Boolean] :feature_flags Force API for feature flags check
+    # @option force_api [Boolean] :billing_entitlements Always uses API (billing entitlements aren't in tokens)
+    # @return [Boolean] True if user has all specified conditions, false otherwise
+    # @example
+    #   # Simple check
+    #   client.has(
+    #     roles: ['admin'],
+    #     permissions: ['read:users'],
+    #     feature_flags: ['dark_mode'],
+    #     billing_entitlements: ['premium']
+    #   )
+    #   # => true
+    #
+    #   # With force API settings
+    #   client.has(
+    #     { roles: ['admin'], permissions: ['read:users'] },
+    #     { roles: true, permissions: false }
+    #   )
+    #   # => true
+    #
+    #   # Complex conditions with custom logic
+    #   client.has(
+    #     roles: [
+    #       'admin',
+    #       { role: 'manager', condition: ->(role) { role[:department] == 'engineering' } }
+    #     ],
+    #     permissions: [
+    #       'read:users',
+    #       { permission: 'admin:users', condition: ->(ctx) { ctx[:org_code] == 'admin_org' } }
+    #     ]
+    #   )
+    #   # => true
+    def has(conditions = {}, force_api = nil)
+      return true if conditions.nil? || conditions.empty?
+
+      begin
+        # Parse force_api parameter
+        force_api_settings = parse_force_api_parameter(force_api)
+
+        # Use early exit pattern for performance (like PHP SDK)
+        # This avoids unnecessary API calls if any condition fails
+        
+        if conditions.key?(:roles) || conditions.key?('roles')
+          roles = conditions[:roles] || conditions['roles']
+          roles_force_api = force_api_settings[:roles]
+          options = roles_force_api.nil? ? {} : { force_api: roles_force_api }
+          return false unless has_roles?(roles, options)
+        end
+
+        if conditions.key?(:permissions) || conditions.key?('permissions')
+          permissions = conditions[:permissions] || conditions['permissions']
+          permissions_force_api = force_api_settings[:permissions]
+          options = permissions_force_api.nil? ? {} : { force_api: permissions_force_api }
+          return false unless has_permissions?(permissions, options)
+        end
+
+        if conditions.key?(:feature_flags) || conditions.key?('feature_flags')
+          feature_flags = conditions[:feature_flags] || conditions['feature_flags']
+          flags_force_api = force_api_settings[:feature_flags]
+          options = flags_force_api.nil? ? {} : { force_api: flags_force_api }
+          return false unless has_feature_flags?(feature_flags, options)
+        end
+
+        if conditions.key?(:billing_entitlements) || conditions.key?('billing_entitlements')
+          billing_entitlements = conditions[:billing_entitlements] || conditions['billing_entitlements']
+          # Billing entitlements always use API - the options parameter is for consistency
+          return false unless has_billing_entitlements?(billing_entitlements, {})
+        end
+
+        true
+      rescue StandardError => e
+        log_error("Error in has method: #{e.message}")
+        false
+      end
+    end
+
+    # JavaScript SDK compatible alias
+    alias_method :hasConditions, :has
+
+    # PHP SDK compatible alias 
+    alias_method :hasPermissions, :has_permissions?
+    alias_method :hasRoles, :has_roles?
+    alias_method :hasFeatureFlags, :has_feature_flags?
+    alias_method :hasBillingEntitlements, :has_billing_entitlements?
+
     # Get user feature flags with pagination support.
     #
     # @param page_size [Integer] Number of results per page (default: 10)
@@ -363,6 +455,58 @@ module KindeSdk
     end
 
     private
+
+    # Parse force_api parameter for the has method
+    # Matches PHP SDK parseForceApiParameter functionality
+    #
+    # @param force_api [Boolean, Hash, nil] Force API parameter
+    # @return [Hash] Parsed force_api settings
+    def parse_force_api_parameter(force_api)
+      case force_api
+      when true
+        {
+          roles: true,
+          permissions: true,
+          feature_flags: true,
+          billing_entitlements: true
+        }
+      when false
+        {
+          roles: false,
+          permissions: false,
+          feature_flags: false,
+          billing_entitlements: true # Always true for billing entitlements
+        }
+      when Hash
+        {
+          roles: force_api[:roles] || force_api['roles'],
+          permissions: force_api[:permissions] || force_api['permissions'],
+          feature_flags: force_api[:feature_flags] || force_api['feature_flags'],
+          billing_entitlements: true # Always true for billing entitlements
+        }
+      else
+        {
+          roles: nil,
+          permissions: nil,
+          feature_flags: nil,
+          billing_entitlements: true # Always true for billing entitlements
+        }
+      end
+    end
+
+    # Configurable logging that works with or without Rails
+    # Matches the pattern used in other modules
+    def log_error(message)
+      if defined?(Rails) && Rails.logger
+        Rails.logger.error(message)
+      elsif @logger
+        @logger.error(message)
+      elsif respond_to?(:logger) && logger
+        logger.error(message)
+      else
+        $stderr.puts "[KindeSdk] ERROR: #{message}"
+      end
+    end
 
     # Generic pagination helper for all paginated API calls
     #
