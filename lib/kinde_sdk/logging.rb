@@ -6,7 +6,7 @@ module KindeSdk
   #
   # Can be used as:
   # - Instance methods via `include KindeSdk::Logging`
-  # - Class methods via `extend KindeSdk::Logging`
+  # - Class methods via `include KindeSdk::Logging` inside `class << self`
   # - Direct calls via `KindeSdk::Logging.log_error("message")`
   #
   # @example Using in a class (instance methods)
@@ -22,7 +22,7 @@ module KindeSdk
   # @example Using for class methods
   #   class MyClass
   #     class << self
-  #       extend KindeSdk::Logging
+  #       include KindeSdk::Logging
   #
   #       def my_class_method
   #         log_error("Class-level error")

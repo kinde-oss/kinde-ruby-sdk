@@ -32,7 +32,7 @@ module KindeSdk
 
   
   class << self
-    extend Logging
+    include Logging
     
     attr_accessor :config
 
