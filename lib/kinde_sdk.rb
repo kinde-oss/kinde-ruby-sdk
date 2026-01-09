@@ -149,7 +149,11 @@ module KindeSdk
         normalized_domain = "https://#{normalized_domain}"
       end
       
-      parsed = URI.parse(normalized_domain)
+      begin
+        parsed = URI.parse(normalized_domain)
+      rescue URI::InvalidURIError
+        raise ArgumentError, "invalid domain format: #{domain}"
+      end
       raise ArgumentError, "invalid domain format: #{domain}" if parsed.host.nil? || parsed.host.empty?
       
       scheme = parsed.scheme || 'https'
