@@ -1,5 +1,7 @@
 module KindeSdk
   class TokenManager
+    include Logging
+
     attr_reader :tokens, :bearer_token, :expires_at
 
     def initialize(tokens = nil)
@@ -14,12 +16,12 @@ module KindeSdk
     end
 
     def token_expired?
-      return true unless @tokens.present?
+      return true if @tokens.nil? || @tokens.empty?
       begin
         KindeSdk.validate_jwt_token(@tokens)
         @expires_at.to_i > 0 && (@expires_at <= Time.now.to_i)
-      rescue Exception => e
-        Rails.logger.error("Error checking token expiration: #{e.message}")
+      rescue StandardError => e
+        log_error("Error checking token expiration: #{e.message}")
         true
       end
     end
@@ -31,6 +33,8 @@ module KindeSdk
     end
 
     class << self
+      extend KindeSdk::Logging
+
       def create_store(tokens = nil)
         TokenStore.new(tokens)
       end
@@ -71,7 +75,7 @@ module KindeSdk
       def safe_refresh(tokens)
         KindeSdk.refresh_token(tokens)
       rescue StandardError => e
-        Rails.logger.error("Token refresh failed: #{e.message}")
+        log_error("Token refresh failed: #{e.message}")
         nil
       end
 
@@ -82,4 +86,4 @@ module KindeSdk
       end
     end
   end
-end 
+end

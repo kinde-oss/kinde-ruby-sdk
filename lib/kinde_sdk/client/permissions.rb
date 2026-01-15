@@ -1,6 +1,7 @@
 module KindeSdk
   class Client
     module Permissions
+      include KindeSdk::Logging
       # Get all permissions for the authenticated user
       # Matches the JavaScript SDK API: getPermissions(options?)
       #
@@ -176,34 +177,6 @@ module KindeSdk
           log_error("Unexpected error getting permissions from API: #{e.message}")
           # Graceful fallback to token-based permissions
           get_permissions_from_token
-        end
-      end
-
-      # Configurable logging that works with or without Rails
-      #
-      # @param message [String] The error message to log
-      def log_error(message)
-        if defined?(Rails) && Rails.logger
-          Rails.logger.error(message)
-        elsif @logger
-          @logger.error(message)
-        elsif respond_to?(:logger) && logger
-          logger.error(message)
-        else
-          # Fallback to STDERR if no logger available
-          $stderr.puts "[KindeSdk] ERROR: #{message}"
-        end
-      end
-
-      def log_warning(message)
-        if defined?(Rails) && Rails.logger
-          Rails.logger.warn(message)
-        elsif @logger
-          @logger.warn(message)
-        elsif respond_to?(:logger) && logger
-          logger.warn(message)
-        else
-          $stderr.puts "[KindeSdk] WARNING: #{message}"
         end
       end
     end

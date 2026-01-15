@@ -1,6 +1,7 @@
 module KindeSdk
   class Client
     module Roles
+      include KindeSdk::Logging
       # Get all roles for the authenticated user
       # Matches the JavaScript SDK API: getRoles(options?)
       # Implements smart fallback: uses API automatically if token claims are empty
@@ -166,51 +167,18 @@ module KindeSdk
       end
 
       # Helper to extract field from hash or object
+      # Checks Hash first to avoid issues with Hash#key requiring an argument
+      #
+      # @param item [Hash, Object] The item to extract from
+      # @param field [Symbol] The field name to extract
+      # @return [Object, nil] The field value or nil
       def extract_field(item, field)
-        if item.respond_to?(field)
+        if item.is_a?(Hash)
+          item.key?(field) ? item[field] : item[field.to_s]
+        elsif item.respond_to?(field)
           item.public_send(field)
-        elsif item.is_a?(Hash)
-          item[field] || item[field.to_s]
         else
           nil
-        end
-      end
-
-      # Configurable logging that works with or without Rails
-      # Supports multiple log levels for better debugging
-      def log_error(message)
-        write_log(:error, message)
-      end
-
-      def log_warning(message)
-        write_log(:warn, message)
-      end
-
-      def log_info(message)
-        write_log(:info, message)
-      end
-
-      def log_debug(message)
-        write_log(:debug, message)
-      end
-
-      def write_log(level, message)
-        formatted_message = "[KindeSdk::Roles] #{message}"
-        
-        if defined?(Rails) && Rails.logger
-          Rails.logger.public_send(level, formatted_message)
-        elsif @logger && @logger.respond_to?(level)
-          @logger.public_send(level, formatted_message)
-        elsif respond_to?(:logger) && logger && logger.respond_to?(level)
-          logger.public_send(level, formatted_message)
-        else
-          # Fallback based on level
-          case level
-          when :error, :warn
-            $stderr.puts formatted_message
-          when :info, :debug
-            $stdout.puts formatted_message if ENV['KINDE_DEBUG']
-          end
         end
       end
     end
