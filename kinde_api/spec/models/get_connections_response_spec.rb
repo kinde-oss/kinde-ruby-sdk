@@ -38,8 +38,24 @@ describe KindeApi::GetConnectionsResponse do
   end
 
   describe 'test attribute "connections"' do
-    it 'should work' do
-      # assertion here. ref: https://www.relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
+    it 'deserializes flat connection objects from the list endpoint' do
+      response = described_class.build_from_hash(
+        'connections' => [
+          {
+            'id' => 'conn_123',
+            'name' => 'google',
+            'display_name' => 'Google',
+            'strategy' => 'oauth2'
+          }
+        ]
+      )
+
+      connection = response.connections.first
+      expect(connection).to be_a(KindeApi::ConnectionConnection)
+      expect(connection.id).to eq('conn_123')
+      expect(connection.name).to eq('google')
+      expect(connection.display_name).to eq('Google')
+      expect(connection.strategy).to eq('oauth2')
     end
   end
 

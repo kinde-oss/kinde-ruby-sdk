@@ -188,6 +188,7 @@ describe KindeApi::ApiClient do
 
       expect(api_client.select_header_accept(['application/json'])).to eq('application/json')
       expect(api_client.select_header_accept(['application/xml', 'application/json; charset=UTF8'])).to eq('application/json; charset=UTF8')
+      expect(api_client.select_header_accept(['application/json; charset=utf-8', 'application/json'])).to eq('application/json')
       expect(api_client.select_header_accept(['APPLICATION/JSON', 'text/html'])).to eq('APPLICATION/JSON')
 
       expect(api_client.select_header_accept(['application/xml'])).to eq('application/xml')

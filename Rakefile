@@ -5,10 +5,22 @@ require 'openssl'
 
 begin
   require 'rspec/core/rake_task'
-  RSpec::Core::RakeTask.new(:spec) do |t|
-    t.pattern = ['spec/*_spec.rb', 'kinde_api/spec/*_spec.rb', 'kinde_api/spec/*/*_spec.rb']
-    t.rspec_opts = '--require spec_helper' # Ensures spec/spec_helper.rb is loaded
+
+  RSpec::Core::RakeTask.new(:spec_sdk) do |t|
+    t.pattern = 'spec/*_spec.rb'
+    t.rspec_opts = '--require spec_helper'
   end
+
+  desc 'Run kinde_api specs'
+  task :spec_kinde_api do
+    sh(
+      { 'BUNDLE_GEMFILE' => File.expand_path('Gemfile', __dir__) },
+      'bundle', 'exec', 'rspec',
+      chdir: 'kinde_api'
+    )
+  end
+
+  task spec: %i[spec_sdk spec_kinde_api]
   task default: :spec
 rescue LoadError
   # Handle case where rspec-core isn't available
