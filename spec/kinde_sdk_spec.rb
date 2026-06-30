@@ -191,7 +191,7 @@ RSpec.describe KindeSdk do
   end
 
   describe "#refresh_token" do
-    it "returns string-keyed tokens without relying on oauth2 #to_hash" do
+    it "returns string-keyed tokens with the full oauth2 hash contract" do
       refreshed = double(
         "OAuth2::AccessToken",
         token: token,
@@ -200,24 +200,37 @@ RSpec.describe KindeSdk do
         params: {}
       )
       allow(refreshed).to receive(:to_hash).and_return(
-        access_token: "must-not-be-used",
+        access_token: token,
         refresh_token: refresh_token,
-        expires_at: Time.now.to_i + 7200
+        expires_at: Time.now.to_i + 7200,
+        mode: :header,
+        header_format: "Bearer %s"
       )
 
       access_token_object = double(refresh: refreshed)
       allow(OAuth2::AccessToken).to receive(:from_hash).and_return(access_token_object)
 
       stored_tokens = {
-        access_token: token,
-        refresh_token: refresh_token,
-        expires_at: Time.now.to_i + 3600
+        "access_token" => token,
+        "refresh_token" => refresh_token,
+        "expires_at" => Time.now.to_i + 3600,
+        "mode" => :query,
+        "param_name" => "access_token"
       }
+
+      expect(OAuth2::AccessToken).to receive(:from_hash) do |_client, normalized|
+        expect(normalized[:access_token]).to eq(token)
+        expect(normalized[:mode]).to eq(:query)
+        expect(normalized[:param_name]).to eq("access_token")
+        access_token_object
+      end
 
       result = described_class.refresh_token(stored_tokens)
 
       expect(result["access_token"]).to eq(token)
       expect(result["refresh_token"]).to eq(refresh_token)
+      expect(result["mode"]).to eq(:header)
+      expect(result["header_format"]).to eq("Bearer %s")
       expect(result[:access_token]).to be_nil
     end
   end
@@ -527,9 +540,42 @@ RSpec.describe KindeSdk::TokenHash do
       expect(described_class.normalize(nil)).to eq({})
     end
 
-    it "ignores unknown keys" do
-      hash = described_class.normalize(access_token: "abc", mode: :header)
-      expect(hash).to eq(access_token: "abc")
+    it "preserves oauth2 reconstruction fields" do
+      hash = described_class.normalize(
+        "access_token" => "abc",
+        "mode" => :header,
+        header_format: "Bearer %s",
+        "token_name" => :access_token,
+        "expires_latency" => 5,
+        "expires" => 3600
+      )
+
+      expect(hash).to eq(
+        access_token: "abc",
+        mode: :header,
+        header_format: "Bearer %s",
+        token_name: :access_token,
+        expires_latency: 5,
+        expires: 3600
+      )
+    end
+  end
+
+  describe ".public_tokens" do
+    it "returns only the documented public SDK token fields" do
+      hash = described_class.public_tokens(
+        access_token: "abc",
+        refresh_token: "def",
+        expires_at: 123,
+        mode: :header,
+        header_format: "Bearer %s"
+      )
+
+      expect(hash).to eq(
+        access_token: "abc",
+        refresh_token: "def",
+        expires_at: 123
+      )
     end
   end
 
@@ -560,6 +606,26 @@ RSpec.describe KindeSdk::TokenHash do
         id_token: "id-token",
         scope: "openid profile",
         token_type: "bearer"
+      )
+    end
+  end
+
+  describe ".for_refresh_response" do
+    it "returns string keys while preserving the full oauth2 hash contract" do
+      response = described_class.for_refresh_response(
+        access_token: "abc",
+        refresh_token: "def",
+        expires_at: 123,
+        mode: :header,
+        param_name: "access_token"
+      )
+
+      expect(response).to eq(
+        "access_token" => "abc",
+        "refresh_token" => "def",
+        "expires_at" => 123,
+        "mode" => :header,
+        "param_name" => "access_token"
       )
     end
   end

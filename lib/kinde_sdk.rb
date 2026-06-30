@@ -215,7 +215,7 @@ module KindeSdk
         authorize_url: "#{domain}/oauth2/auth",
         token_url: "#{domain}/oauth2/token")
       refreshed = OAuth2::AccessToken.from_hash(oauth_client, TokenHash.normalize(hash)).refresh
-      TokenHash.for_session(TokenHash.from_access_token(refreshed))
+      TokenHash.for_refresh_response(refreshed.to_hash)
     end
 
     # init sdk api client by bearer token
