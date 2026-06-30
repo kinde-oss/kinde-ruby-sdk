@@ -14,7 +14,7 @@ begin
   desc 'Run kinde_api specs'
   task :spec_kinde_api do
     sh(
-      { 'BUNDLE_GEMFILE' => File.expand_path('Gemfile', __dir__) },
+      { 'BUNDLE_GEMFILE' => File.expand_path('kinde_api/Gemfile', __dir__) },
       'bundle', 'exec', 'rspec',
       chdir: 'kinde_api'
     )
