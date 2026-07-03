@@ -9,7 +9,7 @@ module KindeSdk
     end
 
     def set_tokens(tokens)
-      @tokens = tokens.transform_keys(&:to_sym).freeze
+      @tokens = TokenHash.normalize(tokens).freeze
       @bearer_token = @tokens[:access_token]
       @expires_at = @tokens[:expires_at]
       @tokens

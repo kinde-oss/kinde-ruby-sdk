@@ -10,6 +10,7 @@ end
 require "kinde_sdk/version"
 require "kinde_sdk/configuration"
 require "kinde_sdk/logging"
+require "kinde_sdk/token_hash"
 require "kinde_sdk/client/feature_flags"
 require "kinde_sdk/client/permissions"
 require "kinde_sdk/client"
@@ -108,14 +109,7 @@ module KindeSdk
         authorize_url: "#{domain}/oauth2/auth",
         token_url: "#{domain}/oauth2/token").auth_code.get_token(code.to_s, params)
 
-      {
-        access_token: token.token,           # The access token
-        id_token: token.params['id_token'],  # The ID token from params
-        expires_at: token.expires_at,        # Optional: expiration time
-        refresh_token: token.refresh_token,   # Optional: if present
-        scope: token.params['scope'],        # The scopes requested
-        token_type: token.params['token_type'] # The token type
-      }.compact
+      TokenHash.from_access_token(token)
     end
 
     # tokens_hash #=>
@@ -128,8 +122,14 @@ module KindeSdk
     #
     # @return [KindeSdk::Client]
     def client(tokens_hash, auto_refresh_tokens = @config.auto_refresh_tokens, force_api = @config.force_api)
-      sdk_api_client = api_client(tokens_hash[:access_token] || tokens_hash["access_token"])
-      KindeSdk::Client.new(sdk_api_client, tokens_hash, auto_refresh_tokens, force_api)
+      normalized_tokens = TokenHash.normalize(tokens_hash)
+      bearer_token = normalized_tokens[:access_token]
+      if bearer_token.nil? || bearer_token.empty?
+        raise AuthenticationError, "Missing access_token in token hash"
+      end
+
+      sdk_api_client = api_client(bearer_token)
+      KindeSdk::Client.new(sdk_api_client, normalized_tokens, auto_refresh_tokens, force_api)
     end
 
     def logout_url(logout_url: @config.logout_url, domain: @config.domain)
@@ -190,11 +190,11 @@ module KindeSdk
       begin
         validate_jwt_token(hash)
         OAuth2::AccessToken.from_hash(@config.oauth_client(
-          client_id: client_id, 
+          client_id: client_id,
           client_secret: client_secret,
           domain: domain,
           authorize_url: "#{domain}/oauth2/auth",
-          token_url: "#{domain}/oauth2/token"), hash).expired?
+          token_url: "#{domain}/oauth2/token"), TokenHash.normalize(hash)).expired?
       rescue JWT::DecodeError, OAuth2::Error => e
         log_error("Error checking token expiration: #{e.message}")
         true
@@ -208,12 +208,14 @@ module KindeSdk
       audience: "#{@config.domain}/api",
       domain: @config.domain
     )
-      OAuth2::AccessToken.from_hash(@config.oauth_client(
-        client_id: client_id, 
+      oauth_client = @config.oauth_client(
+        client_id: client_id,
         client_secret: client_secret,
         domain: domain,
         authorize_url: "#{domain}/oauth2/auth",
-        token_url: "#{domain}/oauth2/token"), hash).refresh.to_hash
+        token_url: "#{domain}/oauth2/token")
+      refreshed = OAuth2::AccessToken.from_hash(oauth_client, TokenHash.normalize(hash)).refresh
+      TokenHash.for_refresh_response(refreshed.to_hash)
     end
 
     # init sdk api client by bearer token
