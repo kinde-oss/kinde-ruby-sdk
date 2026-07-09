@@ -88,6 +88,36 @@ RSpec.describe KindeSdk do
       auth_obj = described_class.auth_url(redirect_uri: "localhost:5000/another_callback")
       expect(auth_obj[:url]).to match(/localhost%3A5000%2Fanother_callback/)
     end
+
+    it "includes invitation_code and is_invitation when invitation_code is provided" do
+      auth_obj = described_class.auth_url(invitation_code: "test_invitation_123")
+      expect(auth_obj[:url]).to include("invitation_code=test_invitation_123")
+      expect(auth_obj[:url]).to include("is_invitation=true")
+    end
+
+    it "does not include is_invitation when invitation_code is not provided" do
+      auth_obj = described_class.auth_url
+      expect(auth_obj[:url]).not_to include("is_invitation")
+      expect(auth_obj[:url]).not_to include("invitation_code")
+    end
+
+    it "does not include is_invitation for empty invitation_code" do
+      auth_obj = described_class.auth_url(invitation_code: "")
+      expect(auth_obj[:url]).not_to include("is_invitation")
+      expect(auth_obj[:url]).not_to include("invitation_code")
+    end
+
+    it "does not include is_invitation for whitespace-only invitation_code" do
+      auth_obj = described_class.auth_url(invitation_code: "   ")
+      expect(auth_obj[:url]).not_to include("is_invitation")
+      expect(auth_obj[:url]).not_to include("invitation_code")
+    end
+
+    it "includes invitation_code and is_invitation for valid invitation_code with whitespace" do
+      auth_obj = described_class.auth_url(invitation_code: "  abc123  ")
+      expect(auth_obj[:url]).to include("invitation_code=abc123")
+      expect(auth_obj[:url]).to include("is_invitation=true")
+    end
   end
 
   describe "#logout_url" do
