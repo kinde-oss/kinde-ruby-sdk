@@ -13,7 +13,7 @@ gem 'httparty', '~> 0.24.0'
 gem 'jwt', '~> 2.2'
 
 group :development, :test do
-  gem "rake", "~> 13.0.1"
+  gem "rake", "~> 13.4.0"
   gem "pry-byebug"
   gem "rubocop"
   gem "rubocop-rake", require: false
