@@ -10,7 +10,7 @@ gem 'oauth2', '~> 2.0'
 gem 'pkce_challenge'
 gem 'faraday-follow_redirects'
 gem 'httparty', '~> 0.24.0'
-gem 'jwt', '~> 2.2'
+gem 'jwt', '~> 3.0'
 
 group :development, :test do
   gem "rake", "~> 13.0.1"
