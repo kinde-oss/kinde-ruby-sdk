@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 7.0.4"
+gem "rails", "~> 8.1.0"
 gem 'mutex_m'  # Required for Ruby 3.4.0+
 gem 'rspec-core'
 gem 'rspec'
