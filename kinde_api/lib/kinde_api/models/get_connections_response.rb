@@ -46,7 +46,7 @@ module KindeApi
       {
         :'code' => :'String',
         :'message' => :'String',
-        :'connections' => :'Array<Connection>',
+        :'connections' => :'Array<ConnectionConnection>',
         :'has_more' => :'Boolean'
       }
     end

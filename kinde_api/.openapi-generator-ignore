@@ -21,3 +21,11 @@
 #docs/*.md
 # Then explicitly reverse the ignore rule for a single file:
 #!docs/README.md
+
+# Manual fix: normalize Accept header (prefer plain application/json over charset variant).
+lib/kinde_api/api_client.rb
+spec/api_client_spec.rb
+
+# Manual fix: list endpoint returns flat connection objects, not Connection wrapper.
+lib/kinde_api/models/get_connections_response.rb
+spec/models/get_connections_response_spec.rb

@@ -328,9 +328,15 @@ module KindeApi
     # @return [String] the Accept header (e.g. application/json)
     def select_header_accept(accepts)
       return nil if accepts.nil? || accepts.empty?
+      # Prefer plain application/json; the API rejects charset variants in Accept.
+      plain_json = accepts.find { |s| s.strip.casecmp('application/json').zero? }
+      return plain_json if plain_json
       # use JSON when present, otherwise use all of the provided
       json_accept = accepts.find { |s| json_mime?(s) }
-      json_accept || accepts.join(',')
+      if json_accept
+        return json_accept.strip.casecmp('application/json').zero? ? json_accept : 'application/json'
+      end
+      accepts.join(',')
     end
 
     # Return Content-Type header based on an array of content types provided.
