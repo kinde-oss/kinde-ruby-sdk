@@ -1,6 +1,7 @@
 module KindeSdk
   class Client
     module FeatureFlags
+      include KindeSdk::Logging
       # Get all feature flags for the authenticated user
       # Matches the JavaScript SDK API: getFlags(options?)
       #
@@ -137,27 +138,30 @@ module KindeSdk
       end
 
       # Extract the key from a flag object (handles both symbol and string keys)
+      # Uses key? to properly handle falsy values
       #
       # @param flag [Hash] Flag object
       # @return [String] The flag key
       def get_flag_key(flag)
-        flag[:key] || flag['key']
+        flag.key?(:key) ? flag[:key] : flag['key']
       end
 
       # Extract the value from a flag object (handles both symbol and string keys)
+      # Uses key? to properly handle boolean false values (critical fix)
       #
       # @param flag [Hash] Flag object
       # @return [Object] The flag value
       def get_flag_value(flag)
-        flag[:value] || flag['value']
+        flag.key?(:value) ? flag[:value] : flag['value']
       end
 
       # Extract the type from a flag object (handles both symbol and string keys)
+      # Uses key? to properly handle falsy values
       #
       # @param flag [Hash] Flag object
       # @return [String] The flag type
       def get_flag_type(flag)
-        flag[:type] || flag['type']
+        flag.key?(:type) ? flag[:type] : flag['type']
       end
 
       # Legacy get_flag implementation for backward compatibility
@@ -281,19 +285,6 @@ module KindeSdk
 
       def check_type(value, type)
         type == "s" && value.is_a?(String) || type == "b" && (value == false || value == true) || type == "i" && value.is_a?(Integer)
-      end
-
-      # Configurable logging that works with or without Rails
-      def log_error(message)
-        if defined?(Rails) && Rails.logger
-          Rails.logger.error(message)
-        elsif @logger
-          @logger.error(message)
-        elsif respond_to?(:logger) && logger
-          logger.error(message)
-        else
-          $stderr.puts "[KindeSdk] ERROR: #{message}"
-        end
       end
     end
   end

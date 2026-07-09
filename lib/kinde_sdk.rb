@@ -1,7 +1,16 @@
 require "logger"
-require "rails"
+
+# Rails is optional - SDK works in non-Rails Ruby applications
+begin
+  require "rails"
+rescue LoadError
+  # Rails not available, that's fine
+end
+
 require "kinde_sdk/version"
 require "kinde_sdk/configuration"
+require "kinde_sdk/logging"
+require "kinde_sdk/token_hash"
 require "kinde_sdk/client/feature_flags"
 require "kinde_sdk/client/permissions"
 require "kinde_sdk/client"
@@ -24,6 +33,8 @@ module KindeSdk
 
   
   class << self
+    include Logging
+    
     attr_accessor :config
 
     if defined?(Rails)
@@ -105,14 +116,7 @@ module KindeSdk
         authorize_url: "#{domain}/oauth2/auth",
         token_url: "#{domain}/oauth2/token").auth_code.get_token(code.to_s, params)
 
-      {
-        access_token: token.token,           # The access token
-        id_token: token.params['id_token'],  # The ID token from params
-        expires_at: token.expires_at,        # Optional: expiration time
-        refresh_token: token.refresh_token,   # Optional: if present
-        scope: token.params['scope'],        # The scopes requested
-        token_type: token.params['token_type'] # The token type
-      }.compact
+      TokenHash.from_access_token(token)
     end
 
     # tokens_hash #=>
@@ -125,14 +129,46 @@ module KindeSdk
     #
     # @return [KindeSdk::Client]
     def client(tokens_hash, auto_refresh_tokens = @config.auto_refresh_tokens, force_api = @config.force_api)
-      sdk_api_client = api_client(tokens_hash[:access_token] || tokens_hash["access_token"])
-      KindeSdk::Client.new(sdk_api_client, tokens_hash, auto_refresh_tokens, force_api)
+      normalized_tokens = TokenHash.normalize(tokens_hash)
+      bearer_token = normalized_tokens[:access_token]
+      if bearer_token.nil? || bearer_token.empty?
+        raise AuthenticationError, "Missing access_token in token hash"
+      end
+
+      sdk_api_client = api_client(bearer_token)
+      KindeSdk::Client.new(sdk_api_client, normalized_tokens, auto_refresh_tokens, force_api)
     end
 
     def logout_url(logout_url: @config.logout_url, domain: @config.domain)
+      raise ArgumentError, "domain is required for logout_url" if domain.nil? || domain.to_s.strip.empty?
+      
       query = logout_url ? URI.encode_www_form(redirect: logout_url) : nil
-      host = URI::parse(domain).host
-      URI::HTTP.build(host: host, path: '/logout', query: query).to_s
+      normalized_domain = domain.to_s.strip
+      
+      # Only allow http/https schemes; prepend https:// if no scheme present
+      if normalized_domain.match?(%r{\Ahttps?://}i)
+        # Valid http/https scheme - use as-is
+      elsif normalized_domain.match?(%r{\A\w+://})
+        # Invalid scheme (ftp://, file://, etc.)
+        raise ArgumentError, "invalid scheme in domain: #{domain} (only http/https allowed)"
+      else
+        # No scheme - default to https
+        normalized_domain = "https://#{normalized_domain}"
+      end
+      
+      begin
+        parsed = URI.parse(normalized_domain)
+      rescue URI::InvalidURIError
+        raise ArgumentError, "invalid domain format: #{domain}"
+      end
+      raise ArgumentError, "invalid domain format: #{domain}" if parsed.host.nil? || parsed.host.empty?
+      
+      scheme = parsed.scheme || 'https'
+      # Only omit port if it matches the default for the scheme
+      default_port = scheme == 'https' ? 443 : 80
+      host_with_port = parsed.port && parsed.port != default_port ? "#{parsed.host}:#{parsed.port}" : parsed.host
+      
+      "#{scheme}://#{host_with_port}/logout#{query ? "?#{query}" : ''}"
     end
 
     def client_credentials_access(
@@ -161,13 +197,13 @@ module KindeSdk
       begin
         validate_jwt_token(hash)
         OAuth2::AccessToken.from_hash(@config.oauth_client(
-          client_id: client_id, 
+          client_id: client_id,
           client_secret: client_secret,
           domain: domain,
           authorize_url: "#{domain}/oauth2/auth",
-          token_url: "#{domain}/oauth2/token"), hash).expired?
+          token_url: "#{domain}/oauth2/token"), TokenHash.normalize(hash)).expired?
       rescue JWT::DecodeError, OAuth2::Error => e
-        Rails.logger.error("Error checking token expiration: #{e.message}")
+        log_error("Error checking token expiration: #{e.message}")
         true
       end
     end
@@ -179,12 +215,14 @@ module KindeSdk
       audience: "#{@config.domain}/api",
       domain: @config.domain
     )
-      OAuth2::AccessToken.from_hash(@config.oauth_client(
-        client_id: client_id, 
+      oauth_client = @config.oauth_client(
+        client_id: client_id,
         client_secret: client_secret,
         domain: domain,
         authorize_url: "#{domain}/oauth2/auth",
-        token_url: "#{domain}/oauth2/token"), hash).refresh.to_hash
+        token_url: "#{domain}/oauth2/token")
+      refreshed = OAuth2::AccessToken.from_hash(oauth_client, TokenHash.normalize(hash)).refresh
+      TokenHash.for_refresh_response(refreshed.to_hash)
     end
 
     # init sdk api client by bearer token
@@ -212,7 +250,7 @@ module KindeSdk
         begin
           jwt_validation(token, "#{@config.domain}#{@config.jwks_url}", @config.expected_issuer, @config.expected_audience)
         rescue JWT::DecodeError
-          Rails.logger.error("Invalid JWT token: #{key}")
+          log_error("Invalid JWT token: #{key}")
           raise JWT::DecodeError, "Invalid #{key.to_s.capitalize.gsub('_', ' ')}"
         end
       end
@@ -260,12 +298,13 @@ module KindeSdk
       payload, _header = JWT.decode(jwt_token, nil, true, algorithms: algorithms, jwks: jwks)
       { valid: true, payload: payload }
     rescue JWT::DecodeError => e
-      Rails.logger.error("Token validation failed: #{e.message}")
+      log_error("Token validation failed: #{e.message}")
       raise JWT::DecodeError, "Token validation failed: #{e.message}"
     rescue StandardError => e
-      Rails.logger.error("Unexpected error: #{e.message}")
+      log_error("Unexpected error: #{e.message}")
       raise StandardError, "Unexpected error: #{e.message}"
     end
 
   end
 end
+

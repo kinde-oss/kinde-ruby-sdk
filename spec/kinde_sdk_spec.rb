@@ -220,6 +220,51 @@ RSpec.describe KindeSdk do
     end
   end
 
+  describe "#refresh_token" do
+    it "returns string-keyed tokens with the full oauth2 hash contract" do
+      refreshed = double(
+        "OAuth2::AccessToken",
+        token: token,
+        refresh_token: refresh_token,
+        expires_at: Time.now.to_i + 7200,
+        params: {}
+      )
+      allow(refreshed).to receive(:to_hash).and_return(
+        access_token: token,
+        refresh_token: refresh_token,
+        expires_at: Time.now.to_i + 7200,
+        mode: :header,
+        header_format: "Bearer %s"
+      )
+
+      access_token_object = double(refresh: refreshed)
+      allow(OAuth2::AccessToken).to receive(:from_hash).and_return(access_token_object)
+
+      stored_tokens = {
+        "access_token" => token,
+        "refresh_token" => refresh_token,
+        "expires_at" => Time.now.to_i + 3600,
+        "mode" => :query,
+        "param_name" => "access_token"
+      }
+
+      expect(OAuth2::AccessToken).to receive(:from_hash) do |_client, normalized|
+        expect(normalized[:access_token]).to eq(token)
+        expect(normalized[:mode]).to eq(:query)
+        expect(normalized[:param_name]).to eq("access_token")
+        access_token_object
+      end
+
+      result = described_class.refresh_token(stored_tokens)
+
+      expect(result["access_token"]).to eq(token)
+      expect(result["refresh_token"]).to eq(refresh_token)
+      expect(result["mode"]).to eq(:header)
+      expect(result["header_format"]).to eq("Bearer %s")
+      expect(result[:access_token]).to be_nil
+    end
+  end
+
   describe "client" do
     let(:hash_to_encode) do
       { "aud" => [],
@@ -242,6 +287,24 @@ RSpec.describe KindeSdk do
     let(:expires_at) { Time.now.to_i + 10000000 }
     let(:tokens_hash) { { access_token: token, expires_at: expires_at, refresh_token: refresh_token } }
     let(:client) { described_class.client(tokens_hash, auto_refresh_tokens) }
+
+    context "with string-key session tokens" do
+      it "accepts string keys" do
+        session_tokens = {
+          "access_token" => token,
+          "refresh_token" => refresh_token,
+          "expires_at" => expires_at
+        }
+
+        expect(described_class.client(session_tokens, false).bearer_token).to eq(token)
+      end
+
+      it "raises when access_token is missing" do
+        expect {
+          described_class.client({ "refresh_token" => refresh_token }, false)
+        }.to raise_error(KindeSdk::AuthenticationError, /Missing access_token/)
+      end
+    end
 
     context "with session integration" do
       before do
@@ -477,4 +540,136 @@ RSpec.describe KindeSdk do
   end
 end
 
+RSpec.describe KindeSdk::TokenHash do
+  describe ".normalize" do
+    it "accepts string keys" do
+      hash = described_class.normalize(
+        "access_token" => "abc",
+        "refresh_token" => "def",
+        "expires_at" => 123
+      )
+
+      expect(hash).to eq(
+        access_token: "abc",
+        refresh_token: "def",
+        expires_at: 123
+      )
+    end
+
+    it "accepts symbol keys" do
+      hash = described_class.normalize(
+        access_token: "abc",
+        refresh_token: "def",
+        expires_at: 123
+      )
+
+      expect(hash[:access_token]).to eq("abc")
+    end
+
+    it "returns an empty hash for nil" do
+      expect(described_class.normalize(nil)).to eq({})
+    end
+
+    it "preserves oauth2 reconstruction fields" do
+      hash = described_class.normalize(
+        "access_token" => "abc",
+        "mode" => :header,
+        header_format: "Bearer %s",
+        "token_name" => :access_token,
+        "expires_latency" => 5,
+        "expires" => 3600
+      )
+
+      expect(hash).to eq(
+        access_token: "abc",
+        mode: :header,
+        header_format: "Bearer %s",
+        token_name: :access_token,
+        expires_latency: 5,
+        expires: 3600
+      )
+    end
+  end
+
+  describe ".public_tokens" do
+    it "returns only the documented public SDK token fields" do
+      hash = described_class.public_tokens(
+        access_token: "abc",
+        refresh_token: "def",
+        expires_at: 123,
+        mode: :header,
+        header_format: "Bearer %s"
+      )
+
+      expect(hash).to eq(
+        access_token: "abc",
+        refresh_token: "def",
+        expires_at: 123
+      )
+    end
+  end
+
+  describe ".from_access_token" do
+    let(:oauth_token) do
+      double(
+        "OAuth2::AccessToken",
+        token: "access-token-value",
+        refresh_token: "refresh-token-value",
+        expires_at: 1_700_000_000,
+        params: {
+          "id_token" => "id-token",
+          "scope" => "openid profile",
+          "token_type" => "bearer"
+        }
+      )
+    end
+
+    it "builds a normalized hash without calling oauth2 #to_hash" do
+      expect(oauth_token).not_to receive(:to_hash)
+
+      hash = described_class.from_access_token(oauth_token)
+
+      expect(hash).to eq(
+        access_token: "access-token-value",
+        refresh_token: "refresh-token-value",
+        expires_at: 1_700_000_000,
+        id_token: "id-token",
+        scope: "openid profile",
+        token_type: "bearer"
+      )
+    end
+  end
+
+  describe ".for_refresh_response" do
+    it "returns string keys while preserving the full oauth2 hash contract" do
+      response = described_class.for_refresh_response(
+        access_token: "abc",
+        refresh_token: "def",
+        expires_at: 123,
+        mode: :header,
+        param_name: "access_token"
+      )
+
+      expect(response).to eq(
+        "access_token" => "abc",
+        "refresh_token" => "def",
+        "expires_at" => 123,
+        "mode" => :header,
+        "param_name" => "access_token"
+      )
+    end
+  end
+
+  describe ".for_session" do
+    it "returns string keys for documented session/API compatibility" do
+      session_hash = described_class.for_session(access_token: "abc", expires_at: 123)
+
+      expect(session_hash).to eq(
+        "access_token" => "abc",
+        "expires_at" => 123
+      )
+      expect(session_hash["access_token"]).to eq("abc")
+    end
+  end
+end
 
