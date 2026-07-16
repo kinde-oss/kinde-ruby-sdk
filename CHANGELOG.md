@@ -5,6 +5,31 @@ All notable changes to the Kinde Ruby SDK will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2026-07-16
+
+### Added
+
+#### Invitation Code Support
+- **`auth_url` now accepts an `invitation_code` parameter** for invitation-based sign-up flows
+- Automatically sets `is_invitation=true` on the authorization request when an invitation code is present
+- **Rails integration**: `auth_controller` picks up `invitation_code` from query parameters and forwards it to `auth_url`
+- Blank and non-string invitation codes are ignored rather than sent as empty values
+
+### Fixed
+- **oauth2 2.0.10+ compatibility**: token hashes are normalized without dropping keys, fixing breakage introduced by oauth2's stricter hash handling
+- **Connections API**: `get_connections` now sends the correct headers and destructures its response properly
+- **API client**: correctly handles responses whose `Content-Type` contains only a charset
+
+### Changed
+- **Consolidated logging** into a shared `KindeSdk::Logging` module, replacing the duplicated log helpers across the client classes. The `log_info` / `log_error` / `log_warning` / `log_debug` methods resolve exactly as before — no changes required in calling code
+- **Extracted token normalization** into `KindeSdk::TokenHash`, which accepts string or symbol keys and stores symbol keys internally
+
+### Dependencies
+- **Development dependencies updated**: jwt v3, rails v8, rubocop v1, rake 13.4.2, Ruby 3.4.10
+- No runtime dependency changes — the gemspec is unchanged from 1.7.1 and `required_ruby_version` remains `>= 3.0`
+
+---
+
 ## [1.7.1] - 2026-01-08
 
 ### Security
