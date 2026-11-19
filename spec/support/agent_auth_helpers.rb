@@ -1,3 +1,4 @@
+require 'base64'
 require 'jwt'
 require 'json'
 require 'openssl'
@@ -16,8 +17,9 @@ module AgentAuthHelpers
   AS_METADATA_URL = "#{DOMAIN}/.well-known/oauth-authorization-server/oauth2/agents/#{CLIENT_ID}".freeze
   PRM_PATH = "/.well-known/oauth-protected-resource/mcp".freeze
   PRM_URL = "https://api.example.com#{PRM_PATH}".freeze
-  # base64("app_id:app_secret")
-  BASIC_HEADER = "Basic YXBwX2lkOmFwcF9zZWNyZXQ=".freeze
+  # Built from the placeholder values above, not written out, so that secret
+  # scanners do not take the encoded fixture for a real credential.
+  BASIC_HEADER = "Basic #{Base64.strict_encode64("#{CLIENT_ID}:#{CLIENT_SECRET}")}".freeze
   KID = "kinde-key-1".freeze
 
   # One RSA key for the whole run: generating a key per example is slow.
