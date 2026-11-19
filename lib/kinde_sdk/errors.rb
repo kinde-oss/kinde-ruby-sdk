@@ -59,4 +59,65 @@ module KindeSdk
             end
         end
     end
+
+    # Errors raised by the agent-client helpers (see lib/kinde_sdk/agent_client.rb).
+    # Messages are fixed text plus what the server said (+error+,
+    # +error_description+) and URLs without their query: they never contain a
+    # token, an authorization code, a PKCE verifier or a client secret.
+
+    class AgentClient
+        # Base class of every error the agent client raises itself.
+        class Error < KindeSdk::Error; end
+
+        # A metadata document was not found or was refused, a URL is not https,
+        # or the authorization server offers no usable client identity.
+        class DiscoveryError < Error; end
+
+        # A server could not be reached: network failure or timeout.
+        class UnavailableError < Error
+            def initialize(message = "The server could not be reached")
+                super
+            end
+        end
+
+        # The user has to sign in. Not a failure: redirect the user's browser
+        # to +authorization_url+ and call +handle_callback+ in the callback route.
+        class AuthorizationRequiredError < Error
+            # @return [String] where to send the user's browser
+            attr_reader :authorization_url
+            # @return [String] the +state+ of the sign-in attempt that was stored
+            attr_reader :state
+
+            def initialize(message = "The user has to sign in", authorization_url: nil, state: nil)
+                super(message)
+                @authorization_url = authorization_url
+                @state = state
+            end
+        end
+
+        # The callback cannot be accepted: +state+ is missing, unknown, already
+        # used or expired, +iss+ names another server, or there is no +code+.
+        class CallbackError < Error; end
+
+        # The authorization server answered with an OAuth error, at the
+        # callback, the token endpoint or the registration endpoint.
+        class OAuthError < Error
+            # @return [String, nil] the OAuth +error+ code, for example "invalid_grant"
+            attr_reader :error
+            # @return [String, nil] the server's +error_description+
+            attr_reader :error_description
+            # @return [Integer, nil] the HTTP status, when the error came from an HTTP answer
+            attr_reader :status
+
+            def initialize(message = "The authorization server returned an error", error: nil, error_description: nil, status: nil)
+                super(message)
+                @error = error
+                @error_description = error_description
+                @status = status
+            end
+        end
+
+        # The registration endpoint refused to register this agent.
+        class RegistrationError < OAuthError; end
+    end
   end
