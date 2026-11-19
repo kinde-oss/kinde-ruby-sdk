@@ -5,6 +5,10 @@ module KindeSdk
     # A JSON document fetched from Kinde and kept in memory for a fixed time.
     # Used for the JWKS and for the proxied authorization server metadata.
     #
+    # The document is frozen at every level ({Http.get_json} parses it that
+    # way) and every caller gets the same object, so nobody who reads it can
+    # change what the next caller is given.
+    #
     # The fetch runs while the lock is held, so concurrent callers wait for one
     # request instead of each making their own. A failed fetch (which includes
     # a document that +validate+ refuses) is remembered for
@@ -42,7 +46,7 @@ module KindeSdk
       # @param force [Boolean] ask for a refresh even when the document is
       #   fresh; honoured at most once per +min_refresh_interval+, counted
       #   from the last forced refresh that succeeded
-      # @return [Hash] the document
+      # @return [Hash] the document, frozen at every level
       # @raise [UnavailableError] when the document has to be fetched and the
       #   fetch fails, or failed less than {FAILURE_RETRY_INTERVAL} seconds ago
       def get(force: false)

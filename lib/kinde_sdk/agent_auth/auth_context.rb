@@ -4,7 +4,9 @@ module KindeSdk
   class AgentAuth
     # What a verified access token says about the caller. Returned by
     # {KindeSdk::AgentAuth#verify_access_token} and placed in the Rack env by
-    # {KindeSdk::AgentAuth::Middleware}. Frozen.
+    # {KindeSdk::AgentAuth::Middleware}. Frozen all the way down: the context
+    # keeps its own copies of the token and the claims, so neither the caller's
+    # objects are frozen nor can a later edit change what was verified.
     #
     # Identity comes from the token's claims, never from the user profile
     # endpoint.
@@ -50,8 +52,8 @@ module KindeSdk
       # @param token [String]
       # @param claims [Hash]
       def initialize(token, claims)
-        @token = token
-        @claims = claims.to_h.transform_keys(&:to_s).freeze
+        @token = frozen_copy(token)
+        @claims = frozen_copy(claims.to_h.transform_keys(&:to_s))
         @user_id = @claims["sub"]
         @email = @claims["email"]
         @org_code = @claims["org_code"]
@@ -87,22 +89,32 @@ module KindeSdk
 
       private
 
+      # A copy that shares nothing mutable with +value+, frozen at every level.
+      def frozen_copy(value)
+        case value
+        when Hash then value.to_h { |key, entry| [frozen_copy(key), frozen_copy(entry)] }.freeze
+        when Array then value.map { |entry| frozen_copy(entry) }.freeze
+        else value.frozen? ? value : value.dup.freeze
+        end
+      end
+
       def string_list(value)
         return [].freeze unless value.is_a?(Array)
 
-        value.map(&:to_s).freeze
+        value.map { |entry| frozen_copy(entry.to_s) }.freeze
       end
 
       # Kinde sends roles as objects ({"id", "key", "name"}); keep the keys.
       def role_keys(value)
         return [].freeze unless value.is_a?(Array)
 
-        value.filter_map { |role| role.is_a?(Hash) ? (role["key"] || role[:key]) : role }.map(&:to_s).freeze
+        value.filter_map { |role| role.is_a?(Hash) ? (role["key"] || role[:key]) : role }
+             .map { |key| frozen_copy(key.to_s) }.freeze
       end
 
       def scope_list(claims)
         return string_list(claims["scp"]) if claims["scp"].is_a?(Array)
-        return claims["scope"].split(" ").freeze if claims["scope"].is_a?(String)
+        return claims["scope"].split(" ").map(&:freeze).freeze if claims["scope"].is_a?(String)
 
         [].freeze
       end

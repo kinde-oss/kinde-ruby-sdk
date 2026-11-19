@@ -54,9 +54,11 @@ module KindeSdk
       attr_reader :introspect_url
       # @return [String] +issuer/revoke+
       attr_reader :revoke_url
-      # @return [String] path of the protected resource metadata for this resource
+      # @return [String] path of the protected resource metadata for this
+      #   resource, without a query: what a request path is matched against
       attr_reader :prm_path
-      # @return [String] absolute URL of the protected resource metadata
+      # @return [String] absolute URL of the protected resource metadata. It
+      #   keeps the query of the Resource URL, as RFC 9728 section 3.1 builds it.
       attr_reader :prm_url
       # @return [String] path of the Resource URL ("/" when it has none)
       attr_reader :resource_path
@@ -132,15 +134,16 @@ module KindeSdk
 
       def validate_verification(value)
         mode = value.to_s
-        return mode.freeze if VERIFICATION_MODES.include?(mode)
+        # A copy: to_s hands back the caller's own String, which must not be frozen.
+        return mode.dup.freeze if VERIFICATION_MODES.include?(mode)
 
         raise ArgumentError, "verification must be one of: #{VERIFICATION_MODES.join(', ')}"
       end
 
       def with_required_scope(value)
-        scopes = Array(value).map(&:to_s)
+        scopes = Array(value).map { |scope| scope.to_s.dup.freeze }
         scopes << REQUIRED_SCOPE unless scopes.include?(REQUIRED_SCOPE)
-        scopes.map(&:freeze).freeze
+        scopes.freeze
       end
 
       def validate_tolerance(value)
@@ -166,7 +169,8 @@ module KindeSdk
         path = uri.path.to_s
         @resource_path = (path.empty? ? "/" : path).freeze
         @prm_path = "#{WELL_KNOWN_PRM_PATH}#{path == '/' ? '' : path}".freeze
-        @prm_url = "#{uri.scheme}://#{uri.host}#{port_suffix(uri)}#{prm_path}".freeze
+        query = uri.query ? "?#{uri.query}" : ""
+        @prm_url = "#{uri.scheme}://#{uri.host}#{port_suffix(uri)}#{prm_path}#{query}".freeze
       end
 
       def parse_url(name, text)

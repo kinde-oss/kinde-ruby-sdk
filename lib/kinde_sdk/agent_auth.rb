@@ -33,7 +33,7 @@ module KindeSdk
   #   auth = kinde.authenticate(request.get_header("HTTP_AUTHORIZATION"))
   #   auth.user_id # => "kp_123"
   class AgentAuth
-    BEARER_PATTERN = /\ABearer (\S+)\z/i.freeze
+    BEARER_PATTERN = /\ABearer +(\S+)\z/i.freeze
     PERCENT_ESCAPE = /%[0-9A-Fa-f]{2}/.freeze
     TWO_WORD_BYTES = /\A[A-Za-z0-9_]{2}\z/.freeze
     private_constant :BEARER_PATTERN, :PERCENT_ESCAPE, :TWO_WORD_BYTES
@@ -90,7 +90,9 @@ module KindeSdk
     #
     # @param mode [Symbol] :proxy fetches Kinde's document (cached for five
     #   minutes) and returns it unchanged; :static builds it from the derived URLs
-    # @return [Hash{String=>Object}] includes +client_id_metadata_document_supported: true+
+    # @return [Hash{String=>Object}] includes +client_id_metadata_document_supported: true+.
+    #   With :proxy it is the cached document itself, frozen at every level:
+    #   to change a field for your own answer, build a new Hash from it.
     # @raise [ArgumentError] for another mode
     # @raise [KindeSdk::AgentAuth::UnavailableError] when the proxy fetch fails
     # @example
@@ -313,7 +315,8 @@ module KindeSdk
 
     class << self
       # Reads the token from an +Authorization+ header value. Only
-      # +Bearer <token>+ is accepted: the scheme in any case, exactly one space.
+      # +Bearer <token>+ is accepted: the scheme in any case, then one or
+      # more spaces (RFC 6750), then the token. A tab is not a space.
       #
       # @param authorization_header [String, nil]
       # @return [String] the token

@@ -4,7 +4,8 @@ require_relative 'support/agent_auth_helpers'
 
 # Core of the resource-server helpers for "AI agents and MCP" applications.
 # Case ids C1-C60 are the ones in the approved plan; C61-C65 were added in
-# fix round 1, C66 and C67 in fix round 2, C68 in fix round 3.
+# fix round 1, C66 and C67 in fix round 2, C68 in fix round 3, C69-C75 after
+# the review of the pull request.
 RSpec.describe KindeSdk::AgentAuth do
   include AgentAuthHelpers
 
@@ -121,6 +122,44 @@ RSpec.describe KindeSdk::AgentAuth do
       expect(nested.prm_url).to eq("https://api.example.com/.well-known/oauth-protected-resource/v1/tools/mcp")
     end
 
+    it "C72: keeps the query of the Resource URL in the metadata URL and matches requests by path", :aggregate_failures do
+      with_query = build_agent_auth(resource_url: "https://api.example.com/mcp?tenant=docs")
+      config = with_query.config
+      url = "https://api.example.com/.well-known/oauth-protected-resource/mcp?tenant=docs"
+
+      expect(config.prm_url).to eq(url)
+      expect(config.prm_path).to eq("/.well-known/oauth-protected-resource/mcp")
+      expect(config.resource_path).to eq("/mcp")
+      expect(with_query.challenge).to eq(%(Bearer resource_metadata="#{url}"))
+
+      status, _headers, body = with_query.metadata_response("GET", config.prm_path)
+      expect(status).to eq(200)
+      expect(JSON.parse(body)["resource"]).to eq("https://api.example.com/mcp?tenant=docs")
+
+      root = build_agent_auth(resource_url: "https://api.example.com/?tenant=docs").config
+      expect(root.prm_path).to eq("/.well-known/oauth-protected-resource")
+      expect(root.prm_url).to eq("https://api.example.com/.well-known/oauth-protected-resource?tenant=docs")
+    end
+
+    it "C71: copies the strings it is given instead of freezing the caller's", :aggregate_failures do
+      mode = +"jwt"
+      scopes = [+"offline", +"profile"]
+      name = +"Docs"
+      config = build_agent_auth(verification: mode, scopes_supported: scopes, resource_name: name).config
+
+      expect([mode, scopes, scopes[0], scopes[1], name]).to all(satisfy { |value| !value.frozen? })
+      mode << "+introspection"
+      scopes[1] << "x"
+      scopes << "email"
+      name << "!"
+
+      expect(config.verification).to eq("jwt")
+      expect(config.scopes_supported).to eq(%w[offline profile])
+      expect(config.resource_name).to eq("Docs")
+      expect(config.verification).to be_frozen
+      expect(config.scopes_supported).to be_frozen.and all(be_frozen)
+    end
+
     it "C8: always advertises the offline scope", :aggregate_failures do
       expect(build_agent_auth(scopes_supported: %w[profile email]).config.scopes_supported).to eq(%w[profile email offline])
       expect(build_agent_auth(scopes_supported: %w[offline profile]).config.scopes_supported).to eq(%w[offline profile])
@@ -211,6 +250,35 @@ RSpec.describe KindeSdk::AgentAuth do
     end
   end
 
+  describe "the proxied document" do
+    it "C70: is frozen at every level, so no caller can change what the next one is served", :aggregate_failures do
+      upstream = {
+        "issuer" => AgentAuthHelpers::ISSUER,
+        "token_endpoint" => "#{AgentAuthHelpers::ISSUER}/token",
+        "grant_types_supported" => %w[authorization_code refresh_token],
+        "a_field_kinde_adds_later" => { "nested" => [1, 2] }
+      }
+      stub_request(:get, AgentAuthHelpers::AS_METADATA_URL).to_return(status: 200, body: upstream.to_json)
+      document = kinde.authorization_server_metadata(:proxy)
+
+      expect { document["token_endpoint"] = "https://elsewhere.example/token" }.to raise_error(FrozenError)
+      expect { document["token_endpoint"] << "/x" }.to raise_error(FrozenError)
+      expect { document["grant_types_supported"] << "password" }.to raise_error(FrozenError)
+      expect { document["a_field_kinde_adds_later"]["nested"] << 3 }.to raise_error(FrozenError)
+
+      expect(kinde.authorization_server_metadata(:proxy)).to eq(upstream)
+      _status, _headers, body = kinde.metadata_response(
+        "GET", "/.well-known/oauth-authorization-server", authorization_server_metadata: :proxy
+      )
+      expect(JSON.parse(body)).to eq(upstream)
+      expect(a_request(:get, AgentAuthHelpers::AS_METADATA_URL)).to have_been_made.once
+
+      # The static document is built for each call, so an edit to one copy stays in that copy.
+      kinde.authorization_server_metadata(:static)["grant_types_supported"] << "password"
+      expect(kinde.authorization_server_metadata(:static)["grant_types_supported"]).to eq(%w[authorization_code refresh_token])
+    end
+  end
+
   describe "#protects?" do
     it "C61: also covers the paths a router maps onto the resource path, and nothing else", :aggregate_failures do
       protected_paths = %w[/mcp /mcp/ /mcp/messages /mcp.json /mcp.x /mcp.json/ //mcp /mcp//messages ///mcp.json mcp]
@@ -298,13 +366,18 @@ RSpec.describe KindeSdk::AgentAuth do
       expect(described_class.extract_bearer_token("BEARER abc")).to eq("abc")
     end
 
+    it "C14: accepts one or more spaces after the scheme, as RFC 6750 allows", :aggregate_failures do
+      expect(described_class.extract_bearer_token("Bearer  abc")).to eq("abc")
+      expect(described_class.extract_bearer_token("bearer     a.b.c")).to eq("a.b.c")
+    end
+
     it "C15: raises MissingTokenError when there is no header", :aggregate_failures do
       expect { described_class.extract_bearer_token(nil) }.to raise_error(missing_token_error)
       expect { described_class.extract_bearer_token("") }.to raise_error(missing_token_error)
     end
 
     it "C16: raises InvalidTokenError for any other header shape", :aggregate_failures do
-      ["Basic xyz", "Bearer", "Bearer ", "Bearer  abc", "Bearer a b", "Bearer\tabc", "abc"].each do |header|
+      ["Basic xyz", "Bearer", "Bearer ", "Bearer   ", "Bearer a b", "Bearer  a b", "Bearer\tabc", "Bearer \tabc", "Bearer abc ", "abc"].each do |header|
         expect { described_class.extract_bearer_token(header) }
           .to raise_error(invalid_token_error), "expected #{header.inspect} to be refused"
       end
@@ -592,6 +665,35 @@ RSpec.describe KindeSdk::AgentAuth do
     end
   end
 
+  describe "the deadline of a call to Kinde" do
+    it "C73: stops a call that takes longer in total, however the time is spent", :aggregate_failures do
+      stub_const("KindeSdk::AgentAuth::Http::TIMEOUT_SECONDS", 0.2)
+      slow = lambda do |body|
+        lambda do |_request|
+          sleep 2
+          { status: 200, body: body.to_json }
+        end
+      end
+      elapsed = lambda do |&call|
+        started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        expect(&call).to raise_error(unavailable_error)
+        Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
+      end
+
+      stub_request(:post, AgentAuthHelpers::INTROSPECT_URL).to_return(slow.call(introspection_body))
+      expect(elapsed.call { kinde.verify_access_token(token) }).to be < 1.5
+
+      stub_request(:post, AgentAuthHelpers::REVOKE_URL).to_return(slow.call({}))
+      expect(elapsed.call { kinde.revoke_token(token) }).to be < 1.5
+
+      stub_request(:get, AgentAuthHelpers::JWKS_URL).to_return(slow.call(jwks_document))
+      expect(elapsed.call { jwt_kinde.verify_access_token(token) }).to be < 1.5
+
+      stub_request(:get, AgentAuthHelpers::AS_METADATA_URL).to_return(slow.call({}))
+      expect(elapsed.call { kinde.authorization_server_metadata(:proxy) }).to be < 1.5
+    end
+  end
+
   describe KindeSdk::AgentAuth::AuthContext do
     def context(claims, raw_token = "raw.token.value")
       described_class.from_claims(raw_token, claims)
@@ -628,6 +730,40 @@ RSpec.describe KindeSdk::AgentAuth do
       expect(auth).to be_frozen
       expect(auth.inspect).not_to include("secret.raw.token")
       expect(auth.to_s).not_to include("secret.raw.token")
+    end
+
+    it "C69: keeps its own frozen copies of the token and the claims", :aggregate_failures do
+      raw = +"raw.token.value"
+      claims = {
+        "sub" => +"kp_1", "permissions" => [+"read:docs"], "roles" => [{ "key" => +"admin" }],
+        "scope" => +"offline profile", "nested" => { "list" => [+"a"] }
+      }
+      auth = context(claims, raw)
+
+      # Nothing of the caller's is frozen, and editing it afterwards changes nothing that was verified.
+      expect([raw, claims, claims["sub"], claims["permissions"], claims["permissions"][0], claims["roles"][0]])
+        .to all(satisfy { |value| !value.frozen? })
+      claims["permissions"][0].replace("write:docs")
+      claims["permissions"] << "admin:all"
+      claims["roles"][0]["key"] << "-plus"
+      claims["nested"]["list"] << "b"
+      raw << ".more"
+      expect(auth.token).to eq("raw.token.value")
+      expect(auth.permissions).to eq(["read:docs"])
+      expect(auth.roles).to eq(["admin"])
+      expect(auth.claims["nested"]).to eq("list" => ["a"])
+      expect(auth.has_permission?("write:docs")).to be(false)
+
+      # Everything the context hands out is frozen, down to each string.
+      expect(auth.token).to be_frozen
+      expect { auth.permissions[0] << "x" }.to raise_error(FrozenError)
+      expect { auth.permissions << "write:docs" }.to raise_error(FrozenError)
+      expect { auth.roles[0].upcase! }.to raise_error(FrozenError)
+      expect { auth.scopes[0] << "x" }.to raise_error(FrozenError)
+      expect { auth.claims["permissions"][0].replace("write:docs") }.to raise_error(FrozenError)
+      expect { auth.claims["nested"]["list"] << "b" }.to raise_error(FrozenError)
+      expect { auth.claims["roles"][0]["key"] << "x" }.to raise_error(FrozenError)
+      expect(auth.has_permission?("read:docs")).to be(true)
     end
 
     it "C35: has_permission? is true only for a held key and never raises", :aggregate_failures do
@@ -922,6 +1058,62 @@ RSpec.describe KindeSdk::AgentAuth do
     end
   end
 
+  describe "a JWKS the jwt gem cannot use" do
+    let(:interval) { KindeSdk::AgentAuth::CachedDocument::FAILURE_RETRY_INTERVAL }
+    let(:good_key) { jwks_document[:keys].first }
+    let(:key_set) { { status: 200, body: jwks_document.to_json } }
+
+    def answer(keys)
+      { status: 200, body: { "keys" => keys }.to_json }
+    end
+
+    it "C75: is a failed fetch, never a rejected token, and is fetched again a few seconds later", :aggregate_failures do
+      unusable = {
+        "an empty entry" => [{}],
+        "an RSA entry without n and e" => [{ "kty" => "RSA", "kid" => "k2" }],
+        "a good key next to a broken one" => [good_key, { "kty" => "RSA", "kid" => "k2" }],
+        "a null entry" => [good_key, nil],
+        "no key at all" => [],
+        "no RSA key" => [JWT::JWK.new(OpenSSL::PKey::EC.generate("prime256v1"), kid: "ec1").export]
+      }
+      requests = 0
+
+      unusable.each do |name, keys|
+        clock = AgentAuthHelpers::FakeClock.new
+        verifier = KindeSdk::AgentAuth::TokenVerifier.new(jwt_kinde.config, clock: clock)
+        stub_request(:get, AgentAuthHelpers::JWKS_URL).to_return(answer(keys), key_set)
+
+        expect { verifier.verify(token) }.to raise_error(unavailable_error), name
+        clock.advance(interval - 0.5)
+        expect { verifier.verify(token) }.to raise_error(unavailable_error), name
+        expect(a_request(:get, AgentAuthHelpers::JWKS_URL)).to have_been_made.times(requests += 1)
+
+        clock.advance(1)
+        expect(verifier.verify(token).user_id).to eq("kp_user_1"), name
+        expect(a_request(:get, AgentAuthHelpers::JWKS_URL)).to have_been_made.times(requests += 1)
+      end
+    end
+
+    it "C75: does not replace the cached keys when it answers a forced refetch", :aggregate_failures do
+      clock = AgentAuthHelpers::FakeClock.new
+      verifier = KindeSdk::AgentAuth::TokenVerifier.new(jwt_kinde.config, clock: clock)
+      stub_request(:get, AgentAuthHelpers::JWKS_URL).to_return(key_set, answer([{}]))
+      unknown = sign_token(token_claims, kid: "unknown-kid", key: AgentAuthHelpers::OTHER_RSA_KEY)
+
+      expect(verifier.verify(token).user_id).to eq("kp_user_1")
+      expect { verifier.verify(unknown) }.to raise_error(unavailable_error)
+      clock.advance(interval + 1)
+      expect(verifier.verify(token).user_id).to eq("kp_user_1")
+      expect(a_request(:get, AgentAuthHelpers::JWKS_URL)).to have_been_made.times(2)
+    end
+
+    it "C75: still accepts a key set that also holds a key type the gem does not know" do
+      stub_request(:get, AgentAuthHelpers::JWKS_URL).to_return(answer([good_key, { "kty" => "XYZ", "kid" => "k3" }]))
+
+      expect(jwt_kinde.verify_access_token(token).user_id).to eq("kp_user_1")
+    end
+  end
+
   describe "jwt+introspection" do
     let(:both) { build_agent_auth(verification: "jwt+introspection") }
 
@@ -960,6 +1152,32 @@ RSpec.describe KindeSdk::AgentAuth do
       stub_introspection("oops", status: 500)
 
       expect { both.verify_access_token(token) }.to raise_error(unavailable_error)
+    end
+
+    it "C74: checks the signed expiry again after Kinde answered", :aggregate_failures do
+      strict = build_agent_auth(verification: "jwt+introspection", clock_tolerance_seconds: 0)
+      started = Time.now
+      passed = 0
+      allow(Time).to receive(:now) { started + passed }
+      expiring = sign_token(token_claims("exp" => started.to_i + 2))
+      active_without_exp = introspection_body.reject { |name, _| name == "exp" }.to_json
+      stub_jwks
+
+      # Kinde's answer arrives three seconds later, after the token expired, and carries no exp.
+      stub_request(:post, AgentAuthHelpers::INTROSPECT_URL).to_return do |_request|
+        passed = 3
+        { status: 200, body: active_without_exp }
+      end
+      expect { strict.verify_access_token(expiring) }.to raise_error(invalid_token_error, "The access token has expired")
+      expect(a_request(:post, AgentAuthHelpers::INTROSPECT_URL)).to have_been_made.once
+
+      # An answer that arrives before the expiry still passes.
+      passed = 0
+      stub_request(:post, AgentAuthHelpers::INTROSPECT_URL).to_return do |_request|
+        passed = 1
+        { status: 200, body: active_without_exp }
+      end
+      expect(strict.verify_access_token(expiring).user_id).to eq("kp_user_1")
     end
   end
 

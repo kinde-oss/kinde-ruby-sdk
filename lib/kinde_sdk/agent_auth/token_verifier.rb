@@ -31,6 +31,7 @@ module KindeSdk
       WRONG_AUDIENCE = "The access token was not issued for this resource"
       EXPIRED = "The access token has expired"
       NOT_YET_VALID = "The access token is not valid yet"
+      UNUSABLE_JWKS = "Kinde returned an unexpected JWKS"
 
       # @param config [Config]
       # @param clock [#call] monotonic clock for the JWKS cache
@@ -56,8 +57,13 @@ module KindeSdk
         when "jwt"
           AuthContext.from_claims(token, verify_jwt(token))
         when "jwt+introspection"
-          verify_jwt(token)
-          introspect(token)
+          payload = verify_jwt(token)
+          context = introspect(token)
+          # The call to Kinde took time, and its answer need not carry exp:
+          # the signed expiry is checked again before the context is handed out.
+          raise InvalidTokenError, EXPIRED unless unexpired?(payload["exp"])
+
+          context
         else
           introspect(token)
         end
@@ -123,11 +129,19 @@ module KindeSdk
         @jwks.get(force: options[:kid_not_found] == true)
       end
 
-      # Runs on every fetched JWKS, before the cache keeps it: an answer
-      # without a key list is a failed fetch (retried a few seconds later),
-      # not a document to hold on to for an hour.
+      # Runs on every fetched JWKS, before the cache keeps it. An answer the
+      # jwt gem cannot use is a failed fetch (retried a few seconds later),
+      # not a document to hold on to for an hour: no key list, an entry the
+      # gem cannot import (it would then fail for every token, as "invalid
+      # token", before it ever asked for a refresh), or no RSA key at all.
+      # Key types the gem does not know are skipped by it and are fine.
       def check_jwks(document)
-        raise UnavailableError, "Kinde returned an unexpected JWKS" unless document["keys"].is_a?(Array)
+        raise UnavailableError, UNUSABLE_JWKS unless document["keys"].is_a?(Array)
+
+        keys = JWT::JWK::Set.new(document)
+        raise UnavailableError, UNUSABLE_JWKS unless keys.any? { |key| key[:kty] == "RSA" }
+      rescue JWT::DecodeError, ArgumentError
+        raise UnavailableError, UNUSABLE_JWKS
       end
 
       def check_claims(payload)
