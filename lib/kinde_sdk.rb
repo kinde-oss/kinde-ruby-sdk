@@ -26,6 +26,7 @@ require 'jwt'
 require 'openssl'
 require 'base64'
 require "kinde_sdk/agent_auth"
+require "kinde_sdk/agent_client"
 
 
 
