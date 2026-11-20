@@ -23,4 +23,5 @@ end
 
 group :test do
   gem 'webmock'
+  gem 'mcp', '~> 1.10.0'
 end
