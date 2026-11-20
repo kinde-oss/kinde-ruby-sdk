@@ -11,7 +11,7 @@ module KindeSdk
     #
     # The fetch runs while the lock is held, so concurrent callers wait for one
     # request instead of each making their own. A failed fetch (which includes
-    # a document that +validate+ refuses) is remembered for
+    # a document that +prepare+ refuses) is remembered for
     # {FAILURE_RETRY_INTERVAL} seconds, so the callers that waited for it (and
     # the ones that follow) fail at once instead of each repeating the timeout.
     #
@@ -26,15 +26,15 @@ module KindeSdk
       # @param ttl [Numeric] seconds a fetched document stays fresh
       # @param min_refresh_interval [Numeric] minimum seconds between two forced refreshes
       # @param clock [#call] returns the current time in seconds (monotonic)
-      # @param validate [#call, nil] called with each fetched document; when it
-      #   raises {UnavailableError} the fetch counts as failed and the document
-      #   is not kept
-      def initialize(url, ttl:, min_refresh_interval: 0, clock: MONOTONIC_CLOCK, validate: nil)
+      # @param prepare [#call, nil] called with each fetched document; the cache
+      #   keeps the document it returns. When it raises {UnavailableError} the
+      #   fetch counts as failed and nothing is kept
+      def initialize(url, ttl:, min_refresh_interval: 0, clock: MONOTONIC_CLOCK, prepare: nil)
         @url = url
         @ttl = ttl
         @min_refresh_interval = min_refresh_interval
         @clock = clock
-        @validate = validate
+        @prepare = prepare
         @mutex = Mutex.new
         @document = nil
         @fetched_at = nil
@@ -85,8 +85,7 @@ module KindeSdk
 
       def load_document
         document = Http.get_json(@url)
-        @validate&.call(document)
-        document
+        @prepare ? @prepare.call(document) : document
       rescue UnavailableError => e
         # Timed when the fetch ends: a fetch that ran into the timeout must
         # still stop the callers that waited for it.

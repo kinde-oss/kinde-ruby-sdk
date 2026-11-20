@@ -1074,7 +1074,9 @@ RSpec.describe KindeSdk::AgentAuth do
         "a good key next to a broken one" => [good_key, { "kty" => "RSA", "kid" => "k2" }],
         "a null entry" => [good_key, nil],
         "no key at all" => [],
-        "no RSA key" => [JWT::JWK.new(OpenSSL::PKey::EC.generate("prime256v1"), kid: "ec1").export]
+        "no RSA key" => [JWT::JWK.new(OpenSSL::PKey::EC.generate("prime256v1"), kid: "ec1").export],
+        "only a key of a type the gem does not know" => [{ "kty" => "XYZ", "kid" => "k3" }],
+        "a good key next to one with no key type" => [good_key, { "kid" => "k4" }]
       }
       requests = 0
 
@@ -1111,6 +1113,24 @@ RSpec.describe KindeSdk::AgentAuth do
       stub_request(:get, AgentAuthHelpers::JWKS_URL).to_return(answer([good_key, { "kty" => "XYZ", "kid" => "k3" }]))
 
       expect(jwt_kinde.verify_access_token(token).user_id).to eq("kp_user_1")
+    end
+
+    # jwt 3.3 skips a key type it does not know; jwt 3.0 to 3.2 raise on it.
+    # The gemspec allows all of them, so this example makes the installed gem
+    # behave like the older ones.
+    it "C77: leaves a key type the gem does not know out of what it hands to the gem", :aggregate_failures do
+      imported = []
+      allow(JWT::JWK).to receive(:new).and_wrap_original do |original, key, *rest|
+        imported << key["kty"] if key.is_a?(Hash)
+        raise JWT::JWKError, "Key type XYZ not supported" if key.is_a?(Hash) && key["kty"] == "XYZ"
+
+        original.call(key, *rest)
+      end
+      stub_request(:get, AgentAuthHelpers::JWKS_URL).to_return(answer([{ "kty" => "XYZ", "kid" => "k3" }, good_key]))
+
+      expect(jwt_kinde.verify_access_token(token).user_id).to eq("kp_user_1")
+      expect(imported).to include("RSA")
+      expect(imported).not_to include("XYZ")
     end
   end
 

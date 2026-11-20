@@ -42,7 +42,7 @@ module KindeSdk
           ttl: JWKS_TTL,
           min_refresh_interval: JWKS_MIN_REFRESH_INTERVAL,
           clock: clock,
-          validate: method(:check_jwks)
+          prepare: method(:usable_jwks)
         )
       end
 
@@ -129,19 +129,46 @@ module KindeSdk
         @jwks.get(force: options[:kid_not_found] == true)
       end
 
-      # Runs on every fetched JWKS, before the cache keeps it. An answer the
-      # jwt gem cannot use is a failed fetch (retried a few seconds later),
-      # not a document to hold on to for an hour: no key list, an entry the
-      # gem cannot import (it would then fail for every token, as "invalid
-      # token", before it ever asked for a refresh), or no RSA key at all.
-      # Key types the gem does not know are skipped by it and are fine.
-      def check_jwks(document)
+      # Runs on every fetched JWKS; the cache keeps what it returns, and that
+      # is the document {#load_jwks} hands to the jwt gem.
+      #
+      # Entries of a key type the gem cannot import are left out first. jwt
+      # 3.3 skips them by itself, but jwt 3.0 to 3.2 raise on the first one,
+      # and one such key would then make every token fail.
+      #
+      # What is left must be usable, or the answer is a failed fetch (retried
+      # a few seconds later), not a document to hold on to for an hour: no key
+      # list, an entry of a known type that the gem cannot import (it would
+      # fail for every token, as "invalid token", before the gem ever asked
+      # for a refresh), or no RSA key at all.
+      def usable_jwks(document)
         raise UnavailableError, UNUSABLE_JWKS unless document["keys"].is_a?(Array)
 
-        keys = JWT::JWK::Set.new(document)
+        supported = supported_key_types
+        entries = document["keys"].reject { |entry| unsupported_key_type?(entry, supported) }
+        usable = document.merge("keys" => entries.freeze).freeze
+        keys = JWT::JWK::Set.new(usable)
         raise UnavailableError, UNUSABLE_JWKS unless keys.any? { |key| key[:kty] == "RSA" }
+
+        usable
       rescue JWT::DecodeError, ArgumentError
         raise UnavailableError, UNUSABLE_JWKS
+      end
+
+      # An entry with no +kty+, or one that is not an object, is not
+      # "unsupported": it is malformed, and stays in so that the import fails.
+      def unsupported_key_type?(entry, supported)
+        return false unless entry.is_a?(Hash) && entry["kty"]
+
+        !supported.include?(entry["kty"].to_s)
+      end
+
+      # The +kty+ values the installed jwt gem can import, read from its key
+      # classes (the same list it builds its own lookup from).
+      def supported_key_types
+        JWT::JWK.classes.flat_map do |klass|
+          klass.const_defined?(:KTYS) ? Array(klass::KTYS) : []
+        end.grep(String)
       end
 
       def check_claims(payload)
