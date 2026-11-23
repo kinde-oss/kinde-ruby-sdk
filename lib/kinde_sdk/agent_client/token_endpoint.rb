@@ -15,6 +15,16 @@ module KindeSdk
         @config = config
       end
 
+      # The lifetime a token response gives its access token.
+      #
+      # @param document [Hash] a token response
+      # @return [Integer, nil] whole seconds, or nil when the response gives none
+      def self.lifetime(document)
+        expires_in = document["expires_in"]
+        expires_in = Integer(expires_in, 10) if expires_in.is_a?(String) && expires_in.match?(/\A\d+\z/)
+        expires_in.is_a?(Numeric) ? expires_in.to_i : nil
+      end
+
       # @param url [String] the token endpoint
       # @param identity [Hash] the client identity (see {Registration})
       # @param code [String]
@@ -55,11 +65,19 @@ module KindeSdk
         document = Http.parse_object(result.body) || {}
         token = document["access_token"]
         if result.status == 200 && token.is_a?(String) && !token.empty?
-          return document if bearer?(document)
-
           # RFC 6749 section 7.1: a token of a type the client does not understand must not be used.
-          raise OAuthError.new("The authorization server issued a token of a type this client cannot use; " \
-                               "only Bearer tokens are supported", status: result.status)
+          unless bearer?(document)
+            raise OAuthError.new("The authorization server issued a token of a type this client cannot use; " \
+                                 "only Bearer tokens are supported", status: result.status)
+          end
+          # A token that has no lifetime left is not stored: it would be
+          # reported as a good one, and a refresh would be sent for each call.
+          if (lifetime = self.class.lifetime(document)) && !lifetime.positive?
+            raise OAuthError.new("The authorization server issued an access token that has already expired " \
+                                 "(expires_in is #{lifetime})", status: result.status)
+          end
+
+          return document
         end
 
         error = string(document["error"])

@@ -5,7 +5,7 @@ require_relative 'support/agent_client_helpers'
 # token storage, calling the resource, refresh and disconnect, against a fake
 # resource server and a fake authorization server made of WebMock stubs.
 # Case ids (C1-C85) are the ones in the approved plan; there is no C83.
-# C86-C105 came out of review.
+# C86-C107 came out of review.
 module AgentClientHelpers # so the constants of the helpers are in scope below
   RSpec.describe KindeSdk::AgentClient do
     include AgentClientHelpers
@@ -922,6 +922,17 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         expect(requests(:post, REGISTER).size).to eq(3)
       end
 
+      it "C107: a registration that has expired is replaced, also one that was issued with no lifetime", :aggregate_failures do
+        stub_register(registration_response("client_secret_expires_at" => NOW))
+        dcr_client.authorization_url
+        expect(stored_registration(store)).to include("registered_at" => NOW, "client_secret_expires_at" => NOW)
+
+        stub_register(registration_response("client_id" => "dcr-client-id-two"))
+        expect(query_of(build_client(storage: store).authorization_url)["client_id"]).to eq("dcr-client-id-two")
+        expect(requests(:post, REGISTER).size).to eq(2)
+        expect(stored_registration(store)).not_to include("previous")
+      end
+
       it "C29: tokens issued to a registration that was replaced before its expiry are still refreshed and revoked with it", :aggregate_failures do
         sign_in(dcr_client)
         clock.advance((29 * 86_400) + 3600)
@@ -1317,7 +1328,10 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
 
       it "C86: an iss that is there but empty or repeated is refused, also when the server need not send one", :aggregate_failures do
         malformed = [{ "iss" => "" }, { "iss" => [ISSUER] }, { "iss" => [] }, { iss: "" }, { "iss" => { "0" => ISSUER } },
-                     { "iss" => false }, { iss: false }]
+                     { "iss" => false }, { iss: false },
+                     # Under both key forms, with a good value under one of them.
+                     { "iss" => false, iss: ISSUER }, { "iss" => "", iss: ISSUER }, { "iss" => ISSUER, iss: false },
+                     { "iss" => ISSUER, iss: "https://evil.example" }, { "iss" => "https://evil.example", iss: ISSUER }]
         malformed.each do |extra|
           expect { client.handle_callback({ "code" => CODE, "state" => state }.merge(extra)) }
             .to raise_error(callback_error, /iss parameter that is empty or repeated/), extra.inspect
@@ -1326,6 +1340,10 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
 
         # None of them used up the attempt, and a nil value is no parameter at all.
         expect(client.handle_callback("code" => CODE, "state" => state, "iss" => nil).scopes).to eq(["offline"])
+
+        # The same value under both key forms is one value, as in params with indifferent access.
+        again = query_of(client.authorization_url)["state"]
+        expect(client.handle_callback("code" => CODE, "state" => again, "iss" => ISSUER, iss: ISSUER).scopes).to eq(["offline"])
       end
 
       it "C40: refuses a missing or unknown state, with no token request and no retry", :aggregate_failures do
@@ -2494,6 +2512,30 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         end
         expect(token_requests("refresh_token")).to be_empty
         expect(resource_requests).to be_empty
+      end
+
+      it "C106: a token response with no lifetime left is refused, at a sign-in and at a refresh", :aggregate_failures do
+        [0, "0", -5, 0.4].each do |expires_in|
+          stub_token(token_response("expires_in" => expires_in))
+          attempt = query_of(client.authorization_url)["state"]
+          expect { client.handle_callback("code" => CODE, "state" => attempt) }
+            .to raise_error(oauth_error, /already expired \(expires_in is #{expires_in.to_i}\)/), expires_in.inspect
+        end
+        expect(client.token_info).to be_nil
+
+        stub_token
+        sign_in(client)
+        stored = stored_tokens(store)
+        clock.advance(86_400 - 30)
+        stub_refresh("expires_in" => 0)
+        expect { client.connect }.to raise_error(oauth_error, /already expired/)
+        expect { client.fetch }.to raise_error(oauth_error, /already expired/)
+        expect(stored_tokens(store)).to eq(stored)
+        expect(resource_requests).to be_empty
+
+        # A second is a lifetime.
+        stub_refresh("expires_in" => 1)
+        expect(client.connect.expires_at).to eq(clock.now + 1)
       end
 
       describe "tokens a sign-in stores while connect fetches the metadata" do

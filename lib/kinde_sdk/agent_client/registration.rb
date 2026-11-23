@@ -26,7 +26,8 @@ module KindeSdk
       # a day before it expires. One that was issued for less than two days
       # is replaced in the second half of its life instead, so that a server
       # which issues registrations for a few hours is not asked for a new
-      # one at every sign-in. A registration that does not expire is never due.
+      # one at every sign-in. One that has expired is always due. A
+      # registration that does not expire is never due.
       #
       # @api private
       # @param record [Hash] a stored registration
@@ -34,6 +35,8 @@ module KindeSdk
       def self.renewal_due?(record)
         expires_at = record["client_secret_expires_at"]
         return false unless expires_at.is_a?(Numeric) && !expires_at.zero?
+        # Whatever the window: one issued with no lifetime has a window of none.
+        return true if expires_at <= Clock.now
 
         registered_at = record[REGISTERED_AT]
         window = RENEW_SECONDS

@@ -487,9 +487,8 @@ module KindeSdk
     end
 
     def expires_at(tokens)
-      expires_in = tokens["expires_in"]
-      expires_in = Integer(expires_in, 10) if expires_in.is_a?(String) && expires_in.match?(/\A\d+\z/)
-      expires_in.is_a?(Numeric) ? Clock.now + expires_in.to_i : nil
+      lifetime = TokenEndpoint.lifetime(tokens)
+      lifetime && Clock.now + lifetime
     end
 
     def token_info_of(record)
@@ -637,7 +636,8 @@ module KindeSdk
     # The record {#connect} reports: refreshed when it is close to its
     # expiry. One that has expired and cannot be refreshed is of no use: it
     # is deleted and the user signs in. +metadata+ is nil until it is needed.
-    # Never returns a record that has expired.
+    # Never returns a record that has expired: the token endpoint refuses a
+    # refreshed token that has no lifetime left.
     def usable_tokens(issuer, record, metadata)
       return record unless expiring?(record)
 

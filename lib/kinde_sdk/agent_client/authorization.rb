@@ -107,17 +107,19 @@ module KindeSdk
       # Runs before the attempt is consumed, so a callback that fails here
       # does not use up the state of the real one.
       def check_issuer!(params, record)
-        iss = param(params, "iss")
-        if iss.nil?
-          # An iss that is there but is not one non-empty value is not the
-          # same as none: it cannot be compared, so it is not let through.
-          if supplied?(params, "iss")
-            raise CallbackError, "The callback has an iss parameter that is empty or repeated; the sign-in is refused"
-          end
+        values = supplied(params, "iss")
+        if values.empty?
           return unless record["iss_required"] == true
 
           raise CallbackError,
                 "The callback has no iss parameter, which the authorization server said it sends; the sign-in is refused"
+        end
+        # An iss that is there but is not one non-empty value is not the
+        # same as none: it cannot be compared, so it is not let through.
+        # Both key forms are looked at, so that one cannot hide the other.
+        iss = values.first
+        unless values.uniq.size == 1 && iss.is_a?(String) && !iss.empty?
+          raise CallbackError, "The callback has an iss parameter that is empty or repeated; the sign-in is refused"
         end
         return if iss == record["issuer"]
 
@@ -132,14 +134,14 @@ module KindeSdk
           record["redirect_uri"] == @config.redirect_uri
       end
 
-      # Whether the callback carries the parameter at all, with any value.
-      def supplied?(params, name)
-        return false unless params.respond_to?(:[])
+      # Every value the callback carries for the parameter, under the String
+      # key and under the Symbol key. nil is no value; false is one.
+      def supplied(params, name)
+        return [] unless params.respond_to?(:[])
 
-        # Not "||": false is a value, and it is not a usable one.
-        !params[name].nil? || !params[name.to_sym].nil?
+        [params[name], params[name.to_sym]].compact
       rescue TypeError, ArgumentError
-        false
+        []
       end
 
       # Only a non-empty String counts as a parameter.
