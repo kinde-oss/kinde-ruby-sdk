@@ -32,6 +32,19 @@ module KindeSdk
           created_at.is_a?(Integer) && Clock.now - created_at > PENDING_MAX_AGE
         end
 
+        # What the in-process locks on the records of +store+ are kept apart
+        # by. A store may answer +lock_scope+ with a value that is equal for
+        # every object over the same data and different for unrelated data;
+        # the two built-in stores do. A store without it gets nil: all such
+        # stores share one lock per record key, which is always safe, and at
+        # worst makes unrelated users wait for each other.
+        #
+        # @param store [#read, #write, #delete]
+        # @return [Object, nil]
+        def lock_scope(store)
+          store.respond_to?(:lock_scope) ? store.lock_scope : nil
+        end
+
         # @param data [Hash{String=>Hash}] namespace => entries
         # @return [String] entry counts per namespace, never a value
         def summary(data)
@@ -46,6 +59,8 @@ module KindeSdk
     # Any object with the same three methods can be passed as +storage:+.
     # +namespace+ is a String, +key+ an Array of Strings, and values are
     # JSON-compatible (Hashes with String keys, Arrays, Strings, numbers).
+    # What +write+ returns is not used. A store may also answer +lock_scope+
+    # (see {#lock_scope}); it does not have to.
     # The client uses +tokens+ +[issuer, resource_url, account]+,
     # +registrations+ +[issuer, redirect_uri]+, +pending+ +[state]+ and
     # +issuers+ +[resource_url, account]+.
@@ -98,6 +113,18 @@ module KindeSdk
       #   store.delete("pending", [state])
       def delete(namespace, key)
         @mutex.synchronize { @data[namespace.to_s]&.delete(Storage.key(key)) }
+      end
+
+      # What keeps the locks of this store apart from those of another one.
+      # Refreshes, sign-outs and registrations wait for each other inside one
+      # process only when they work on the same record of the same data; two
+      # stores that answer different values here never wait for each other.
+      #
+      # @return [Object] equal for every object over the same data
+      # @example A store of your own over one Redis database per tenant
+      #   def lock_scope = @tenant_id
+      def lock_scope
+        object_id
       end
 
       # @return [String] entry counts only; never a token, verifier or secret
@@ -179,6 +206,16 @@ module KindeSdk
           @session[@key] = current.merge(namespace.to_s => entries.reject { |entry_key, _| entry_key == name })
           entries[name]
         end
+      end
+
+      # The session object and the key: two stores over one session wait for
+      # each other, and the sessions of two users do not.
+      #
+      # @return [Array] see {MemoryStore#lock_scope}
+      # @example
+      #   KindeSdk::AgentClient::SessionStore.new(session).lock_scope
+      def lock_scope
+        [@session.object_id, @key]
       end
 
       # @return [String] entry counts only; never a token, verifier or secret

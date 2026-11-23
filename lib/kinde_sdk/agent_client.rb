@@ -71,11 +71,18 @@ module KindeSdk
     # it are percent-encoded ("%2e%2e%2fadmin"): a server or proxy that decodes
     # them would leave the resource. An encoded slash elsewhere ("a%2Fb") is fine.
     DOT_SEGMENT = %r{(?:\A|/|%2f|%5c)(?:\.|%2e){1,2}(?:/|%2f|%5c|\z)}i.freeze
-    private_constant :ABSOLUTE_URL, :DOT_SEGMENT
+    # Thrown inside the token lock when the user has to sign in; the sign-in
+    # is started, and the +on_auth_required+ block called, after the lock is
+    # released.
+    SIGN_IN = :kinde_agent_client_sign_in
+    private_constant :ABSOLUTE_URL, :DOT_SEGMENT, :SIGN_IN
 
     # One lock per key, for every client in this process. It serialises
-    # refreshes and sign-outs per token record, and registrations per store
-    # and registration key.
+    # refreshes, sign-outs and token writes per token record, and
+    # registrations per registration key. Every key starts with the lock
+    # scope of the store (see {Storage.lock_scope}), so users whose stores
+    # hold unrelated data do not wait for each other. The locks are not
+    # reentrant: no block of the application is called while one is held.
     #
     # @api private
     module KeyedLock
@@ -214,10 +221,12 @@ module KindeSdk
       @auth_required = nil
     end
 
-    # Makes sure a token is stored, without calling the resource. A token
-    # close to its expiry is refreshed. With nothing stored, the authorization
-    # server is discovered from the resource's well-known URLs and a sign-in
-    # attempt is started. Never waits for a browser.
+    # Makes sure a usable token is stored, without calling the resource. A
+    # token close to its expiry is refreshed; one that has expired and cannot
+    # be refreshed is deleted and a sign-in attempt is started. With nothing
+    # stored, the authorization server is discovered from the resource's
+    # well-known URLs and a sign-in attempt is started. Never waits for a
+    # browser.
     #
     # @return [TokenInfo] when a token is stored
     # @raise [AuthorizationRequiredError] when the user has to sign in; it
@@ -232,16 +241,15 @@ module KindeSdk
     def connect
       issuer = stored_issuer
       record = issuer && read_tokens(issuer)
-      if record
-        record = refresh!(issuer, @discovery.authorization_server_metadata(issuer), record, proactive: true) if refresh_due?(record)
-        return token_info_of(record)
+      metadata = nil
+      if record.nil?
+        metadata = @discovery.discover
+        issuer = metadata["issuer"]
+        record = read_tokens(issuer)
+        require_authorization!(metadata) if record.nil?
+        remember_issuer(issuer)
       end
-
-      metadata = @discovery.discover
-      record = read_tokens(metadata["issuer"])
-      require_authorization!(metadata) if record.nil?
-      remember_issuer(metadata["issuer"])
-      token_info_of(record)
+      token_info_of(usable_tokens(issuer, record, metadata))
     end
 
     # Calls the resource with the stored access token. The token is refreshed
@@ -308,8 +316,9 @@ module KindeSdk
     #   String or Symbol keys
     # @return [TokenInfo]
     # @raise [CallbackError] for a missing, unknown, reused or expired
-    #   +state+, another +iss+, a missing +iss+ when the authorization server's
-    #   metadata says it sends one, or a missing +code+. Nothing is retried.
+    #   +state+, another +iss+, an +iss+ that is empty or repeated, a missing
+    #   +iss+ when the authorization server's metadata says it sends one, or
+    #   a missing +code+. Nothing is retried.
     # @raise [OAuthError] when the authorization server reported an error or
     #   refused the code
     # @raise [AuthorizationRequiredError] when the authorization server no
@@ -340,7 +349,9 @@ module KindeSdk
       end
 
       record = token_record(tokens, issuer, identity["client_id"], attempt["scopes"])
-      write_tokens(issuer, record)
+      # Under the token lock, so a request that is just giving up on the old
+      # tokens (see #discard_tokens) cannot delete these.
+      KeyedLock.synchronize(token_lock(issuer)) { write_tokens(issuer, record) }
       remember_issuer(issuer)
       token_info_of(record)
     end
@@ -365,7 +376,7 @@ module KindeSdk
         # Under the lock refreshes take: a refresh that is under way finishes
         # first, so the tokens it stores are the ones revoked and deleted here,
         # and it cannot put tokens back after the sign-out.
-        KeyedLock.synchronize(token_key(issuer)) do
+        KeyedLock.synchronize(token_lock(issuer)) do
           record = read_tokens(issuer)
           revoke(issuer, record) if record
           delete_tokens(issuer)
@@ -419,6 +430,11 @@ module KindeSdk
       [issuer, @config.resource_url, @config.account]
     end
 
+    # The key of the in-process lock on a token record.
+    def token_lock(issuer)
+      ["tokens", Storage.lock_scope(@config.storage), *token_key(issuer)]
+    end
+
     def stored_issuer
       issuer = @config.storage.read("issuers", pointer_key)
       issuer.is_a?(String) && !issuer.empty? ? issuer : nil
@@ -439,6 +455,21 @@ module KindeSdk
 
     def delete_tokens(issuer)
       @config.storage.delete("tokens", token_key(issuer))
+    end
+
+    # Deletes the stored tokens when they are still the ones in +sent+. When
+    # other tokens were stored in the meantime (a sign-in that finished while
+    # a request with the old ones was under way), they are kept.
+    #
+    # @return [Hash, nil] the newer record that was kept, or nil
+    def discard_tokens(issuer, sent)
+      KeyedLock.synchronize(token_lock(issuer)) do
+        current = read_tokens(issuer)
+        next current if current && current["access_token"] != sent["access_token"]
+
+        delete_tokens(issuer)
+        nil
+      end
     end
 
     def token_record(tokens, issuer, client_id, requested_scopes)
@@ -538,6 +569,8 @@ module KindeSdk
       if record && issuer != discovered
         delete_tokens(issuer)
         record = nil
+        # A refresh before the request was at the other authorization server.
+        refreshed = false
       end
 
       if record.nil?
@@ -554,7 +587,14 @@ module KindeSdk
         return [result, discovered, record] unless result.status == 401
       end
 
-      delete_tokens(discovered)
+      # The refused tokens are deleted. Newer ones are sent once.
+      newer = discard_tokens(discovered, record)
+      if newer
+        result = perform(request, newer)
+        return [result, discovered, newer] unless result.status == 401
+
+        discard_tokens(discovered, newer)
+      end
       require_authorization!(metadata)
     end
 
@@ -584,27 +624,55 @@ module KindeSdk
       record["expires_at"].is_a?(Numeric) && record["expires_at"] - Clock.now <= REFRESH_WINDOW_SECONDS
     end
 
-    # Refreshes under a process-wide lock for this token record. A caller
-    # that waited for someone else's refresh gets that result and sends nothing.
-    def refresh!(issuer, metadata, used, proactive:)
-      KeyedLock.synchronize(token_key(issuer)) do
-        current = read_tokens(issuer)
-        require_authorization!(metadata) if current.nil?
-        next current if proactive ? !expiring?(current) : current["access_token"] != used["access_token"]
-
-        unless present?(current["refresh_token"])
-          delete_tokens(issuer)
-          require_authorization!(metadata)
-        end
-        refresh_now(issuer, metadata, current)
-      end
+    def expired?(record)
+      record["expires_at"].is_a?(Numeric) && record["expires_at"] <= Clock.now
     end
 
+    # The record {#connect} reports: refreshed when it is close to its
+    # expiry. One that has expired and cannot be refreshed is of no use: it
+    # is deleted and the user signs in. +metadata+ is nil until it is needed.
+    def usable_tokens(issuer, record, metadata)
+      return record unless expiring?(record)
+
+      refreshable = present?(record["refresh_token"])
+      return record unless refreshable || expired?(record)
+
+      metadata ||= @discovery.authorization_server_metadata(issuer)
+      return refresh!(issuer, metadata, record, proactive: true) if refreshable
+
+      discard_tokens(issuer, record) || require_authorization!(metadata)
+    end
+
+    # Refreshes under a process-wide lock for this token record. A caller
+    # that waited for someone else's refresh gets that result and sends nothing.
+    #
+    # When the user has to sign in instead, that is started after the lock
+    # is released: the +on_auth_required+ block may call {#disconnect}, which
+    # takes the same lock.
+    def refresh!(issuer, metadata, used, proactive:)
+      sign_in = catch(SIGN_IN) do
+        return KeyedLock.synchronize(token_lock(issuer)) do
+          current = read_tokens(issuer)
+          throw SIGN_IN, {} if current.nil?
+          next current if proactive ? !expiring?(current) : current["access_token"] != used["access_token"]
+
+          unless present?(current["refresh_token"])
+            delete_tokens(issuer)
+            throw SIGN_IN, {}
+          end
+          refresh_now(issuer, metadata, current)
+        end
+      end
+      require_authorization!(metadata, **sign_in)
+    end
+
+    # Runs inside the token lock. Throws {SIGN_IN} with the options of the
+    # sign-in when the user has to sign in.
     def refresh_now(issuer, metadata, current)
       identity = @registration.identity_for(current["client_id"], issuer) { metadata }
       if identity.nil?
         delete_tokens(issuer)
-        require_authorization!(metadata)
+        throw SIGN_IN, {}
       end
 
       endpoint = Discovery.endpoint(metadata, "token_endpoint", loopback: @config.loopback_resource?)
@@ -613,18 +681,27 @@ module KindeSdk
       record["scope"] = tokens["scope"] if tokens["scope"].is_a?(String)
       record["refresh_token"] = tokens["refresh_token"] if present?(tokens["refresh_token"])
       write_tokens(issuer, record)
+      # Not what the store's write returned: a store may return anything.
+      record
     rescue OAuthError => e
-      if e.error == "invalid_grant"
+      if refused?(e, "invalid_grant")
         delete_tokens(issuer)
-        require_authorization!(metadata)
+        throw SIGN_IN, {}
       elsif reregister?(e, identity)
-        register_again!(issuer, identity, scopes: current["requested_scopes"])
+        throw SIGN_IN, drop_refused_registration(issuer, identity, scopes: current["requested_scopes"])
       end
       raise
     end
 
+    # Whether the authorization server refused the request with +code+. The
+    # code counts only in a 4xx answer: a 5xx answer says the server failed,
+    # not that the grant or the client is no longer good, whatever its body.
+    def refused?(error, code)
+      error.error == code && (400..499).cover?(error.status)
+    end
+
     def reregister?(error, identity)
-      error.error == "invalid_client" && !error.is_a?(RegistrationError) && identity && identity["source"] == "registration"
+      refused?(error, "invalid_client") && !error.is_a?(RegistrationError) && identity && identity["source"] == "registration"
     end
 
     # The registration is no longer accepted: drop it with the tokens issued
@@ -633,10 +710,15 @@ module KindeSdk
     # When it was the current one, a replaced one that has not expired is kept.
     def register_again!(issuer, identity, scopes:)
       metadata = @discovery.authorization_server_metadata(issuer)
+      require_authorization!(metadata, **drop_refused_registration(issuer, identity, scopes: scopes))
+    end
+
+    # @return [Hash] the options of the sign-in that has to follow
+    def drop_refused_registration(issuer, identity, scopes:)
       tokens = read_tokens(issuer)
       delete_tokens(issuer) if tokens && tokens["client_id"] == identity["client_id"]
       reregistered = @registration.forget_client(issuer, identity["client_id"])
-      require_authorization!(metadata, scopes: scopes.is_a?(Array) ? scopes : nil, reregistered: reregistered)
+      { scopes: scopes.is_a?(Array) ? scopes : nil, reregistered: reregistered }
     end
 
     def revoke(issuer, record)

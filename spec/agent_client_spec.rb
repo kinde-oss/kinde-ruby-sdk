@@ -5,7 +5,7 @@ require_relative 'support/agent_client_helpers'
 # token storage, calling the resource, refresh and disconnect, against a fake
 # resource server and a fake authorization server made of WebMock stubs.
 # Case ids (C1-C85) are the ones in the approved plan; there is no C83.
-# C86-C93 came out of review.
+# C86-C101 came out of review.
 module AgentClientHelpers # so the constants of the helpers are in scope below
   RSpec.describe KindeSdk::AgentClient do
     include AgentClientHelpers
@@ -62,6 +62,58 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
 
     def stub_refresh(overrides = {})
       stub_token(token_response({ "access_token" => NEW_ACCESS, "refresh_token" => nil }.merge(overrides)))
+    end
+
+    # Takes what a worker thread put on +queue+. When the worker died or
+    # ended before it got that far, or takes too long, this fails (with the
+    # worker's own error when it has one) and the suite does not hang.
+    def wait_for(queue, worker, seconds: 5)
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + seconds
+      while queue.empty?
+        worker.value unless worker.alive?
+        if !worker.alive? || Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+          raise "the worker thread did not get there within #{seconds} seconds"
+        end
+
+        sleep 0.005
+      end
+      queue.pop
+    end
+
+    # Waits until +worker+ is blocked or has ended, for at most +seconds+.
+    def settle(worker, seconds: 5)
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + seconds
+      sleep 0.01 while worker.status == "run" && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+      # Blocked now; give it a moment to show that it stays blocked.
+      sleep 0.05
+    end
+
+    # For an ensure: lets every stub that waits on +release+ go on, and
+    # ends the workers, so a failed example leaves no thread behind.
+    def stop_workers(release, *workers)
+      release.close
+      workers.compact.each do |worker|
+        worker.kill unless worker.join(2)
+      rescue StandardError
+        nil # the example has already failed, with this error or an earlier one
+      end
+    end
+
+    # A token endpoint whose first refresh waits for +release+; it reports on +entered+.
+    def stub_slow_refresh(entered, release, overrides = {})
+      refreshes = 0
+      counting = Mutex.new
+      stub_request(:post, TOKEN).to_return do |request|
+        form = form_of(request)
+        if form["grant_type"] == "refresh_token"
+          first = counting.synchronize { (refreshes += 1) == 1 }
+          entered << true
+          release.pop if first
+          json_response(token_response({ "access_token" => NEW_ACCESS, "refresh_token" => NEW_REFRESH }.merge(overrides)))
+        else
+          json_response(token_response("access_token" => "access-token-from-sign-in", "refresh_token" => "refresh-token-from-sign-in"))
+        end
+      end
     end
 
     describe "configuration" do
@@ -714,6 +766,37 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         expect(KindeSdk::AgentClient::KeyedLock.instance_variable_get(:@table)).to be_empty
       end
 
+      it "C100: dropping a refused registration waits for a registration that is under way, and keeps what it stores", :aggregate_failures do
+        stub_register(registration_response("client_id" => "dcr-old", "client_secret_expires_at" => NOW + 86_400 + 100))
+        dcr_client.authorization_url
+        clock.advance(200) # the old registration is now within a day of its expiry: the next sign-in replaces it
+        entered = Queue.new
+        release = Queue.new
+        stub_request(:post, REGISTER).to_return do |_request|
+          entered << true
+          release.pop
+          json_response(registration_response("client_id" => "dcr-new"), status: 201)
+        end
+        registration = KindeSdk::AgentClient::Registration.new(dcr_client.config)
+
+        registering = Thread.new { build_client(storage: store).authorization_url }
+        wait_for(entered, registering)
+        dropping = Thread.new { registration.forget_client(ISSUER, "dcr-old") }
+        settle(dropping)
+        expect(dropping).to be_alive
+        expect(stored_registration(store)).to include("client_id" => "dcr-old")
+        release << true
+
+        expect(query_of(registering.value)["client_id"]).to eq("dcr-new")
+        # It read what the registration stored: the new one is current and stays, only the refused one goes.
+        expect(dropping.value).to be(false)
+        expect(stored_registration(store)).to include("client_id" => "dcr-new")
+        expect(stored_registration(store)).not_to have_key("previous")
+        expect(KindeSdk::AgentClient::KeyedLock.instance_variable_get(:@table)).to be_empty
+      ensure
+        stop_workers(release, registering, dropping)
+      end
+
       it "C89: refuses a registration with an authentication method it cannot use, and stores nothing", :aggregate_failures do
         unusable = {
           "a method the client does not have" => { "token_endpoint_auth_method" => "private_key_jwt" },
@@ -1183,9 +1266,10 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
       it "C86: refuses a callback without iss when the authorization server says it sends one", :aggregate_failures do
         stub_metadata(server_metadata("authorization_response_iss_parameter_supported" => true))
 
-        [{}, { "iss" => "" }, { "iss" => [ISSUER] }].each do |extra|
+        expect { client.handle_callback("code" => CODE, "state" => state) }.to raise_error(callback_error, /no iss parameter/)
+        [{ "iss" => "" }, { "iss" => [ISSUER] }].each do |extra|
           expect { client.handle_callback({ "code" => CODE, "state" => state }.merge(extra)) }
-            .to raise_error(callback_error, /no iss parameter/)
+            .to raise_error(callback_error, /iss parameter that is empty or repeated/)
         end
         expect { client.handle_callback("code" => CODE, "state" => state, "iss" => "https://evil.example") }
           .to raise_error(callback_error, /another authorization server/)
@@ -1204,6 +1288,17 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
 
           expect(agent.handle_callback("code" => CODE, "state" => attempt).scopes).to eq(["offline"])
         end
+      end
+
+      it "C86: an iss that is there but empty or repeated is refused, also when the server need not send one", :aggregate_failures do
+        [{ "iss" => "" }, { "iss" => [ISSUER] }, { "iss" => [] }, { iss: "" }, { "iss" => { "0" => ISSUER } }].each do |extra|
+          expect { client.handle_callback({ "code" => CODE, "state" => state }.merge(extra)) }
+            .to raise_error(callback_error, /iss parameter that is empty or repeated/), extra.inspect
+        end
+        expect(token_requests).to be_empty
+
+        # None of them used up the attempt, and a nil value is no parameter at all.
+        expect(client.handle_callback("code" => CODE, "state" => state, "iss" => nil).scopes).to eq(["offline"])
       end
 
       it "C40: refuses a missing or unknown state, with no token request and no retry", :aggregate_failures do
@@ -1692,6 +1787,160 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         expect(stored_tokens(store)).to include("refresh_token" => REFRESH)
       end
 
+      it "C98: a store whose write returns something else than the value still refreshes", :aggregate_failures do
+        answering_true = Class.new(KindeSdk::AgentClient::MemoryStore) do
+          def write(namespace, key, value)
+            super
+            true
+          end
+        end.new
+        agent = cimd_client(storage: answering_true)
+        sign_in(agent)
+        expire_access_token
+        stub_refresh("expires_in" => 600)
+
+        expect(agent.fetch.status).to eq(200)
+        expect(resource_requests.map { |request| bearer_of(request) }).to eq([ACCESS, NEW_ACCESS])
+
+        clock.advance(590)
+        stub_refresh("expires_in" => 900)
+        expect(agent.connect.expires_at).to eq(clock.now + 900)
+        expect(stored_tokens(answering_true)).to include("access_token" => NEW_ACCESS, "refresh_token" => REFRESH)
+      end
+
+      it "C101: an OAuth error code in a 5xx answer deletes neither the tokens nor the registration", :aggregate_failures do
+        sign_in(dcr_client)
+        clock.advance(86_400)
+
+        %w[invalid_grant invalid_client].each do |code|
+          stub_token_error(code, status: 503)
+          expect { dcr_client.fetch }.to(raise_error { |error| expect([error.class, error.status, error.error]).to eq([oauth_error, 503, code]) })
+          expect { dcr_client.connect }.to(raise_error { |error| expect(error.class).to eq(oauth_error) })
+          expect(stored_tokens(store)).to include("access_token" => ACCESS, "refresh_token" => REFRESH)
+          expect(stored_registration(store)).to include("client_id" => DCR_ID)
+        end
+        expect(resource_requests).to be_empty
+        expect(requests(:post, REGISTER).size).to eq(1)
+
+        # The same at the code exchange: the registration is not taken for refused.
+        other_store = KindeSdk::AgentClient::MemoryStore.new
+        agent = build_client(storage: other_store)
+        attempt = query_of(agent.authorization_url)["state"]
+        stub_token_error("invalid_client", status: 502)
+        expect { agent.handle_callback("code" => CODE, "state" => attempt) }
+          .to(raise_error { |error| expect(error.class).to eq(oauth_error) })
+        expect(stored_registration(other_store)).to include("client_id" => DCR_ID)
+        expect(requests(:post, REGISTER).size).to eq(2)
+
+        # A 4xx answer with the code still means what it says.
+        stub_token_error("invalid_grant", status: 400)
+        sign_in_needed { dcr_client.fetch }
+        expect(stored_tokens(store)).to be_nil
+      end
+
+      it "C99: the on_auth_required block runs after the token lock is released, so it can sign the user out", :aggregate_failures do
+        sign_in(client)
+        clock.advance(86_400)
+        stub_token_error("invalid_grant")
+        seen = []
+        client.on_auth_required do |url|
+          seen << url
+          client.disconnect
+        end
+
+        error = sign_in_needed { client.fetch }
+
+        expect(seen).to eq([error.authorization_url])
+        expect(stored_tokens(store)).to be_nil
+        expect(resource_requests).to be_empty
+
+        # The same when the registration is refused, and when the refresh follows a 401.
+        stub_token
+        sign_in(dcr_client)
+        valid.clear
+        stub_token_error("invalid_client", status: 401)
+        dcr_client.on_auth_required do |url|
+          seen << url
+          dcr_client.disconnect
+        end
+
+        error = sign_in_needed { dcr_client.fetch }
+
+        expect(seen.last).to eq(error.authorization_url)
+        expect(requests(:post, REGISTER).size).to eq(2)
+        expect(stored_tokens(store)).to be_nil
+        expect(KindeSdk::AgentClient::KeyedLock.instance_variable_get(:@table)).to be_empty
+      end
+
+      it "C97: users with a session each do not wait for each other's refresh", :aggregate_failures do
+        ada = cimd_client(storage: KindeSdk::AgentClient::SessionStore.new({}))
+        grace = cimd_client(storage: KindeSdk::AgentClient::SessionStore.new({}))
+        [ada, grace].each { |agent| sign_in(agent) }
+        clock.advance(86_400)
+        expire_access_token
+        entered = Queue.new
+        release = Queue.new
+        stub_slow_refresh(entered, release)
+
+        slow = Thread.new { ada.fetch.status }
+        wait_for(entered, slow)
+        other = Thread.new { grace.fetch.status }
+
+        # Grace's refresh goes through while Ada's is still waiting for the token endpoint.
+        expect(other.join(5)).not_to be_nil
+        expect(other.value).to eq(200)
+        expect(slow).to be_alive
+        release << true
+        expect(slow.value).to eq(200)
+        expect(token_requests("refresh_token").size).to eq(2)
+      ensure
+        stop_workers(release, slow, other)
+      end
+
+      it "C97: a store of your own without lock_scope keeps one lock per record, whichever object wraps the data", :aggregate_failures do
+        wrapper = Class.new do
+          def initialize(inner) = @inner = inner
+          def read(namespace, key) = @inner.read(namespace, key)
+          def write(namespace, key, value) = @inner.write(namespace, key, value)
+          def delete(namespace, key) = @inner.delete(namespace, key)
+        end
+        first = cimd_client(storage: wrapper.new(store))
+        second = cimd_client(storage: wrapper.new(store))
+        sign_in(first)
+        clock.advance(86_400)
+        expire_access_token
+        entered = Queue.new
+        release = Queue.new
+        stub_slow_refresh(entered, release)
+
+        slow = Thread.new { first.fetch.status }
+        wait_for(entered, slow)
+        waiting = Thread.new { second.fetch.status }
+        settle(waiting)
+        expect(waiting).to be_alive
+        release << true
+
+        expect([slow.value, waiting.value]).to eq([200, 200])
+        expect(token_requests("refresh_token").size).to eq(1)
+      ensure
+        stop_workers(release, slow, waiting)
+      end
+
+      it "C97: the built-in stores name their own data as the lock scope", :aggregate_failures do
+        storage = KindeSdk::AgentClient::Storage
+        session = {}
+        over_session = KindeSdk::AgentClient::SessionStore.new(session)
+
+        expect(store.lock_scope).to eq(store.lock_scope)
+        expect(store.lock_scope).not_to eq(KindeSdk::AgentClient::MemoryStore.new.lock_scope)
+        expect(over_session.lock_scope).to eq(KindeSdk::AgentClient::SessionStore.new(session).lock_scope)
+        expect(over_session.lock_scope).not_to eq(KindeSdk::AgentClient::SessionStore.new({}).lock_scope)
+        expect(over_session.lock_scope).not_to eq(KindeSdk::AgentClient::SessionStore.new(session, key: "other").lock_scope)
+        expect(storage.lock_scope(store)).to eq(store.lock_scope)
+        expect(storage.lock_scope(Object.new)).to be_nil
+        expect(storage.lock_scope(Struct.new(:lock_scope).new("tenant-7"))).to eq("tenant-7")
+      end
+
       # Every thread gets a 401 for the old token before the one refresh
       # answers: the token stub waits until the resource has refused them all.
       def concurrent_fetches(agents)
@@ -1822,6 +2071,99 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         expect(token_requests).to eq(token_requests("authorization_code"))
       end
 
+      it "C95: a refresh at the old authorization server does not use up the refresh at the one the resource names now", :aggregate_failures do
+        sign_in(client)
+        moved = "https://auth.example.org"
+        store.write("tokens", [moved, RESOURCE, "default"],
+                    "access_token" => "moved-access-old", "refresh_token" => "moved-refresh", "expires_at" => NOW + (30 * 86_400),
+                    "scope" => "offline", "requested_scopes" => ["offline"], "issuer" => moved, "resource_url" => RESOURCE,
+                    "client_id" => CIMD)
+        clock.advance(86_400) # the stored issuer's token is due: it is refreshed before the request
+        stub_refresh
+        valid.replace(["moved-access-new"])
+        stub_prm({ "resource" => RESOURCE, "authorization_servers" => [moved] })
+        stub_metadata(
+          server_metadata("issuer" => moved, "authorization_endpoint" => "#{moved}/authorize", "token_endpoint" => "#{moved}/token"),
+          url: "#{moved}/.well-known/oauth-authorization-server"
+        )
+        stub_token(token_response("access_token" => "moved-access-new", "refresh_token" => nil), url: "#{moved}/token")
+
+        expect(client.fetch.status).to eq(200)
+
+        expect(resource_requests.map { |request| bearer_of(request) }).to eq([NEW_ACCESS, "moved-access-old", "moved-access-new"])
+        expect(token_requests("refresh_token").size).to eq(1)
+        expect(form_of(token_requests("refresh_token", url: "#{moved}/token").first)).to include("refresh_token" => "moved-refresh")
+        expect(stored_tokens(store)).to be_nil
+        expect(stored_tokens(store, issuer: moved)).to include("access_token" => "moved-access-new", "refresh_token" => "moved-refresh")
+        expect(store.read("issuers", [RESOURCE, "default"])).to eq(moved)
+      end
+
+      describe "a 401 for tokens that were replaced while the request was under way" do
+        let(:newer) { stored_tokens(store).merge("access_token" => NEW_ACCESS) }
+
+        # The resource refuses the old token, and a sign-in finishes at that moment.
+        def stub_resource_with_sign_in_meanwhile(accepted)
+          stub_request(:get, RESOURCE).to_return do |request|
+            if accepted.include?(bearer_of(request))
+              { status: 200, body: "ok" }
+            else
+              store.write("tokens", [ISSUER, RESOURCE, "default"], newer)
+              { status: 401, headers: { "WWW-Authenticate" => %(Bearer error="invalid_token", resource_metadata="#{PRM}") } }
+            end
+          end
+        end
+
+        before do
+          stub_token(token_response("refresh_token" => nil))
+          sign_in(client)
+          newer
+        end
+
+        it "C96: keeps the newer tokens and sends them once", :aggregate_failures do
+          stub_resource_with_sign_in_meanwhile([NEW_ACCESS])
+
+          expect(client.fetch.status).to eq(200)
+
+          expect(resource_requests.map { |request| bearer_of(request) }).to eq([ACCESS, NEW_ACCESS])
+          expect(stored_tokens(store)).to include("access_token" => NEW_ACCESS)
+          expect(token_requests("refresh_token")).to be_empty
+        end
+
+        it "C96: deletes the newer tokens too when the resource refuses them, and asks to sign in", :aggregate_failures do
+          stub_resource_with_sign_in_meanwhile([])
+
+          sign_in_needed { client.fetch }
+
+          expect(resource_requests.map { |request| bearer_of(request) }).to eq([ACCESS, NEW_ACCESS])
+          expect(stored_tokens(store)).to be_nil
+        end
+      end
+
+      it "C96: a sign-in that finishes during a refresh stores its tokens after it, so the refresh does not replace them", :aggregate_failures do
+        sign_in(client)
+        attempt = query_of(client.authorization_url)["state"]
+        clock.advance(86_400)
+        valid.replace([NEW_ACCESS, "access-token-from-sign-in"])
+        entered = Queue.new
+        release = Queue.new
+        stub_slow_refresh(entered, release)
+
+        refreshing = Thread.new { client.fetch.status }
+        wait_for(entered, refreshing)
+        # Ten minutes have not passed for the attempt: the clock moved a day, so it is started again here.
+        attempt = query_of(client.authorization_url)["state"]
+        signing_in = Thread.new { cimd_client(storage: store).handle_callback("code" => CODE, "state" => attempt) }
+        settle(signing_in)
+        expect(signing_in).to be_alive
+        release << true
+
+        expect(refreshing.value).to eq(200)
+        expect(signing_in.value.scopes).to eq(["offline"])
+        expect(stored_tokens(store)).to include("access_token" => "access-token-from-sign-in", "refresh_token" => "refresh-token-from-sign-in")
+      ensure
+        stop_workers(release, refreshing, signing_in)
+      end
+
       it "C65: sends the same body again on the retry", :aggregate_failures do
         sign_in(client)
         expire_access_token
@@ -1845,17 +2187,12 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         expire_access_token
         entered = Queue.new
         release = Queue.new
-        stub_request(:post, TOKEN).to_return do |_request|
-          entered << true
-          release.pop
-          json_response(token_response("access_token" => NEW_ACCESS, "refresh_token" => NEW_REFRESH))
-        end
+        stub_slow_refresh(entered, release)
 
         refreshing = Thread.new { client.fetch.status }
-        entered.pop
+        wait_for(entered, refreshing)
         signing_out = Thread.new { cimd_client(storage: store).disconnect }
-        deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 5
-        sleep 0.01 while signing_out.status == "run" && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+        settle(signing_out)
         release << true
 
         expect(refreshing.value).to eq(200)
@@ -1863,6 +2200,8 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         expect(stored_tokens(store)).to be_nil
         expect(store.read("issuers", [RESOURCE, "default"])).to be_nil
         expect(form_of(requests(:post, REVOKE).last)).to include("token" => NEW_REFRESH)
+      ensure
+        stop_workers(release, refreshing, signing_out)
       end
 
       it "C66: a public client revokes the refresh token with its client_id, and the tokens and pointer are deleted", :aggregate_failures do
@@ -2028,6 +2367,42 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         store.delete("issuers", [RESOURCE, "default"])
         expect(client.connect.expires_at).to eq(clock.now + 600)
         expect(store.read("issuers", [RESOURCE, "default"])).to eq(ISSUER)
+      end
+
+      it "C94: connect refreshes a token that is due when it finds it without a pointer", :aggregate_failures do
+        sign_in(client)
+        store.delete("issuers", [RESOURCE, "default"])
+        clock.advance(86_400 + 10)
+        stub_refresh("expires_in" => 600)
+
+        expect(client.connect.expires_at).to eq(clock.now + 600)
+        expect(token_requests("refresh_token").size).to eq(1)
+        expect(store.read("issuers", [RESOURCE, "default"])).to eq(ISSUER)
+      end
+
+      it "C94: connect asks to sign in when the token has expired and cannot be refreshed, with or without a pointer", :aggregate_failures do
+        stub_token(token_response("refresh_token" => nil, "expires_in" => 600))
+
+        [true, false].each do |pointer|
+          fresh = KindeSdk::AgentClient::MemoryStore.new
+          agent = cimd_client(storage: fresh)
+          sign_in(agent)
+          forget_pointer = -> { fresh.delete("issuers", [RESOURCE, "default"]) unless pointer }
+
+          # Close to its expiry but still good: it is reported, as nothing can refresh it.
+          clock.advance(590)
+          forget_pointer.call
+          expect(agent.connect.expires_at).to eq(clock.now + 10)
+
+          clock.advance(10)
+          forget_pointer.call
+          error = sign_in_needed { agent.connect }
+          expect(error.authorization_url).to start_with("#{AUTHORIZE}?")
+          expect(stored_tokens(fresh)).to be_nil
+          expect(agent.token_info).to be_nil
+        end
+        expect(token_requests("refresh_token")).to be_empty
+        expect(resource_requests).to be_empty
       end
 
       it "C73: has no browser hook, loopback listener or Rails route", :aggregate_failures do
@@ -2555,6 +2930,10 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         expect(section).to include('require "kinde_sdk/agent_client/mcp"').and include("KindeOAuthProvider")
         expect(section).to include("build_client_metadata_document").and include("client_metadata_app")
         expect(readme).to include("`KindeSdk::AgentClient` is the agent side")
+        expect(section).to match(/revocation is best effort.*`true` does not confirm that the server revoked anything/m)
+        expect(section).to match(/when that lookup fails the registration stays stored/)
+        expect(section).to match(/built-in stores drop old attempts on the next write.*removes it without another write/m)
+        expect(section).to match(/give it a `lock_scope` method/)
       end
 
       it "C85: every public method of the new files has a YARD comment with a tag", :aggregate_failures do

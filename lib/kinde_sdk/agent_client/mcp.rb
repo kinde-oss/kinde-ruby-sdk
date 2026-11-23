@@ -97,6 +97,7 @@ module KindeSdk
         issuer = issuer_in(tokens) || pointer || ""
         remember(issuer)
         @store.write("mcp_tokens", token_key(issuer), tokens)
+        tokens
       end
 
       # The client the gem should use: the stored dynamic registration, or the
@@ -119,6 +120,37 @@ module KindeSdk
 
         record = issuer && @store.read("mcp_registrations", [issuer, @config.redirect_uri])
         record.is_a?(Hash) && !expired?(record) ? record : nil
+      end
+
+      # Called when a new sign-in starts, before the gem reads the client,
+      # with the authorization server the gem is about to use.
+      #
+      # The registration is kept per redirect URI and shared by the accounts
+      # of a store, but {#client_information} finds it through the issuer
+      # stored for the account, and an account that never signed in has
+      # none. The gem would then register again and overwrite the
+      # registration: the sign-in another account has under way would be
+      # refused at its callback, and its tokens could no longer be refreshed.
+      # So an account without an issuer is pointed at this authorization
+      # server when a registration is stored for it, and the gem reuses it.
+      #
+      # Two limits remain, both for sign-in attempts under way (ten minutes):
+      # first sign-ins of two accounts that start at the same moment still
+      # register twice, and so does a sign-in that replaces a registration
+      # about to expire (see {#renew_registration}).
+      #
+      # @api private
+      # @param authorization_server [String] the issuer
+      # @return [nil]
+      # @example
+      #   storage.adopt_registration("https://yourbiz.kinde.com/oauth2/agents/app_id")
+      def adopt_registration(authorization_server)
+        return nil unless pointer.nil? && authorization_server.is_a?(String) && !authorization_server.empty?
+        return nil if configured_at?(authorization_server)
+
+        record = @store.read("mcp_registrations", [authorization_server, @config.redirect_uri])
+        remember(authorization_server) if record.is_a?(Hash)
+        nil
       end
 
       # Called when a new sign-in starts, before the gem reads the client:
@@ -161,6 +193,7 @@ module KindeSdk
       #   storage.save_pending_authorization(state, pending)
       def save_pending_authorization(state, pending)
         @store.write("mcp_pending", pending_key(state), pending)
+        pending
       end
 
       # @param state [String]
@@ -333,6 +366,7 @@ module KindeSdk
 
             # The gem asks this when a sign-in starts, before it reads the client, and it is the only place it
             # names the authorization server it is about to use.
+            storage.adopt_registration(request.authorization_server)
             storage.renew_registration
             # The store may still point at another authorization server; what is kept for that one is dropped
             # here, as the gem would drop it, so that the gem is handed the configured client and does not

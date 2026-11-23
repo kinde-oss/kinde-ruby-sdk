@@ -66,8 +66,9 @@ module KindeSdk
       # @param params [Hash] the query parameters of the redirect, String or Symbol keys
       # @return [Array(Hash, String)] the attempt and the authorization code
       # @raise [CallbackError] for a missing, unknown, reused or expired +state+,
-      #   a different +iss+, a missing +iss+ when the authorization server
-      #   said it sends one, or a missing +code+
+      #   a different +iss+, an +iss+ that is empty or repeated, a missing
+      #   +iss+ when the authorization server said it sends one, or a missing
+      #   +code+
       # @raise [OAuthError] when the redirect carries +error+
       def consume(params)
         state = param(params, "state")
@@ -81,7 +82,7 @@ module KindeSdk
           raise CallbackError, "The sign-in attempt has expired; start again"
         end
 
-        check_issuer!(param(params, "iss"), record)
+        check_issuer!(params, record)
 
         raise CallbackError, unknown_state unless @config.storage.delete(NAMESPACE, [state]).is_a?(Hash)
 
@@ -105,8 +106,14 @@ module KindeSdk
 
       # Runs before the attempt is consumed, so a callback that fails here
       # does not use up the state of the real one.
-      def check_issuer!(iss, record)
+      def check_issuer!(params, record)
+        iss = param(params, "iss")
         if iss.nil?
+          # An iss that is there but is not one non-empty value is not the
+          # same as none: it cannot be compared, so it is not let through.
+          if supplied?(params, "iss")
+            raise CallbackError, "The callback has an iss parameter that is empty or repeated; the sign-in is refused"
+          end
           return unless record["iss_required"] == true
 
           raise CallbackError,
@@ -123,6 +130,15 @@ module KindeSdk
           record["resource_url"] == @config.resource_url &&
           record["account"] == @config.account &&
           record["redirect_uri"] == @config.redirect_uri
+      end
+
+      # Whether the callback carries the parameter at all, with any value.
+      def supplied?(params, name)
+        return false unless params.respond_to?(:[])
+
+        !(params[name] || params[name.to_sym]).nil?
+      rescue TypeError, ArgumentError
+        false
       end
 
       # Only a non-empty String counts as a parameter.

@@ -6,7 +6,7 @@ require_relative 'support/agent_client_helpers'
 
 # MCP client adapter: the settings and the store of a KindeSdk::AgentClient
 # behind the official "mcp" gem's OAuth provider interface. Case ids (M1-M10)
-# are the ones in the approved plan; M11-M13 came out of review.
+# are the ones in the approved plan; M11-M15 came out of review.
 #
 # There is no skip when the gem is missing: the require above fails loudly,
 # because a silent skip would leave the adapter untested.
@@ -255,6 +255,47 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
       expect(alice.finish!("code" => CODE, "state" => state, "iss" => ISSUER)).to eq(:authorized)
       expect(alice.access_token).to eq(ACCESS)
       expect(bob.access_token).to be_nil
+    end
+
+    it "M14: an account that signs in for the first time uses the registration another account of the store made", :aggregate_failures do
+      alice = provider_for(account: "alice")
+      bob = provider_for(account: "bob")
+      _, alice_url = run!(alice)
+      _, bob_url = run!(bob)
+
+      expect(requests(:post, REGISTER).size).to eq(1)
+      expect([alice_url, bob_url].map { |url| query_of(url)["client_id"] }).to eq([DCR_ID, DCR_ID])
+      expect(store.read("mcp_issuers", [RESOURCE, "bob"])).to eq(ISSUER)
+
+      # Alice's sign-in was under way when Bob started his: it still finishes, and so does his.
+      expect(alice.finish!("code" => CODE, "state" => query_of(alice_url)["state"], "iss" => ISSUER)).to eq(:authorized)
+      expect(bob.finish!("code" => CODE, "state" => query_of(bob_url)["state"], "iss" => ISSUER)).to eq(:authorized)
+      expect([alice.access_token, bob.access_token]).to eq([ACCESS, ACCESS])
+      expect(requests(:post, TOKEN).map { |request| form_of(request)["client_id"] }).to eq([DCR_ID, DCR_ID])
+
+      # A registration that has expired is not handed to a new account.
+      clock.advance(31 * 86_400)
+      stub_register(registration_response("client_id" => "dcr-client-id-two", "client_secret_expires_at" => clock.now.to_i + (30 * 86_400)))
+      _, carol_url = run!(provider_for(account: "carol"))
+      expect(query_of(carol_url)["client_id"]).to eq("dcr-client-id-two")
+    end
+
+    it "M15: what the store's write returns does not reach the gem", :aggregate_failures do
+      answering_true = Class.new(KindeSdk::AgentClient::MemoryStore) do
+        def write(namespace, key, value)
+          super
+          true
+        end
+      end.new
+      storage = KindeSdk::AgentClient::McpStorage.new(build_client(storage: answering_true).config)
+      tokens = { "access_token" => ACCESS, "issuer" => ISSUER }
+      pending = { "code_verifier" => "verifier", "created_at" => clock.now.to_i }
+      info = { "client_id" => DCR_ID, "issuer" => ISSUER }
+
+      expect(storage.save_tokens(tokens)).to equal(tokens)
+      expect(storage.save_pending_authorization("state-one", pending)).to equal(pending)
+      expect(storage.save_client_information(info)).to equal(info)
+      expect(storage.tokens).to eq(tokens)
     end
 
     it "M6: hands the gem a configured client without copying its secret into the store", :aggregate_failures do

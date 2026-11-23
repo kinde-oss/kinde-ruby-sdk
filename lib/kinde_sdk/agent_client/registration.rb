@@ -103,7 +103,7 @@ module KindeSdk
       # @param issuer [String]
       # @return [Hash, nil] the removed registration
       def forget(issuer)
-        @config.storage.delete(NAMESPACE, key(issuer))
+        KeyedLock.synchronize(lock_key(issuer)) { @config.storage.delete(NAMESPACE, key(issuer)) }
       end
 
       # Drops the registration the authorization server no longer accepts.
@@ -112,29 +112,35 @@ module KindeSdk
       # one that has not expired takes its place, so the next {#register}
       # keeps it and tokens issued to it are still refreshed and revoked.
       #
+      # Read and changed under the lock registrations take, so a sign-in
+      # that registers at the same moment is not undone: what it stored is
+      # read here, and kept.
+      #
       # @param issuer [String]
       # @param client_id [String] the client the server refused
       # @return [Boolean] true when the current registration was dropped;
       #   false when it is still stored, so there is no need to register again
       def forget_client(issuer, client_id)
-        record = @config.storage.read(NAMESPACE, key(issuer))
-        record = {} unless record.is_a?(Hash)
-        previous = record[PREVIOUS]
-        previous = nil unless previous.is_a?(Hash)
+        KeyedLock.synchronize(lock_key(issuer)) do
+          record = @config.storage.read(NAMESPACE, key(issuer))
+          record = {} unless record.is_a?(Hash)
+          previous = record[PREVIOUS]
+          previous = nil unless previous.is_a?(Hash)
 
-        if usable?(record) && record["client_id"] != client_id
-          if previous && previous["client_id"] == client_id
-            @config.storage.write(NAMESPACE, key(issuer), record.reject { |field, _| field == PREVIOUS })
+          if usable?(record) && record["client_id"] != client_id
+            if previous && previous["client_id"] == client_id
+              @config.storage.write(NAMESPACE, key(issuer), record.reject { |field, _| field == PREVIOUS })
+            end
+            next false
           end
-          return false
-        end
 
-        if previous && usable?(previous) && !expired?(previous) && previous["client_id"] != client_id
-          @config.storage.write(NAMESPACE, key(issuer), previous.slice(*STORED_FIELDS))
-        else
-          forget(issuer)
+          if previous && usable?(previous) && !expired?(previous) && previous["client_id"] != client_id
+            @config.storage.write(NAMESPACE, key(issuer), previous.slice(*STORED_FIELDS))
+          else
+            @config.storage.delete(NAMESPACE, key(issuer))
+          end
+          true
         end
-        true
       end
 
       private
@@ -143,17 +149,23 @@ module KindeSdk
         [issuer, @config.redirect_uri]
       end
 
+      # The key of the in-process lock on a registration.
+      def lock_key(issuer)
+        ["registration", Storage.lock_scope(@config.storage), *key(issuer)]
+      end
+
       # The stored registration, or a new one. A stored one is used even when
       # the server no longer has a registration endpoint (it is optional in
       # RFC 8414); the endpoint is needed only to register.
       #
-      # Looked up and registered under a process-wide lock for this store and
-      # key: of two sign-ins that start together, the second waits and finds
-      # what the first stored, so they do not register twice and overwrite
-      # each other. Two processes that share a store are not covered.
+      # Looked up and registered under a process-wide lock for this key and
+      # the lock scope of the store: of two sign-ins that start together, the
+      # second waits and finds what the first stored, so they do not register
+      # twice and overwrite each other. Two processes that share a store are
+      # not covered.
       def registered_identity(metadata)
         issuer = metadata["issuer"]
-        KeyedLock.synchronize(["registration", @config.storage.object_id, *key(issuer)]) do
+        KeyedLock.synchronize(lock_key(issuer)) do
           stored = stored(issuer)
           next from_record(stored) if stored
           next register(metadata) if metadata["registration_endpoint"]
