@@ -4,7 +4,8 @@ require_relative 'support/agent_client_helpers'
 
 # The parts of the agent client that need no authorization server: the
 # WWW-Authenticate parser, the client ID metadata document and its Rack app,
-# and the stores. Case ids (D1-D14) are the ones in the approved plan.
+# and the stores. Case ids (D1-D14) are the ones in the approved plan;
+# D15 and D16 came out of review.
 module AgentClientHelpers # so the constants of the helpers are in scope below
   RSpec.describe KindeSdk::AgentClient::WwwAuthenticate do
     it "D1: reads the Bearer challenge next to another one, with commas and escaped quotes inside quoted values", :aggregate_failures do
@@ -36,6 +37,30 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
       expect(described_class.bearer(values)["resource_metadata"]).to eq("https://rs.example/prm")
       expect(described_class.bearer("Negotiate abc==, Bearer")).to eq({})
       expect(described_class.bearer('Bearer a="1", Bearer a="2"')).to eq("a" => "1")
+    end
+
+    it "D15: reads several header lines as one value, so a challenge may continue on the next line", :aggregate_failures do
+      lines = ['Bearer error="insufficient_scope"', 'scope="profile"']
+      expect(described_class.bearer(lines)).to eq("error" => "insufficient_scope", "scope" => "profile")
+
+      lines = ['Basic realm="a"', 'Bearer error="invalid_token"', "resource_metadata=\"https://rs.example/prm\""]
+      expect(described_class.parse(lines)).to eq(
+        [
+          { scheme: "basic", params: { "realm" => "a" }, token68: nil },
+          { scheme: "bearer", params: { "error" => "invalid_token", "resource_metadata" => "https://rs.example/prm" }, token68: nil }
+        ]
+      )
+      expect(described_class.parse(["Negotiate abc==", 'Bearer scope="offline"']).map { |challenge| challenge[:scheme] }).to eq(%w[negotiate bearer])
+      expect(described_class.bearer(["Bearer", nil, 'Basic realm="a"'])).to eq({})
+    end
+
+    it "D16: skips empty list elements in front of the first parameter, but not a new scheme", :aggregate_failures do
+      expect(described_class.bearer('Bearer , scope="profile", error="insufficient_scope"'))
+        .to eq("scope" => "profile", "error" => "insufficient_scope")
+      expect(described_class.bearer('Bearer ,, ,scope="profile"')).to eq("scope" => "profile")
+      expect(described_class.parse('Bearer , Basic realm="a"')).to eq(
+        [{ scheme: "bearer", params: {}, token68: nil }, { scheme: "basic", params: { "realm" => "a" }, token68: nil }]
+      )
     end
 
     it "D3: returns nothing for garbage, empty and invalid-byte input, and never raises", :aggregate_failures do

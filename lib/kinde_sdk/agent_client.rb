@@ -67,17 +67,22 @@ module KindeSdk
     # A token this close to its expiry is refreshed before it is sent.
     REFRESH_WINDOW_SECONDS = 60
     ABSOLUTE_URL = %r{\A[A-Za-z][A-Za-z0-9+.\-]*://}.freeze
-    DOT_SEGMENT = %r{(?:\A|/)(?:\.|%2e){1,2}(?:/|\z)}i.freeze
+    # A "." or ".." path segment, also when the dots or the separators around
+    # it are percent-encoded ("%2e%2e%2fadmin"): a server or proxy that decodes
+    # them would leave the resource. An encoded slash elsewhere ("a%2Fb") is fine.
+    DOT_SEGMENT = %r{(?:\A|/|%2f|%5c)(?:\.|%2e){1,2}(?:/|%2f|%5c|\z)}i.freeze
     private_constant :ABSOLUTE_URL, :DOT_SEGMENT
 
-    # Serialises refreshes per token record, for every client in this process.
+    # One lock per key, for every client in this process. It serialises
+    # refreshes and sign-outs per token record, and registrations per store
+    # and registration key.
     #
     # @api private
-    module RefreshLock
+    module KeyedLock
       @table = {}
       @guard = Mutex.new
 
-      # @param key [Array<String>]
+      # @param key [Array]
       # @yield with the lock for +key+ held
       def self.synchronize(key)
         entry = @guard.synchronize do
@@ -303,7 +308,8 @@ module KindeSdk
     #   String or Symbol keys
     # @return [TokenInfo]
     # @raise [CallbackError] for a missing, unknown, reused or expired
-    #   +state+, another +iss+, or a missing +code+. Nothing is retried.
+    #   +state+, another +iss+, a missing +iss+ when the authorization server's
+    #   metadata says it sends one, or a missing +code+. Nothing is retried.
     # @raise [OAuthError] when the authorization server reported an error or
     #   refused the code
     # @raise [AuthorizationRequiredError] when the authorization server no
@@ -355,12 +361,16 @@ module KindeSdk
     #   agent.disconnect(forget: true)
     def disconnect(forget: false)
       issuer = stored_issuer
-      record = issuer && read_tokens(issuer)
-      revoke(issuer, record) if record
-
       if issuer
-        delete_tokens(issuer)
-        @config.storage.delete("issuers", pointer_key)
+        # Under the lock refreshes take: a refresh that is under way finishes
+        # first, so the tokens it stores are the ones revoked and deleted here,
+        # and it cannot put tokens back after the sign-out.
+        KeyedLock.synchronize(token_key(issuer)) do
+          record = read_tokens(issuer)
+          revoke(issuer, record) if record
+          delete_tokens(issuer)
+          @config.storage.delete("issuers", pointer_key)
+        end
       end
       forget_registration(issuer) if forget
       true
@@ -577,7 +587,7 @@ module KindeSdk
     # Refreshes under a process-wide lock for this token record. A caller
     # that waited for someone else's refresh gets that result and sends nothing.
     def refresh!(issuer, metadata, used, proactive:)
-      RefreshLock.synchronize(token_key(issuer)) do
+      KeyedLock.synchronize(token_key(issuer)) do
         current = read_tokens(issuer)
         require_authorization!(metadata) if current.nil?
         next current if proactive ? !expiring?(current) : current["access_token"] != used["access_token"]

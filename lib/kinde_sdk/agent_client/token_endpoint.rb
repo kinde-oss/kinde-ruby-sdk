@@ -54,7 +54,13 @@ module KindeSdk
         result = post(url, identity, form)
         document = Http.parse_object(result.body) || {}
         token = document["access_token"]
-        return document if result.status == 200 && token.is_a?(String) && !token.empty?
+        if result.status == 200 && token.is_a?(String) && !token.empty?
+          return document if bearer?(document)
+
+          # RFC 6749 section 7.1: a token of a type the client does not understand must not be used.
+          raise OAuthError.new("The authorization server issued a token of a type this client cannot use; " \
+                               "only Bearer tokens are supported", status: result.status)
+        end
 
         error = string(document["error"])
         description = string(document["error_description"])
@@ -83,6 +89,13 @@ module KindeSdk
         else
           form.merge("client_id" => id)
         end
+      end
+
+      # +token_type+ is required, but a response without it is still taken
+      # for Bearer, as servers that leave it out mean it.
+      def bearer?(document)
+        type = document["token_type"]
+        type.nil? || (type.is_a?(String) && type.casecmp?("bearer"))
       end
 
       def string(value)

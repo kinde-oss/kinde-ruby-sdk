@@ -22,6 +22,8 @@ module KindeSdk
       # Member of a stored registration that holds the one it replaced before
       # that one expired, so tokens issued to it can still be refreshed and revoked.
       PREVIOUS = "previous"
+      # The methods that send +client_secret+; each needs one.
+      SECRET_METHODS = %w[client_secret_basic client_secret_post].freeze
 
       # @param config [Config]
       def initialize(config)
@@ -48,14 +50,7 @@ module KindeSdk
             "the configured client_id is not used there"
           )
         end
-        if metadata["registration_endpoint"]
-          stored = stored(metadata["issuer"])
-          return stored ? from_record(stored) : register(metadata)
-        end
-
-        raise DiscoveryError,
-              "The authorization server supports neither client ID metadata documents nor dynamic registration; " \
-              "configure client_id"
+        registered_identity(metadata)
       end
 
       # The identity a +client_id+ recorded earlier belongs to, without registering.
@@ -98,6 +93,7 @@ module KindeSdk
 
         record = STORED_FIELDS.to_h { |field| [field, document[field]] }
         record["token_endpoint_auth_method"] ||= record["client_secret"] ? "client_secret_basic" : "none"
+        check_authentication!(record, result.status)
         replaced = @config.storage.read(NAMESPACE, key(issuer))
         record[PREVIOUS] = replaced.slice(*STORED_FIELDS) if replaced.is_a?(Hash) && usable?(replaced) && !expired?(replaced)
         @config.storage.write(NAMESPACE, key(issuer), record)
@@ -147,6 +143,27 @@ module KindeSdk
         [issuer, @config.redirect_uri]
       end
 
+      # The stored registration, or a new one. A stored one is used even when
+      # the server no longer has a registration endpoint (it is optional in
+      # RFC 8414); the endpoint is needed only to register.
+      #
+      # Looked up and registered under a process-wide lock for this store and
+      # key: of two sign-ins that start together, the second waits and finds
+      # what the first stored, so they do not register twice and overwrite
+      # each other. Two processes that share a store are not covered.
+      def registered_identity(metadata)
+        issuer = metadata["issuer"]
+        KeyedLock.synchronize(["registration", @config.storage.object_id, *key(issuer)]) do
+          stored = stored(issuer)
+          next from_record(stored) if stored
+          next register(metadata) if metadata["registration_endpoint"]
+
+          raise DiscoveryError,
+                "The authorization server supports neither client ID metadata documents nor dynamic registration; " \
+                "configure client_id"
+        end
+      end
+
       def identity(client_id, client_secret, method, source)
         {
           "client_id" => client_id, "client_secret" => client_secret,
@@ -192,6 +209,23 @@ module KindeSdk
 
       def usable?(document)
         document["client_id"].is_a?(String) && !document["client_id"].empty?
+      end
+
+      # The server may register the client with another authentication method
+      # than the one asked for (RFC 7591). One the client cannot use is
+      # refused here, before anything is stored and before the user is sent
+      # to sign in: the token request would fail after the consent.
+      def check_authentication!(record, status)
+        method = record["token_endpoint_auth_method"]
+        secret = record["client_secret"]
+        return if method == "none"
+        return if SECRET_METHODS.include?(method) && secret.is_a?(String) && !secret.empty?
+
+        raise RegistrationError.new(
+          "The authorization server registered the client with a token endpoint authentication method this " \
+          "client cannot use (it supports none, client_secret_basic and client_secret_post)",
+          status: status
+        )
       end
 
       def request_body

@@ -245,7 +245,7 @@ end
 ```
 
 - `fetch(path, method:, headers:, body:)` returns a response with `status`, `headers` and `body`. The path is added to `resource_url` (before its query, if it has one); the token is only ever sent to that resource. The whole response is read into memory, so for a streaming MCP session use the `mcp` gem's client (section 11).
-- `handle_callback` checks `state`, which can be used once, and the `iss` parameter when the server sends it. A callback it refuses raises `CallbackError` and is not retried.
+- `handle_callback` checks `state`, which can be used once, and the `iss` parameter when the server sends it. When the server's metadata says it sends `iss`, a callback without one is refused. A callback it refuses raises `CallbackError` and is not retried.
 - `disconnect` revokes the refresh token at the authorization server and deletes the stored tokens. `disconnect(forget: true)` also deletes the stored registration, signed in or not; with no tokens stored it first asks the resource which authorization server it uses.
 - `connect` does the same as `fetch` without calling the resource, `authorization_url` starts a sign-in for a "Connect" button, and `token_info` returns the granted scopes, the expiry and the client ID, never a token.
 - `scopes:` defaults to `["offline"]`, which is what gives the agent a refresh token. The client never asks for `openid` at a server that does not list it, and Kinde does not: an AI agents and MCP application refuses `openid` and issues no ID token. The login scopes set with `KindeSdk.configure` are not used.
@@ -349,7 +349,8 @@ With the adapter, the flow is the gem's, and these parts differ from `KindeSdk::
 - A failed registration is reported with its status code only, without the server's description.
 - The gem does not revoke tokens, and `agent.disconnect` does not touch the tokens the gem stored.
 - The gem keeps its tokens apart from the ones `fetch` uses, so sign in through one of the two, not both.
-- With a `client_id:` and no `issuer:`, a resource that changes its authorization server between two sign-ins makes the first sign-in after the change fail: the gem registers a client of its own at the new server, and `finish!` then raises `Flow::AuthorizationError` ("The client registration changed after the authorization began"). Starting the sign-in again works and uses the configured client ID. Set `issuer:` to avoid it.
+- With a `client_id:` and no `issuer:`, the configured client ID is used at whichever authorization server the resource names. When the resource changes its authorization server, the tokens of the old one are dropped and the next sign-in uses the configured client ID at the new one. Set `issuer:` to keep the client ID to one server.
+- A sign-in attempt belongs to the `account:`, `resource_url:` and `redirect_uri:` it was started with: `finish!` on a provider for another account refuses it, also when the two share a store.
 - The gem makes the discovery requests itself and applies its own rule to the URLs a server names: the metadata URL in a challenge must be on the MCP server's origin, and an authorization server or an authorization, token or registration endpoint on `localhost` or on a loopback, private or link-local address is refused, in `http` and in `https`, unless the MCP server is itself on such an address. That is stricter than `fetch`, which accepts `https` on any address and refuses only plain `http` (allowed on a loopback host when `resource_url` is on one too).
 
 ### 12. Where tokens are stored
@@ -376,8 +377,10 @@ class RedisAgentStore
     value && JSON.parse(value)
   end
 
+  # Unfinished sign-in attempts (those of the MCP adapter too) expire after ten minutes.
   def write(namespace, key, value)
-    @redis.set(name(namespace, key), JSON.generate(value))
+    options = %w[pending mcp_pending].include?(namespace) ? { ex: 600 } : {}
+    @redis.set(name(namespace, key), JSON.generate(value), **options)
     value
   end
 
@@ -395,9 +398,9 @@ class RedisAgentStore
 end
 ```
 
-`namespace` is a String and `key` an Array of Strings: `tokens` with `[issuer, resource_url, account]`, `registrations` with `[issuer, redirect_uri]`, `pending` with `[state]`, and `issuers` with `[resource_url, account]`. Values are Hashes, Arrays and Strings that survive a round trip through JSON. `delete` must be atomic, because it is what makes a sign-in callback usable only once. Expire `pending` entries after ten minutes (the two built-in stores drop them when they are older than that), and encrypt the values at rest if the storage is shared.
+`namespace` is a String and `key` an Array of Strings: `tokens` with `[issuer, resource_url, account]`, `registrations` with `[issuer, redirect_uri]`, `pending` with `[state]`, and `issuers` with `[resource_url, account]`. Values are Hashes, Arrays and Strings that survive a round trip through JSON. `delete` must be atomic, because it is what makes a sign-in callback usable only once. Expire `pending` entries after ten minutes, and `mcp_pending` entries too, which the MCP adapter writes (the two built-in stores drop both when they are older than that). Encrypt the values at rest if the storage is shared.
 
-Refreshes are serialised inside one Ruby process. Two processes that share a store can still refresh the same token at the same moment.
+Refreshes, sign-outs and registrations are serialised inside one Ruby process: a sign-out waits for a refresh that is under way, and sign-ins that start together on one store object register once. Two processes that share a store can still refresh the same token, or register, at the same moment.
 
 ## Publishing
 

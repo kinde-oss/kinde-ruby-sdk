@@ -54,6 +54,8 @@ module KindeSdk
           "scopes" => scopes, "created_at" => Clock.now
         }
         record["reregistered"] = true if reregistered
+        # RFC 9207: a server that says it sends +iss+ must send it.
+        record["iss_required"] = true if metadata["authorization_response_iss_parameter_supported"] == true
         @config.storage.write(NAMESPACE, [state], record)
 
         [authorization_url(endpoint, identity["client_id"], scopes, state, pkce.code_challenge), state]
@@ -64,7 +66,8 @@ module KindeSdk
       # @param params [Hash] the query parameters of the redirect, String or Symbol keys
       # @return [Array(Hash, String)] the attempt and the authorization code
       # @raise [CallbackError] for a missing, unknown, reused or expired +state+,
-      #   a different +iss+, or a missing +code+
+      #   a different +iss+, a missing +iss+ when the authorization server
+      #   said it sends one, or a missing +code+
       # @raise [OAuthError] when the redirect carries +error+
       def consume(params)
         state = param(params, "state")
@@ -78,10 +81,7 @@ module KindeSdk
           raise CallbackError, "The sign-in attempt has expired; start again"
         end
 
-        iss = param(params, "iss")
-        if iss && iss != record["issuer"]
-          raise CallbackError, "The callback came from another authorization server than the one the sign-in started at"
-        end
+        check_issuer!(param(params, "iss"), record)
 
         raise CallbackError, unknown_state unless @config.storage.delete(NAMESPACE, [state]).is_a?(Hash)
 
@@ -101,6 +101,20 @@ module KindeSdk
 
       def unknown_state
         "The callback state matches no sign-in attempt: it is unknown, already used or expired"
+      end
+
+      # Runs before the attempt is consumed, so a callback that fails here
+      # does not use up the state of the real one.
+      def check_issuer!(iss, record)
+        if iss.nil?
+          return unless record["iss_required"] == true
+
+          raise CallbackError,
+                "The callback has no iss parameter, which the authorization server said it sends; the sign-in is refused"
+        end
+        return if iss == record["issuer"]
+
+        raise CallbackError, "The callback came from another authorization server than the one the sign-in started at"
       end
 
       # An attempt this client started: same resource, account and redirect URI.

@@ -38,9 +38,13 @@ module KindeSdk
     # of a {KindeSdk::AgentClient}: tokens under +mcp_tokens+
     # +[issuer, resource_url, account]+, the dynamic registration under
     # +mcp_registrations+ +[issuer, redirect_uri]+, sign-in attempts under
-    # +mcp_pending+ +[state]+, and the issuer last used under +mcp_issuers+
-    # +[resource_url, account]+. The hashes are the gem's own and are stored
-    # as they are.
+    # +mcp_pending+ +[resource_url, account, redirect_uri, state]+, and the
+    # issuer last used under +mcp_issuers+ +[resource_url, account]+. The
+    # hashes are the gem's own and are stored as they are.
+    #
+    # A sign-in attempt is kept under the account, resource and redirect URI
+    # it was started for, so a provider for another account that shares the
+    # store cannot finish it: the gem itself does not check whose it is.
     #
     # A configured +client_id+ / +client_secret+ is never stored. With
     # +issuer+ configured it is handed to the gem stamped with that issuer, so
@@ -96,8 +100,10 @@ module KindeSdk
       end
 
       # The client the gem should use: the stored dynamic registration, or the
-      # configured +client_id+ / +client_secret+. A registration that expires
-      # within a day is hidden, so the gem registers again.
+      # configured +client_id+ / +client_secret+. A registration is returned
+      # until it expires, so a callback and a refresh still find the one they
+      # were started with; {#renew_registration} replaces it earlier, when a
+      # new sign-in starts.
       #
       # With +issuer+ configured, the configured client always carries
       # <tt>"issuer"</tt>, which makes the gem refuse it at any other
@@ -112,7 +118,26 @@ module KindeSdk
         return configured(@config.issuer || issuer) if configured_at?(issuer)
 
         record = issuer && @store.read("mcp_registrations", [issuer, @config.redirect_uri])
-        record.is_a?(Hash) && !expiring?(record) ? record : nil
+        record.is_a?(Hash) && !expired?(record) ? record : nil
+      end
+
+      # Called when a new sign-in starts, before the gem reads the client:
+      # deletes a stored registration that expires within a day, so the gem
+      # registers again and the new sign-in does not get a client that is
+      # about to stop working.
+      #
+      # @api private
+      # @return [nil]
+      # @example
+      #   storage.renew_registration
+      def renew_registration
+        issuer = pointer
+        return nil if issuer.nil? || configured_at?(issuer)
+
+        key = [issuer, @config.redirect_uri]
+        record = @store.read("mcp_registrations", key)
+        @store.delete("mcp_registrations", key) if record.is_a?(Hash) && expiring?(record)
+        nil
       end
 
       # @param info [Hash, nil] the registration, stamped with +issuer+ by the gem; nil deletes
@@ -135,15 +160,16 @@ module KindeSdk
       # @example
       #   storage.save_pending_authorization(state, pending)
       def save_pending_authorization(state, pending)
-        @store.write("mcp_pending", [state], pending)
+        @store.write("mcp_pending", pending_key(state), pending)
       end
 
       # @param state [String]
-      # @return [Hash, nil]
+      # @return [Hash, nil] nil also for an attempt of another account,
+      #   resource or redirect URI
       # @example
       #   storage.pending_authorization(params["state"])
       def pending_authorization(state)
-        @store.read("mcp_pending", [state])
+        @store.read("mcp_pending", pending_key(state))
       end
 
       # Removes the attempt and returns it in one step, so one callback only can use it.
@@ -153,7 +179,7 @@ module KindeSdk
       # @example
       #   storage.delete_pending_authorization(params["state"])
       def delete_pending_authorization(state)
-        @store.delete("mcp_pending", [state])
+        @store.delete("mcp_pending", pending_key(state))
       end
 
       # @return [String] where things are kept; never a token, verifier or secret
@@ -170,6 +196,10 @@ module KindeSdk
 
       def token_key(issuer)
         [issuer, @config.resource_url, @config.account]
+      end
+
+      def pending_key(state)
+        [@config.resource_url, @config.account, @config.redirect_uri, state]
       end
 
       def pointer
@@ -202,6 +232,11 @@ module KindeSdk
       def expiring?(record)
         expires_at = record["client_secret_expires_at"]
         expires_at.is_a?(Numeric) && !expires_at.zero? && expires_at - Clock.now < RENEW_SECONDS
+      end
+
+      def expired?(record)
+        expires_at = record["client_secret_expires_at"]
+        expires_at.is_a?(Numeric) && !expires_at.zero? && expires_at <= Clock.now
       end
 
       # The gem found the stored client bound to another authorization server.
@@ -296,13 +331,17 @@ module KindeSdk
           authorization_request_validator: lambda do |request|
             next false if request.scopes.include?("openid")
 
-            # The gem asks this before it reads the client, and it is the only place it names the authorization
-            # server it is about to use. The store may still point at another one; what is kept for that one is
-            # dropped here, as the gem would drop it, so that the gem is handed the configured client and does
-            # not register a new one at the configured issuer.
-            if config.client_id && config.issuer && request.authorization_server == config.issuer &&
-               storage.client_information&.fetch("issuer", nil) != config.issuer
-              storage.save_client_information(nil)
+            # The gem asks this when a sign-in starts, before it reads the client, and it is the only place it
+            # names the authorization server it is about to use.
+            storage.renew_registration
+            # The store may still point at another authorization server; what is kept for that one is dropped
+            # here, as the gem would drop it, so that the gem is handed the configured client and does not
+            # register a client of its own: at the configured issuer, or, without one, at whichever server
+            # the resource names now.
+            if config.client_id && (config.issuer.nil? || request.authorization_server == config.issuer)
+              bound = storage.client_information&.fetch("issuer", nil)
+              stale = config.issuer ? bound != config.issuer : bound && bound != request.authorization_server
+              storage.save_client_information(nil) if stale
             end
             true
           end,

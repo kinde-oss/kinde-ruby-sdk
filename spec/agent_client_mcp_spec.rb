@@ -6,7 +6,7 @@ require_relative 'support/agent_client_helpers'
 
 # MCP client adapter: the settings and the store of a KindeSdk::AgentClient
 # behind the official "mcp" gem's OAuth provider interface. Case ids (M1-M10)
-# are the ones in the approved plan.
+# are the ones in the approved plan; M11-M13 came out of review.
 #
 # There is no skip when the gem is missing: the require above fails loudly,
 # because a silent skip would leave the adapter untested.
@@ -35,6 +35,11 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
 
     def provider_for(overrides = {})
       described_class.new(build_client({ storage: store }.merge(overrides)), http_client_customizer: net_http)
+    end
+
+    # Where the adapter keeps the sign-in attempt of +state+.
+    def pending_key(state, account: "default", redirect_uri: REDIRECT)
+      [RESOURCE, account, redirect_uri, state]
     end
 
     def run!(with = provider, **options)
@@ -79,7 +84,7 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
       state = query_of(url)["state"]
       clock.advance(299)
       store.write("tokens", ["another"], {})
-      expect(store.read("mcp_pending", [state])).not_to be_nil
+      expect(store.read("mcp_pending", pending_key(state))).not_to be_nil
       expect(short.finish!("code" => CODE, "state" => state)).to eq(:authorized)
     end
 
@@ -148,7 +153,7 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
     it "M5: the sign-in attempt and the tokens live in the core store, and finish! exchanges the code", :aggregate_failures do
       result, url = run!
       state = query_of(url)["state"]
-      pending = store.read("mcp_pending", [state])
+      pending = store.read("mcp_pending", pending_key(state))
 
       expect(result).to eq(:redirect)
       expect(pending).to include("code_verifier" => match(/\A[A-Za-z0-9\-._~]{43,128}\z/), "client_id" => CIMD, "redirect_uri" => REDIRECT)
@@ -169,7 +174,7 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
       expect(store.read("mcp_tokens", [ISSUER, RESOURCE, "default"])).to include(
         "access_token" => ACCESS, "refresh_token" => REFRESH, "issuer" => ISSUER
       )
-      expect(store.read("mcp_pending", [state])).to be_nil
+      expect(store.read("mcp_pending", pending_key(state))).to be_nil
       expect(provider.access_token).to eq(ACCESS)
       expect(provider_for(client_metadata_url: CIMD).access_token).to eq(ACCESS)
       expect(provider_for(client_metadata_url: CIMD, account: "someone-else").access_token).to be_nil
@@ -192,22 +197,64 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
       expect(form_of(requests(:post, TOKEN).first)).to include("client_id" => DCR_ID, "client_secret" => DCR_SECRET)
     end
 
-    it "M6: hides a registration that expires within a day, so the gem registers again", :aggregate_failures do
+    it "M6: keeps a registration until it expires, and replaces one within a day of its expiry when a sign-in starts", :aggregate_failures do
       stub_metadata(server_metadata("client_id_metadata_document_supported" => nil))
       registered = provider_for
       run!(registered)
       expect(registered.client_information).to include("client_id" => DCR_ID)
 
       clock.advance((29 * 86_400) - 60)
-      expect(registered.client_information).to include("client_id" => DCR_ID)
+      run!(registered)
+      expect(requests(:post, REGISTER).size).to eq(1)
+
+      # Within a day of its expiry: a callback and a refresh still find it; a new sign-in replaces it.
       clock.advance(120)
-      expect(registered.client_information).to be_nil
+      expect(registered.client_information).to include("client_id" => DCR_ID)
 
       stub_register(registration_response("client_id" => "dcr-client-id-two", "client_secret_expires_at" => clock.now.to_i + (30 * 86_400)))
       _, url = run!(registered)
       expect(requests(:post, REGISTER).size).to eq(2)
       expect(query_of(url)["client_id"]).to eq("dcr-client-id-two")
       expect(registered.client_information).to include("client_id" => "dcr-client-id-two")
+
+      clock.advance(30 * 86_400)
+      expect(registered.client_information).to be_nil
+    end
+
+    it "M11: a registration that lasts less than a day finishes the sign-in it was made for, and refreshes", :aggregate_failures do
+      stub_metadata(server_metadata("client_id_metadata_document_supported" => nil))
+      stub_register(registration_response("client_secret_expires_at" => clock.now.to_i + 3600))
+      registered = provider_for
+      _, url = run!(registered)
+
+      expect(registered.client_information).to include("client_id" => DCR_ID)
+      expect(registered.finish!("code" => CODE, "state" => query_of(url)["state"])).to eq(:authorized)
+      expect(form_of(requests(:post, TOKEN).last)).to include("grant_type" => "authorization_code", "client_id" => DCR_ID)
+
+      runner = MCP::Client::OAuth::Flow.new(provider: registered)
+      expect(runner.refresh!(server_url: RESOURCE, resource_metadata_url: PRM)).to eq(:refreshed)
+      expect(form_of(requests(:post, TOKEN).last)).to include("grant_type" => "refresh_token", "client_id" => DCR_ID)
+      expect(requests(:post, REGISTER).size).to eq(1)
+    end
+
+    it "M12: a provider for another account or redirect URI cannot finish a sign-in attempt in a shared store", :aggregate_failures do
+      alice = provider_for(client_metadata_url: CIMD, account: "alice")
+      bob = provider_for(client_metadata_url: CIMD, account: "bob")
+      elsewhere = provider_for(client_metadata_url: CIMD, account: "alice", redirect_uri: "https://agent.example.com/other/callback")
+      _, url = run!(alice)
+      state = query_of(url)["state"]
+      expect(store.read("mcp_pending", pending_key(state, account: "alice"))).to include("client_id" => CIMD)
+
+      [bob, elsewhere].each do |other_provider|
+        expect { other_provider.finish!("code" => CODE, "state" => state, "iss" => ISSUER) }.to raise_error(flow_error)
+      end
+      expect(requests(:post, TOKEN)).to be_empty
+      expect(bob.access_token).to be_nil
+
+      # The refused callbacks did not use up the attempt.
+      expect(alice.finish!("code" => CODE, "state" => state, "iss" => ISSUER)).to eq(:authorized)
+      expect(alice.access_token).to eq(ACCESS)
+      expect(bob.access_token).to be_nil
     end
 
     it "M6: hands the gem a configured client without copying its secret into the store", :aggregate_failures do
@@ -306,6 +353,24 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
 
         expect(requests_carrying(secret).size).to eq(sent)
         expect(requests_carrying(secret).map { |request| request.uri.host }.uniq).to eq(["yourbiz.kinde.com"])
+      end
+
+      it "M13: without issuer, the configured client is used at once at a server the resource moved to", :aggregate_failures do
+        unbound = provider_for(client_id: "pre-registered")
+        _, url = run!(unbound)
+        unbound.finish!("code" => CODE, "state" => query_of(url)["state"])
+        expect(store.read("mcp_issuers", [RESOURCE, "default"])).to eq(ISSUER)
+
+        stub_other_server
+        _, url = run!(unbound)
+
+        expect(url).to start_with("#{other}/authorize?")
+        expect(query_of(url)["client_id"]).to eq("pre-registered")
+        expect(requests(:post, "#{other}/register")).to be_empty
+        expect(store.read("mcp_tokens", [ISSUER, RESOURCE, "default"])).to be_nil
+        expect(unbound.finish!("code" => CODE, "state" => query_of(url)["state"])).to eq(:authorized)
+        expect(form_of(requests(:post, "#{other}/token").last)).to include("grant_type" => "authorization_code", "client_id" => "pre-registered")
+        expect(unbound.client_information).to eq("client_id" => "pre-registered", "issuer" => other)
       end
 
       it "M6: back at the configured issuer after another one, the same sign-in uses the configured client", :aggregate_failures do

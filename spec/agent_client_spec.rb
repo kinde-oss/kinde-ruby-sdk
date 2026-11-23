@@ -5,6 +5,7 @@ require_relative 'support/agent_client_helpers'
 # token storage, calling the resource, refresh and disconnect, against a fake
 # resource server and a fake authorization server made of WebMock stubs.
 # Case ids (C1-C85) are the ones in the approved plan; there is no C83.
+# C86-C93 came out of review.
 module AgentClientHelpers # so the constants of the helpers are in scope below
   RSpec.describe KindeSdk::AgentClient do
     include AgentClientHelpers
@@ -224,6 +225,17 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
     describe "step-up on 403 insufficient_scope" do
       let(:insufficient) do
         { status: 403, body: "more scope", headers: { "WWW-Authenticate" => %(Bearer error="insufficient_scope", scope="profile", resource_metadata="#{PRM}") } }
+      end
+
+      it "C93: reads a challenge that the resource sends on two header lines", :aggregate_failures do
+        sign_in(client)
+        stub_request(:get, RESOURCE).to_return(
+          status: 403, body: "more scope", headers: { "WWW-Authenticate" => ['Bearer error="insufficient_scope"', 'scope="profile"'] }
+        )
+
+        error = sign_in_needed { client.fetch }
+
+        expect(query_of(error.authorization_url)["scope"]).to eq("offline profile")
       end
 
       it "C10: starts a new sign-in with the challenge's scope added to the current ones", :aggregate_failures do
@@ -674,6 +686,64 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         expect(request.headers).not_to have_key("Authorization")
       end
 
+      it "C87: uses a stored registration at a server that no longer has a registration endpoint", :aggregate_failures do
+        sign_in(dcr_client)
+        KindeSdk::AgentClient::Discovery.reset_cache!
+        stub_metadata(server_metadata("registration_endpoint" => nil, "client_id_metadata_document_supported" => nil))
+
+        expect(query_of(dcr_client.authorization_url)["client_id"]).to eq(DCR_ID)
+        expect(requests(:post, REGISTER).size).to eq(1)
+        expect { build_client(storage: KindeSdk::AgentClient::MemoryStore.new).authorization_url }
+          .to raise_error(discovery_error, /neither client ID metadata documents nor dynamic registration/)
+      end
+
+      it "C88: sign-ins that start together on one store register once", :aggregate_failures do
+        registered = Queue.new
+        stub_request(:post, REGISTER).to_return do |_request|
+          registered << true
+          sleep 0.2
+          json_response(registration_response("client_id" => "dcr-client-id-#{registered.size}"), status: 201)
+        end
+
+        urls = Array.new(6) { Thread.new { build_client(storage: store).authorization_url } }.map(&:value)
+
+        expect(requests(:post, REGISTER).size).to eq(1)
+        expect(urls.map { |url| query_of(url)["client_id"] }.uniq).to eq(["dcr-client-id-1"])
+        expect(stored_registration(store)).to include("client_id" => "dcr-client-id-1")
+        expect(stored_registration(store)).not_to have_key("previous")
+        expect(KindeSdk::AgentClient::KeyedLock.instance_variable_get(:@table)).to be_empty
+      end
+
+      it "C89: refuses a registration with an authentication method it cannot use, and stores nothing", :aggregate_failures do
+        unusable = {
+          "a method the client does not have" => { "token_endpoint_auth_method" => "private_key_jwt" },
+          "client_secret_jwt" => { "token_endpoint_auth_method" => "client_secret_jwt" },
+          "client_secret_post without a secret" => { "client_secret" => nil },
+          "client_secret_basic with an empty secret" => { "client_secret" => "", "token_endpoint_auth_method" => "client_secret_basic" },
+          "client_secret_basic with a secret that is no string" => { "client_secret" => 7, "token_endpoint_auth_method" => "client_secret_basic" }
+        }
+        unusable.each do |name, members|
+          fresh = KindeSdk::AgentClient::MemoryStore.new
+          stub_register(registration_response(members))
+
+          expect { build_client(storage: fresh).authorization_url }
+            .to raise_error(registration_error, /authentication method this client cannot use/), name
+          expect(stored_registration(fresh)).to be_nil, name
+          expect(fresh.inspect).not_to include("pending"), name
+        end
+
+        usable = [
+          { "client_secret" => nil, "token_endpoint_auth_method" => "none" },
+          { "client_secret" => nil, "token_endpoint_auth_method" => nil },
+          { "token_endpoint_auth_method" => "client_secret_basic" },
+          { "token_endpoint_auth_method" => nil }
+        ]
+        usable.each do |members|
+          stub_register(registration_response(members))
+          expect(build_client(storage: KindeSdk::AgentClient::MemoryStore.new).authorization_url).to start_with(AUTHORIZE)
+        end
+      end
+
       it "C27: asked for none, got client_secret_post: the secret is sent at token, refresh and revoke", :aggregate_failures do
         sign_in(dcr_client)
         expire_access_token
@@ -1110,6 +1180,32 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
     describe "callback" do
       let(:state) { query_of(client.authorization_url)["state"] }
 
+      it "C86: refuses a callback without iss when the authorization server says it sends one", :aggregate_failures do
+        stub_metadata(server_metadata("authorization_response_iss_parameter_supported" => true))
+
+        [{}, { "iss" => "" }, { "iss" => [ISSUER] }].each do |extra|
+          expect { client.handle_callback({ "code" => CODE, "state" => state }.merge(extra)) }
+            .to raise_error(callback_error, /no iss parameter/)
+        end
+        expect { client.handle_callback("code" => CODE, "state" => state, "iss" => "https://evil.example") }
+          .to raise_error(callback_error, /another authorization server/)
+        expect(token_requests).to be_empty
+
+        # None of the refused callbacks used up the attempt.
+        expect(client.handle_callback("code" => CODE, "state" => state, "iss" => ISSUER).scopes).to eq(["offline"])
+      end
+
+      it "C86: still accepts a callback without iss from a server that does not say it sends one", :aggregate_failures do
+        ["false", 1, false, nil].each do |flag|
+          KindeSdk::AgentClient::Discovery.reset_cache!
+          stub_metadata(server_metadata("authorization_response_iss_parameter_supported" => flag))
+          agent = cimd_client(storage: KindeSdk::AgentClient::MemoryStore.new)
+          attempt = query_of(agent.authorization_url)["state"]
+
+          expect(agent.handle_callback("code" => CODE, "state" => attempt).scopes).to eq(["offline"])
+        end
+      end
+
       it "C40: refuses a missing or unknown state, with no token request and no retry", :aggregate_failures do
         state
         [
@@ -1186,6 +1282,27 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
     end
 
     describe "token exchange" do
+      it "C90: refuses a token that is not a Bearer token, at the exchange and at a refresh", :aggregate_failures do
+        ["mac", "DPoP", "", 5].each do |type|
+          stub_token(token_response("token_type" => type))
+          expect { sign_in(client) }.to raise_error(oauth_error, /only Bearer tokens are supported/), type.inspect
+          expect(stored_tokens(store)).to be_nil
+        end
+
+        ["Bearer", "BEARER", "bearer", nil].each do |type|
+          stub_token(token_response("token_type" => type))
+          expect(sign_in(cimd_client(storage: KindeSdk::AgentClient::MemoryStore.new)).scopes).to eq(["offline"]), type.inspect
+        end
+
+        stub_token
+        sign_in(client)
+        expire_access_token
+        stub_refresh("token_type" => "mac")
+        expect { client.fetch }.to raise_error(oauth_error, /only Bearer tokens are supported/)
+        expect(stored_tokens(store)).to include("access_token" => ACCESS, "refresh_token" => REFRESH)
+        expect(resource_requests.map { |request| bearer_of(request) }).not_to include(NEW_ACCESS)
+      end
+
       it "C45: a public client posts the six fields, no secret, and the redirect URI of the authorization request", :aggregate_failures do
         url = client.authorization_url
         verifier = store.read("pending", [query_of(url)["state"]])["code_verifier"]
@@ -1374,6 +1491,22 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         made = requests.select { |request| request.uri.path.start_with?("/mcp") }
         expect(made.map { |request| request.uri.path }).to eq(%w[/mcp /mcp/tools /mcp/tools/list /mcp])
         made.each { |request| expect(bearer_of(request)).to eq(ACCESS) }
+      end
+
+      it "C91: refuses a dot segment behind an encoded separator, and still allows an encoded slash", :aggregate_failures do
+        sign_in(client)
+        made = requests.size
+
+        [
+          "/%2e%2e%2fadmin", "/..%2Fadmin", "/tools%2f..%2f..%2fadmin", "/tools/%2E%2E%5Cadmin", "/x%5c..%5cadmin",
+          "/.%2fx", "/tools%2f%2e%2e", "https://api.example.com/mcp/%2e%2e%2fadmin"
+        ].each do |target|
+          expect { client.fetch(target) }.to raise_error(ArgumentError, /fetch only calls/), "expected #{target.inspect} to be refused"
+        end
+        expect(requests.size).to eq(made)
+
+        expect(client.fetch("/files/a%2Fb").status).to eq(200)
+        expect(client.fetch("/files/..a%2F.b/c..").status).to eq(200)
       end
 
       it "C51: refuses another origin, another port and a path outside the resource, before any request", :aggregate_failures do
@@ -1599,7 +1732,7 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
 
         expect(statuses).to eq([200] * 8)
         expect(token_requests("refresh_token").size).to eq(1)
-        expect(KindeSdk::AgentClient::RefreshLock.instance_variable_get(:@table)).to be_empty
+        expect(KindeSdk::AgentClient::KeyedLock.instance_variable_get(:@table)).to be_empty
       end
     end
 
@@ -1706,6 +1839,32 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
     end
 
     describe "#disconnect" do
+      it "C92: waits for a refresh that is under way, so the refresh cannot put tokens back after the sign-out", :aggregate_failures do
+        sign_in(client)
+        clock.advance(86_400)
+        expire_access_token
+        entered = Queue.new
+        release = Queue.new
+        stub_request(:post, TOKEN).to_return do |_request|
+          entered << true
+          release.pop
+          json_response(token_response("access_token" => NEW_ACCESS, "refresh_token" => NEW_REFRESH))
+        end
+
+        refreshing = Thread.new { client.fetch.status }
+        entered.pop
+        signing_out = Thread.new { cimd_client(storage: store).disconnect }
+        deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 5
+        sleep 0.01 while signing_out.status == "run" && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+        release << true
+
+        expect(refreshing.value).to eq(200)
+        expect(signing_out.value).to be(true)
+        expect(stored_tokens(store)).to be_nil
+        expect(store.read("issuers", [RESOURCE, "default"])).to be_nil
+        expect(form_of(requests(:post, REVOKE).last)).to include("token" => NEW_REFRESH)
+      end
+
       it "C66: a public client revokes the refresh token with its client_id, and the tokens and pointer are deleted", :aggregate_failures do
         sign_in(dcr_client)
         store.delete("tokens", [ISSUER, RESOURCE, "default"])
@@ -2356,10 +2515,20 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
 
       it "C84: the storage example from the README works as a store", :aggregate_failures do
         redis = Class.new do
-          def initialize = @data = {}
+          attr_reader :expiries
+
+          def initialize
+            @data = {}
+            @expiries = {}
+          end
+
           def get(key) = @data[key]
-          def set(key, value) = @data[key] = value
           def getdel(key) = @data.delete(key)
+
+          def set(key, value, ex: nil)
+            @expiries[key[/\Akinde_agent:(\w+):/, 1]] = ex
+            @data[key] = value
+          end
         end.new
         eval(readme_ruby_example(/class RedisAgentStore/), TOPLEVEL_BINDING, "README.md") # rubocop:disable Security/Eval
         agent = cimd_client(storage: RedisAgentStore.new(redis))
@@ -2368,6 +2537,10 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         expect(agent.fetch.status).to eq(200)
         expect(agent.disconnect).to be(true)
         expect(agent.token_info).to be_nil
+
+        # Sign-in attempts expire by themselves, those of the MCP adapter too; nothing else does.
+        agent.config.storage.write("mcp_pending", ["k"], { "created_at" => NOW })
+        expect(redis.expiries).to eq("pending" => 600, "mcp_pending" => 600, "tokens" => nil, "issuers" => nil)
       ensure
         Object.send(:remove_const, :RedisAgentStore) if Object.const_defined?(:RedisAgentStore)
       end

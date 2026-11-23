@@ -16,13 +16,18 @@ module KindeSdk
       TOKEN = /[!#$%&'*+\-.^_`|~0-9A-Za-z]+/.freeze
       TOKEN68 = %r{[A-Za-z0-9\-._~+/]+=*(?=[ \t]*(?:,|\z))}.freeze
       PARAM_START = /#{TOKEN.source}[ \t]*=/.freeze
+      # Empty list elements ("Bearer , scope=...") in front of an auth-param.
+      EMPTY_BEFORE_PARAM = /(?:,[ \t]*)+(?=#{PARAM_START.source})/.freeze
       QUOTED = /"((?:\\.|[^"\\])*)(?:"|\z)/m.freeze
-      private_constant :TOKEN, :TOKEN68, :PARAM_START, :QUOTED
+      private_constant :TOKEN, :TOKEN68, :PARAM_START, :EMPTY_BEFORE_PARAM, :QUOTED
 
       class << self
         # Every challenge in the header, in order.
         #
-        # @param value [String, Array<String>, nil] one header value, or all of them
+        # @param value [String, Array<String>, nil] one header value, or all of
+        #   them. Several header lines are read as one value joined with
+        #   commas (RFC 9110 section 5.3), so a challenge may continue on the
+        #   next line.
         # @return [Array<Hash>] one Hash per challenge: +:scheme+ (String,
         #   lower-case), +:params+ (Hash{String=>String}, names lower-case) and
         #   +:token68+ (String or nil). Malformed input gives fewer challenges,
@@ -31,7 +36,7 @@ module KindeSdk
         #   KindeSdk::AgentClient::WwwAuthenticate.parse('Bearer scope="offline"')
         #   # => [{ scheme: "bearer", params: { "scope" => "offline" }, token68: nil }]
         def parse(value)
-          Array(value).flat_map { |entry| parse_value(entry) }
+          parse_value(Array(value).map { |line| line.to_s.scrub("?") }.join(", "))
         end
 
         # The parameters of the first +Bearer+ challenge.
@@ -49,7 +54,7 @@ module KindeSdk
         private
 
         def parse_value(value)
-          scanner = StringScanner.new(value.to_s.scrub("?"))
+          scanner = StringScanner.new(value)
           challenges = []
           until scanner.eos?
             scanner.skip(/[\s,]+/)
@@ -73,7 +78,12 @@ module KindeSdk
 
           if (token68 = scanner.scan(TOKEN68))
             challenge[:token68] = token68
-          elsif scanner.check(PARAM_START)
+            return challenge
+          end
+
+          # A comma followed by a new scheme is not skipped: it ends this challenge.
+          scanner.skip(EMPTY_BEFORE_PARAM)
+          if scanner.check(PARAM_START)
             read_params(scanner, challenge[:params])
           end
           challenge
