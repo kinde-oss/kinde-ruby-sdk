@@ -567,7 +567,9 @@ module KindeSdk
       metadata = @discovery.discover(challenge(result)["resource_metadata"])
       discovered = metadata["issuer"]
       if record && issuer != discovered
-        delete_tokens(issuer)
+        # The tokens that were sent are from an authorization server the
+        # resource no longer names. Newer ones are not this request's to delete.
+        discard_tokens(issuer, record)
         record = nil
         # A refresh before the request was at the other authorization server.
         refreshed = false
@@ -581,20 +583,24 @@ module KindeSdk
         return [result, discovered, record] unless result.status == 401
       end
 
-      if !refreshed && present?(record["refresh_token"])
-        record = refresh!(discovered, metadata, record, proactive: false)
+      # At most: one refresh, then tokens a sign-in stored in the meantime,
+      # then their refresh when none was sent yet.
+      2.times do
+        if !refreshed && present?(record["refresh_token"])
+          record = refresh!(discovered, metadata, record, proactive: false)
+          refreshed = true
+          result = perform(request, record)
+          return [result, discovered, record] unless result.status == 401
+        end
+
+        # The refused tokens are deleted. Newer ones are sent once.
+        record = discard_tokens(discovered, record)
+        break if record.nil?
+
         result = perform(request, record)
         return [result, discovered, record] unless result.status == 401
       end
-
-      # The refused tokens are deleted. Newer ones are sent once.
-      newer = discard_tokens(discovered, record)
-      if newer
-        result = perform(request, newer)
-        return [result, discovered, newer] unless result.status == 401
-
-        discard_tokens(discovered, newer)
-      end
+      discard_tokens(discovered, record) if record
       require_authorization!(metadata)
     end
 
@@ -631,6 +637,7 @@ module KindeSdk
     # The record {#connect} reports: refreshed when it is close to its
     # expiry. One that has expired and cannot be refreshed is of no use: it
     # is deleted and the user signs in. +metadata+ is nil until it is needed.
+    # Never returns a record that has expired.
     def usable_tokens(issuer, record, metadata)
       return record unless expiring?(record)
 
@@ -640,7 +647,9 @@ module KindeSdk
       metadata ||= @discovery.authorization_server_metadata(issuer)
       return refresh!(issuer, metadata, record, proactive: true) if refreshable
 
-      discard_tokens(issuer, record) || require_authorization!(metadata)
+      # Newer tokens, stored while the metadata was fetched, get the same check.
+      newer = discard_tokens(issuer, record)
+      newer ? usable_tokens(issuer, newer, metadata) : require_authorization!(metadata)
     end
 
     # Refreshes under a process-wide lock for this token record. A caller
@@ -657,6 +666,11 @@ module KindeSdk
           next current if proactive ? !expiring?(current) : current["access_token"] != used["access_token"]
 
           unless present?(current["refresh_token"])
+            # Other tokens than the ones the caller saw, which cannot be
+            # refreshed. Before a request they are used while they last;
+            # after a 401 they are the ones that were refused.
+            next current if proactive && !expired?(current)
+
             delete_tokens(issuer)
             throw SIGN_IN, {}
           end

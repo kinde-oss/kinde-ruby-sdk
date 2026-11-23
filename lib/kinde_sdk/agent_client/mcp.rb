@@ -40,7 +40,8 @@ module KindeSdk
     # +mcp_registrations+ +[issuer, redirect_uri]+, sign-in attempts under
     # +mcp_pending+ +[resource_url, account, redirect_uri, state]+, and the
     # issuer last used under +mcp_issuers+ +[resource_url, account]+. The
-    # hashes are the gem's own and are stored as they are.
+    # hashes are the gem's own and are stored as they are; a registration
+    # also gets +registered_at+, the time it was first stored.
     #
     # A sign-in attempt is kept under the account, resource and redirect URI
     # it was started for, so a provider for another account that shares the
@@ -55,9 +56,6 @@ module KindeSdk
     #   storage = KindeSdk::AgentClient::McpStorage.new(agent.config)
     #   storage.tokens # => { "access_token" => "...", "issuer" => "https://..." } or nil
     class McpStorage
-      RENEW_SECONDS = 86_400
-      private_constant :RENEW_SECONDS
-
       # @param config [KindeSdk::AgentClient::Config]
       # @raise [ArgumentError] when +issuer+ is configured and +client_id+ is
       #   an https URL with a path: the gem takes such a client ID for a
@@ -154,7 +152,8 @@ module KindeSdk
       end
 
       # Called when a new sign-in starts, before the gem reads the client:
-      # deletes a stored registration that expires within a day, so the gem
+      # deletes a stored registration that is due for renewal (a day before
+      # it expires; see {Registration.renewal_due?}), so the gem
       # registers again and the new sign-in does not get a client that is
       # about to stop working.
       #
@@ -168,7 +167,7 @@ module KindeSdk
 
         key = [issuer, @config.redirect_uri]
         record = @store.read("mcp_registrations", key)
-        @store.delete("mcp_registrations", key) if record.is_a?(Hash) && expiring?(record)
+        @store.delete("mcp_registrations", key) if record.is_a?(Hash) && Registration.renewal_due?(record)
         nil
       end
 
@@ -182,7 +181,7 @@ module KindeSdk
         issuer = issuer_in(info) || pointer || ""
         remember(issuer)
         # The configured client is read from the settings each time; its secret is not copied into the store.
-        @store.write("mcp_registrations", [issuer, @config.redirect_uri], info) unless configured_at?(issuer)
+        @store.write("mcp_registrations", [issuer, @config.redirect_uri], registered(info)) unless configured_at?(issuer)
         info
       end
 
@@ -244,6 +243,13 @@ module KindeSdk
         @store.write("mcp_issuers", pointer_key, issuer) unless pointer == issuer
       end
 
+      # The registration with the time it was first stored, which decides
+      # when it is due for renewal (see {Registration.renewal_due?}). The gem
+      # hands a registration it read back unchanged, so the time stays.
+      def registered(info)
+        info.key?(Registration::REGISTERED_AT) ? info : info.merge(Registration::REGISTERED_AT => Clock.now)
+      end
+
       def issuer_in(hash)
         issuer = hash["issuer"] || hash[:issuer]
         issuer.is_a?(String) && !issuer.empty? ? issuer : nil
@@ -260,11 +266,6 @@ module KindeSdk
         info["client_secret"] = @config.client_secret if @config.client_secret
         info["issuer"] = issuer if issuer
         info
-      end
-
-      def expiring?(record)
-        expires_at = record["client_secret_expires_at"]
-        expires_at.is_a?(Numeric) && !expires_at.zero? && expires_at - Clock.now < RENEW_SECONDS
       end
 
       def expired?(record)

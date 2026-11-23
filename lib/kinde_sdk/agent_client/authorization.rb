@@ -136,7 +136,8 @@ module KindeSdk
       def supplied?(params, name)
         return false unless params.respond_to?(:[])
 
-        !(params[name] || params[name.to_sym]).nil?
+        # Not "||": false is a value, and it is not a usable one.
+        !params[name].nil? || !params[name.to_sym].nil?
       rescue TypeError, ArgumentError
         false
       end

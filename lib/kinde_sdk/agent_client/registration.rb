@@ -16,9 +16,30 @@ module KindeSdk
       include KindeSdk::Logging
 
       NAMESPACE = "registrations"
-      # A stored registration this close to its expiry is replaced.
+      # A stored registration this close to its expiry is replaced (see {.renewal_due?}).
       RENEW_SECONDS = 86_400
       STORED_FIELDS = %w[client_id client_secret token_endpoint_auth_method client_secret_expires_at].freeze
+      # Member of a stored registration: when it was made, in seconds since the epoch.
+      REGISTERED_AT = "registered_at"
+
+      # Whether a stored registration should be replaced at the next sign-in:
+      # a day before it expires. One that was issued for less than two days
+      # is replaced in the second half of its life instead, so that a server
+      # which issues registrations for a few hours is not asked for a new
+      # one at every sign-in. A registration that does not expire is never due.
+      #
+      # @api private
+      # @param record [Hash] a stored registration
+      # @return [Boolean]
+      def self.renewal_due?(record)
+        expires_at = record["client_secret_expires_at"]
+        return false unless expires_at.is_a?(Numeric) && !expires_at.zero?
+
+        registered_at = record[REGISTERED_AT]
+        window = RENEW_SECONDS
+        window = [window, (expires_at - registered_at) / 2].min if registered_at.is_a?(Numeric)
+        expires_at - Clock.now < window
+      end
       # Member of a stored registration that holds the one it replaced before
       # that one expired, so tokens issued to it can still be refreshed and revoked.
       PREVIOUS = "previous"
@@ -93,6 +114,7 @@ module KindeSdk
 
         record = STORED_FIELDS.to_h { |field| [field, document[field]] }
         record["token_endpoint_auth_method"] ||= record["client_secret"] ? "client_secret_basic" : "none"
+        record[REGISTERED_AT] = Clock.now
         check_authentication!(record, result.status)
         replaced = @config.storage.read(NAMESPACE, key(issuer))
         record[PREVIOUS] = replaced.slice(*STORED_FIELDS) if replaced.is_a?(Hash) && usable?(replaced) && !expired?(replaced)
@@ -203,15 +225,12 @@ module KindeSdk
         identity(@config.client_id, @config.client_secret, method, "configured")
       end
 
-      # A stored registration that is still good for at least a day.
+      # A stored registration that is not due for renewal.
       def stored(issuer)
         record = @config.storage.read(NAMESPACE, key(issuer))
         return nil unless record.is_a?(Hash) && usable?(record)
 
-        expires_at = record["client_secret_expires_at"]
-        return nil if expires_at.is_a?(Numeric) && !expires_at.zero? && expires_at - Clock.now < RENEW_SECONDS
-
-        record
+        self.class.renewal_due?(record) ? nil : record
       end
 
       def expired?(record)

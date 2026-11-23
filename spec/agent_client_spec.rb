@@ -5,7 +5,7 @@ require_relative 'support/agent_client_helpers'
 # token storage, calling the resource, refresh and disconnect, against a fake
 # resource server and a fake authorization server made of WebMock stubs.
 # Case ids (C1-C85) are the ones in the approved plan; there is no C83.
-# C86-C101 came out of review.
+# C86-C105 came out of review.
 module AgentClientHelpers # so the constants of the helpers are in scope below
   RSpec.describe KindeSdk::AgentClient do
     include AgentClientHelpers
@@ -767,9 +767,9 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
       end
 
       it "C100: dropping a refused registration waits for a registration that is under way, and keeps what it stores", :aggregate_failures do
-        stub_register(registration_response("client_id" => "dcr-old", "client_secret_expires_at" => NOW + 86_400 + 100))
+        stub_register(registration_response("client_id" => "dcr-old", "client_secret_expires_at" => NOW + (3 * 86_400)))
         dcr_client.authorization_url
-        clock.advance(200) # the old registration is now within a day of its expiry: the next sign-in replaces it
+        clock.advance((2 * 86_400) + 200) # the old registration is now within a day of its expiry: the next sign-in replaces it
         entered = Queue.new
         release = Queue.new
         stub_request(:post, REGISTER).to_return do |_request|
@@ -865,7 +865,8 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
           "client_id" => DCR_ID,
           "client_secret" => DCR_SECRET,
           "token_endpoint_auth_method" => "client_secret_post",
-          "client_secret_expires_at" => NOW + (30 * 86_400)
+          "client_secret_expires_at" => NOW + (30 * 86_400),
+          "registered_at" => NOW
         )
 
         again = build_client(storage: store)
@@ -896,6 +897,29 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         store.write("registrations", key, record.merge("client_secret_expires_at" => NOW - 5))
         expect(query_of(dcr_client.authorization_url)["client_id"]).to eq(DCR_ID)
         expect(requests(:post, REGISTER).size).to eq(2)
+      end
+
+      it "C102: a registration issued for less than two days is replaced in the second half of its life, not at every sign-in", :aggregate_failures do
+        stub_register(registration_response("client_secret_expires_at" => NOW + (12 * 3600)))
+
+        3.times { build_client(storage: store).authorization_url }
+        clock.advance((6 * 3600) - 60)
+        dcr_client.authorization_url
+        expect(requests(:post, REGISTER).size).to eq(1)
+
+        clock.advance(120)
+        stub_register(registration_response("client_id" => "dcr-client-id-two", "client_secret_expires_at" => clock.now + (40 * 3600)))
+        expect(query_of(dcr_client.authorization_url)["client_id"]).to eq("dcr-client-id-two")
+        expect(requests(:post, REGISTER).size).to eq(2)
+        expect(stored_registration(store)).to include("registered_at" => clock.now.to_i, "previous" => include("client_id" => DCR_ID))
+
+        # Issued for 40 hours: due 20 hours before the end. One issued for two days or more is due a day before it.
+        clock.advance((20 * 3600) - 60)
+        dcr_client.authorization_url
+        expect(requests(:post, REGISTER).size).to eq(2)
+        clock.advance(120)
+        dcr_client.authorization_url
+        expect(requests(:post, REGISTER).size).to eq(3)
       end
 
       it "C29: tokens issued to a registration that was replaced before its expiry are still refreshed and revoked with it", :aggregate_failures do
@@ -1006,6 +1030,7 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         expect(stored_registration(store)).to eq(
           "client_id" => "dcr-client-id-three", "client_secret" => "dcr-client-secret-three",
           "token_endpoint_auth_method" => "client_secret_post", "client_secret_expires_at" => clock.now + (30 * 86_400),
+          "registered_at" => clock.now.to_i,
           "previous" => {
             "client_id" => DCR_ID, "client_secret" => DCR_SECRET, "token_endpoint_auth_method" => "client_secret_post",
             "client_secret_expires_at" => NOW + (30 * 86_400)
@@ -1291,7 +1316,9 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
       end
 
       it "C86: an iss that is there but empty or repeated is refused, also when the server need not send one", :aggregate_failures do
-        [{ "iss" => "" }, { "iss" => [ISSUER] }, { "iss" => [] }, { iss: "" }, { "iss" => { "0" => ISSUER } }].each do |extra|
+        malformed = [{ "iss" => "" }, { "iss" => [ISSUER] }, { "iss" => [] }, { iss: "" }, { "iss" => { "0" => ISSUER } },
+                     { "iss" => false }, { iss: false }]
+        malformed.each do |extra|
           expect { client.handle_callback({ "code" => CODE, "state" => state }.merge(extra)) }
             .to raise_error(callback_error, /iss parameter that is empty or repeated/), extra.inspect
         end
@@ -1887,7 +1914,9 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         other = Thread.new { grace.fetch.status }
 
         # Grace's refresh goes through while Ada's is still waiting for the token endpoint.
-        expect(other.join(5)).not_to be_nil
+        # Raised, not expected: with aggregated failures the example would go on to wait for her.
+        raise "the other user's refresh waited for the first one" unless other.join(5)
+
         expect(other.value).to eq(200)
         expect(slow).to be_alive
         release << true
@@ -2071,6 +2100,27 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         expect(token_requests).to eq(token_requests("authorization_code"))
       end
 
+      it "C103: when the resource names another authorization server, tokens a sign-in stored for the old one meanwhile are left alone", :aggregate_failures do
+        sign_in(client)
+        newer = stored_tokens(store).merge("access_token" => NEW_ACCESS)
+        moved = "https://auth.example.org"
+        stub_prm({ "resource" => RESOURCE, "authorization_servers" => [moved] })
+        stub_metadata(
+          server_metadata("issuer" => moved, "authorization_endpoint" => "#{moved}/authorize", "token_endpoint" => "#{moved}/token"),
+          url: "#{moved}/.well-known/oauth-authorization-server"
+        )
+        stub_request(:get, RESOURCE).to_return do |_request|
+          store.write("tokens", [ISSUER, RESOURCE, "default"], newer)
+          { status: 401, headers: { "WWW-Authenticate" => %(Bearer error="invalid_token", resource_metadata="#{PRM}") } }
+        end
+
+        error = sign_in_needed { client.fetch }
+
+        expect(error.authorization_url).to start_with("#{moved}/authorize?")
+        expect(resource_requests.map { |request| bearer_of(request) }).to eq([ACCESS])
+        expect(stored_tokens(store)).to include("access_token" => NEW_ACCESS)
+      end
+
       it "C95: a refresh at the old authorization server does not use up the refresh at the one the resource names now", :aggregate_failures do
         sign_in(client)
         moved = "https://auth.example.org"
@@ -2135,6 +2185,47 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
           sign_in_needed { client.fetch }
 
           expect(resource_requests.map { |request| bearer_of(request) }).to eq([ACCESS, NEW_ACCESS])
+          expect(stored_tokens(store)).to be_nil
+        end
+
+        it "C104: refreshes the newer tokens when the resource refuses them too and no refresh was sent yet", :aggregate_failures do
+          newer.merge!("access_token" => "access-token-b", "refresh_token" => "refresh-token-b")
+          stub_resource_with_sign_in_meanwhile([NEW_ACCESS])
+          stub_refresh
+
+          expect(client.fetch.status).to eq(200)
+
+          expect(resource_requests.map { |request| bearer_of(request) }).to eq([ACCESS, "access-token-b", NEW_ACCESS])
+          expect(token_requests("refresh_token").map { |request| form_of(request)["refresh_token"] }).to eq(["refresh-token-b"])
+          expect(stored_tokens(store)).to include("access_token" => NEW_ACCESS, "refresh_token" => "refresh-token-b")
+        end
+
+        it "C104: gives up after one refresh and a bounded number of requests when newer tokens keep being refused", :aggregate_failures do
+          newer.merge!("access_token" => "access-token-b", "refresh_token" => "refresh-token-b")
+          stub_resource_with_sign_in_meanwhile([])
+          stub_refresh
+
+          sign_in_needed { client.fetch }
+
+          expect(resource_requests.map { |request| bearer_of(request) }.tally).to eq(ACCESS => 1, "access-token-b" => 2, NEW_ACCESS => 1)
+          expect(token_requests("refresh_token").size).to eq(1)
+          expect(stored_tokens(store)).to be_nil
+        end
+
+        it "C104: does not refresh a second time for newer tokens that appear after the refresh", :aggregate_failures do
+          store.write("tokens", [ISSUER, RESOURCE, "default"], stored_tokens(store).merge("refresh_token" => REFRESH))
+          newer.merge!("access_token" => "access-token-b", "refresh_token" => "refresh-token-b")
+          stub_request(:get, RESOURCE).to_return do |request|
+            # The sign-in finishes when the refreshed token is refused, not before.
+            store.write("tokens", [ISSUER, RESOURCE, "default"], newer) if bearer_of(request) == NEW_ACCESS
+            { status: 401, headers: { "WWW-Authenticate" => %(Bearer error="invalid_token", resource_metadata="#{PRM}") } }
+          end
+          stub_refresh
+
+          sign_in_needed { client.fetch }
+
+          expect(resource_requests.map { |request| bearer_of(request) }).to eq([ACCESS, NEW_ACCESS, "access-token-b"])
+          expect(token_requests("refresh_token").map { |request| form_of(request)["refresh_token"] }).to eq([REFRESH])
           expect(stored_tokens(store)).to be_nil
         end
       end
@@ -2403,6 +2494,65 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         end
         expect(token_requests("refresh_token")).to be_empty
         expect(resource_requests).to be_empty
+      end
+
+      describe "tokens a sign-in stores while connect fetches the metadata" do
+        # The metadata answers, and a sign-in finishes at that moment.
+        def stub_metadata_with_sign_in_meanwhile(target, replacement)
+          stub_request(:get, METADATA).to_return do |_request|
+            target.write("tokens", [ISSUER, RESOURCE, "default"], replacement)
+            json_response(server_metadata)
+          end
+        end
+
+        it "C105: are used as they are when they cannot be refreshed but are still good", :aggregate_failures do
+          sign_in(client)
+          clock.advance(86_400) # the stored token is due, and the cached metadata is too old
+          replacement = stored_tokens(store).except("refresh_token").merge("access_token" => NEW_ACCESS, "expires_at" => clock.now + 10)
+          stub_metadata_with_sign_in_meanwhile(store, replacement)
+
+          expect(client.connect.expires_at).to eq(clock.now + 10)
+          expect(token_requests("refresh_token")).to be_empty
+          expect(stored_tokens(store)).to include("access_token" => NEW_ACCESS)
+
+          # The same before a request: they are sent.
+          sign_in(client)
+          clock.advance(86_400)
+          expire_access_token
+          stub_metadata_with_sign_in_meanwhile(store, replacement.merge("expires_at" => clock.now + 10))
+          expect(client.fetch.status).to eq(200)
+          expect(token_requests("refresh_token")).to be_empty
+        end
+
+        it "C105: are never reported when they have expired: they are refreshed, or deleted for a new sign-in", :aggregate_failures do
+          stub_token(token_response("refresh_token" => nil, "expires_in" => 600))
+          sign_in(client)
+          clock.advance(600) # expired, cannot be refreshed
+          gone = stored_tokens(store).merge("access_token" => NEW_ACCESS, "expires_at" => clock.now - 1)
+          stub_metadata_with_sign_in_meanwhile(store, gone)
+
+          sign_in_needed { client.connect }
+          expect(stored_tokens(store)).to be_nil
+
+          KindeSdk::AgentClient::Discovery.reset_cache!
+          sign_in(client)
+          clock.advance(600)
+          stub_metadata_with_sign_in_meanwhile(store, gone.merge("expires_at" => clock.now - 1, "refresh_token" => "refresh-token-b"))
+          stub_refresh("expires_in" => 900)
+
+          expect(client.connect.expires_at).to eq(clock.now + 900)
+          expect(token_requests("refresh_token").map { |request| form_of(request)["refresh_token"] }).to eq(["refresh-token-b"])
+
+          # The stored token can be refreshed, the one that replaces it cannot and has expired.
+          KindeSdk::AgentClient::Discovery.reset_cache!
+          stub_token
+          sign_in(client)
+          clock.advance(86_400)
+          stub_metadata_with_sign_in_meanwhile(store, gone.merge("expires_at" => clock.now - 1))
+          sign_in_needed { client.connect }
+          expect(stored_tokens(store)).to be_nil
+          expect(token_requests("refresh_token").size).to eq(1)
+        end
       end
 
       it "C73: has no browser hook, loopback listener or Rails route", :aggregate_failures do
@@ -2934,6 +3084,8 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         expect(section).to match(/when that lookup fails the registration stays stored/)
         expect(section).to match(/built-in stores drop old attempts on the next write.*removes it without another write/m)
         expect(section).to match(/give it a `lock_scope` method/)
+        expect(section).to match(/Two requests of one browser session that overlap.*one after another/m)
+        expect(section).to match(/in the second half of its life/)
       end
 
       it "C85: every public method of the new files has a YARD comment with a tag", :aggregate_failures do

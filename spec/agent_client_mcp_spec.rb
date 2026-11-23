@@ -235,6 +235,17 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
       expect(runner.refresh!(server_url: RESOURCE, resource_metadata_url: PRM)).to eq(:refreshed)
       expect(form_of(requests(:post, TOKEN).last)).to include("grant_type" => "refresh_token", "client_id" => DCR_ID)
       expect(requests(:post, REGISTER).size).to eq(1)
+
+      # It is not replaced by every sign-in either: only in the second half of its hour.
+      run!(registered)
+      clock.advance(1700)
+      run!(registered)
+      expect(requests(:post, REGISTER).size).to eq(1)
+      expect(store.read("mcp_registrations", [ISSUER, REDIRECT])).to include("registered_at" => clock.now.to_i - 1700)
+
+      clock.advance(200)
+      run!(registered)
+      expect(requests(:post, REGISTER).size).to eq(2)
     end
 
     it "M12: a provider for another account or redirect URI cannot finish a sign-in attempt in a shared store", :aggregate_failures do
@@ -296,6 +307,12 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
       expect(storage.save_pending_authorization("state-one", pending)).to equal(pending)
       expect(storage.save_client_information(info)).to equal(info)
       expect(storage.tokens).to eq(tokens)
+
+      # The gem saves a registration it read once more: the time it was first stored stays.
+      first_stored = clock.now.to_i
+      clock.advance(500)
+      storage.save_client_information(storage.client_information)
+      expect(storage.client_information).to eq(info.merge("registered_at" => first_stored))
     end
 
     it "M6: hands the gem a configured client without copying its secret into the store", :aggregate_failures do

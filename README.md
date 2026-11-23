@@ -252,7 +252,7 @@ end
 - Every URL must be `https`. Plain `http` is accepted only for the hosts `localhost`, `127.0.0.1` and `[::1]`, for local development. For the URLs a server supplies (the metadata URL in a challenge, the authorization server and its endpoints) that exception applies only when `resource_url` is itself on one of those hosts, so a remote server cannot make the agent call a service on the machine the agent runs on.
 - `account:` names the user when one store holds several users. With a store per user, such as the session, leave it out.
 
-How the agent identifies itself is decided in this order: a client ID metadata document when you set `client_metadata_url:` and the server supports it (section 10), then `client_id:` (with `client_secret:` and `issuer:` for a confidential client) when you have registered the agent by hand, then dynamic client registration. Without any of the three options set, the agent registers itself, and that works for redirect URIs on a host in the application's **Trusted agent hosts** and on loopback hosts. A registration within a day of its expiry is replaced at the next sign-in; tokens issued to the old one are still refreshed and revoked with it until it expires.
+How the agent identifies itself is decided in this order: a client ID metadata document when you set `client_metadata_url:` and the server supports it (section 10), then `client_id:` (with `client_secret:` and `issuer:` for a confidential client) when you have registered the agent by hand, then dynamic client registration. Without any of the three options set, the agent registers itself, and that works for redirect URIs on a host in the application's **Trusted agent hosts** and on loopback hosts. A registration within a day of its expiry is replaced at the next sign-in (one issued for less than two days: in the second half of its life); tokens issued to the old one are still refreshed and revoked with it until it expires.
 
 A client you registered by hand belongs to one authorization server. Name that server with `issuer:`, and the client ID and the secret are used there and nowhere else:
 
@@ -363,6 +363,8 @@ The client keeps the tokens, the dynamic registration and, for up to ten minutes
 | `KindeSdk::AgentClient::SessionStore.new(session)` | Under one key of the session, or of any Hash-like object. | Web apps: each user's tokens live in that user's session. |
 
 The store holds a refresh token, a client secret when the agent registered itself and, during sign-in, a PKCE verifier. So the session must be kept on the server (a database, Redis or cache session store) or be encrypted. Never keep it in a plain, unencrypted cookie. A cookie session also has a size limit of about 4 KB, which these records can exceed, so a server-side session store is the safe choice.
+
+A session is loaded when a request starts and written back when it ends, so each request works on its own copy. Two requests of one browser session that overlap can therefore both refresh the same token, and the one that ends last decides what the session keeps. When the authorization server replaces the refresh token at every use, the other request can be told to sign in again. Make the agent's calls for one user one after another, or keep the tokens in a store that every request shares (such as the Redis example below, with `account:` set to the user), where a refresh under way makes the next one wait.
 
 To keep tokens somewhere else, pass any object with these three methods as `storage:`:
 
