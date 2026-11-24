@@ -9,7 +9,7 @@ gem 'typhoeus', '~> 1.0', '>= 1.0.1'
 gem 'oauth2', '~> 2.0'
 gem 'pkce_challenge'
 gem 'faraday-follow_redirects'
-gem 'httparty', '~> 0.24.0'
+gem 'httparty', '~> 0.25.0'
 gem 'jwt', '~> 3.0'
 
 group :development, :test do
