@@ -21,7 +21,7 @@ module KindeSdk
       # @return [Integer, nil] whole seconds, or nil when the response gives none
       def self.lifetime(document)
         expires_in = document["expires_in"]
-        expires_in = Integer(expires_in, 10) if expires_in.is_a?(String) && expires_in.match?(/\A\d+\z/)
+        expires_in = Integer(expires_in, 10) if expires_in.is_a?(String) && expires_in.match?(/\A-?\d+\z/)
         expires_in.is_a?(Numeric) ? expires_in.to_i : nil
       end
 
@@ -41,12 +41,15 @@ module KindeSdk
       # @param url [String] the token endpoint
       # @param identity [Hash]
       # @param refresh_token [String]
+      # @yield [replacement] when the response is refused because its access
+      #   token has no lifetime left, but it carries a new refresh token: the
+      #   server may have ended the old one already, so the caller stores this one
       # @return [Hash] the token response
       # @raise [OAuthError, DiscoveryError, UnavailableError]
-      def refresh(url, identity, refresh_token)
+      def refresh(url, identity, refresh_token, &rotated)
         token_request(url, identity,
-                      "grant_type" => "refresh_token", "refresh_token" => refresh_token,
-                      "resource" => @config.resource_url)
+                      { "grant_type" => "refresh_token", "refresh_token" => refresh_token,
+                        "resource" => @config.resource_url }, &rotated)
       end
 
       # @param url [String] the revocation endpoint
@@ -73,6 +76,8 @@ module KindeSdk
           # A token that has no lifetime left is not stored: it would be
           # reported as a good one, and a refresh would be sent for each call.
           if (lifetime = self.class.lifetime(document)) && !lifetime.positive?
+            replacement = string(document["refresh_token"])
+            yield replacement if replacement && block_given?
             raise OAuthError.new("The authorization server issued an access token that has already expired " \
                                  "(expires_in is #{lifetime})", status: result.status)
           end

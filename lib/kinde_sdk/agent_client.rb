@@ -690,7 +690,10 @@ module KindeSdk
       end
 
       endpoint = Discovery.endpoint(metadata, "token_endpoint", loopback: @config.loopback_resource?)
-      tokens = @token_endpoint.refresh(endpoint, identity, current["refresh_token"])
+      tokens = @token_endpoint.refresh(endpoint, identity, current["refresh_token"]) do |replacement|
+        # The access token is refused, but the refresh token was replaced.
+        write_tokens(issuer, current.merge("refresh_token" => replacement))
+      end
       record = current.merge("access_token" => tokens["access_token"], "expires_at" => expires_at(tokens))
       record["scope"] = tokens["scope"] if tokens["scope"].is_a?(String)
       record["refresh_token"] = tokens["refresh_token"] if present?(tokens["refresh_token"])

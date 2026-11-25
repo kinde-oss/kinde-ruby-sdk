@@ -2515,7 +2515,7 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
       end
 
       it "C106: a token response with no lifetime left is refused, at a sign-in and at a refresh", :aggregate_failures do
-        [0, "0", -5, 0.4].each do |expires_in|
+        [0, "0", -5, "-5", 0.4].each do |expires_in|
           stub_token(token_response("expires_in" => expires_in))
           attempt = query_of(client.authorization_url)["state"]
           expect { client.handle_callback("code" => CODE, "state" => attempt) }
@@ -2533,9 +2533,15 @@ module AgentClientHelpers # so the constants of the helpers are in scope below
         expect(stored_tokens(store)).to eq(stored)
         expect(resource_requests).to be_empty
 
+        # A refresh token that came with it is kept: the old one may be gone.
+        stub_refresh("expires_in" => 0, "refresh_token" => NEW_REFRESH)
+        expect { client.connect }.to raise_error(oauth_error, /already expired/)
+        expect(stored_tokens(store)).to eq(stored.merge("refresh_token" => NEW_REFRESH))
+
         # A second is a lifetime.
         stub_refresh("expires_in" => 1)
         expect(client.connect.expires_at).to eq(clock.now + 1)
+        expect(form_of(token_requests("refresh_token").last)["refresh_token"]).to eq(NEW_REFRESH)
       end
 
       describe "tokens a sign-in stores while connect fetches the metadata" do
