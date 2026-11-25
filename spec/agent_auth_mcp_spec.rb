@@ -397,7 +397,7 @@ RSpec.describe KindeSdk::AgentAuth::KindeTokenVerifier do
 
     it "A15: nothing but the adapter file loads the mcp gem", :aggregate_failures do
       requires_mcp = %r{^\s*require(_relative)?[\s(]+["'](mcp|(\S*/)?agent_auth/mcp)["']}
-      others = Dir.glob(File.join(root, "lib", "**", "*.rb")) - [adapter_path]
+      others = Dir.glob(File.join(root, "lib", "**", "*.rb")) - [adapter_path, File.join(root, "lib", "kinde_sdk", "agent_client", "mcp.rb")]
 
       expect(others).not_to be_empty
       expect(File.read(adapter_path)).to match(requires_mcp)

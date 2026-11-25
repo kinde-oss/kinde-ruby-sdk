@@ -14,7 +14,9 @@ For details on integrating this SDK into your project, head over to the [Kinde d
 
 `KindeSdk::AgentAuth` lets your MCP server, or any HTTP API, accept the access tokens Kinde issues to AI agents such as Claude, ChatGPT, Cursor or an agent you build yourself. Kinde is the authorization server. Your server is the resource server: it publishes where agents should sign in, checks the token on every request and reads the user's permissions from it.
 
-It is opt-in and separate from the login flow. Nothing changes for existing users of the SDK.
+`KindeSdk::AgentClient` is the agent side: it lets an app you build sign a user in to such a server and call it (sections 9 to 12).
+
+Both are opt-in and separate from the login flow. Nothing changes for existing users of the SDK.
 
 ### 1. Create the application in Kinde
 
@@ -196,6 +198,211 @@ kinde.revoke_token(token, "refresh_token")   # with a hint
 ```
 
 Revoking either token of a pair revokes both, the access token and the refresh token. It only works for tokens that were issued for this application's Resource URL.
+
+### 9. Build an agent that signs in
+
+`KindeSdk::AgentClient` is for the other direction: your app is the agent, and it calls an MCP server or API that is protected by Kinde (or by any OAuth server that follows the MCP authorization spec). One client serves one resource and one user.
+
+The client finds the authorization server from the resource, identifies itself, sends the user to sign in, and then calls the resource with the access token. It refreshes the token when it is about to expire or when the resource answers `401`.
+
+Sign-in is a redirect in the user's browser. The client never opens a browser and never waits: when the user has to sign in, `fetch` raises `AuthorizationRequiredError` with the URL to redirect to, and your callback route finishes the sign-in.
+
+```ruby
+# app/controllers/agent_controller.rb
+class AgentController < ApplicationController
+  def show
+    response = agent.fetch("/documents")
+    render plain: response.body, status: response.status
+  rescue KindeSdk::AgentClient::AuthorizationRequiredError => e
+    redirect_to e.authorization_url, allow_other_host: true
+  end
+
+  # The route of redirect_uri.
+  def callback
+    agent.handle_callback(request.query_parameters)
+    redirect_to agent_path
+  rescue KindeSdk::AgentClient::AuthorizationRequiredError => e
+    redirect_to e.authorization_url, allow_other_host: true
+  rescue KindeSdk::AgentClient::CallbackError, KindeSdk::AgentClient::OAuthError => e
+    render plain: "Sign-in failed: #{e.message}", status: :bad_request
+  end
+
+  def disconnect
+    agent.disconnect
+    redirect_to root_path
+  end
+
+  private
+
+  def agent
+    @agent ||= KindeSdk::AgentClient.new(
+      resource_url: ENV.fetch("AGENT_RESOURCE_URL"),
+      redirect_uri: agent_callback_url,
+      storage: KindeSdk::AgentClient::SessionStore.new(session)
+    )
+  end
+end
+```
+
+- `fetch(path, method:, headers:, body:)` returns a response with `status`, `headers` and `body`. The path is added to `resource_url` (before its query, if it has one); the token is only ever sent to that resource. The whole response is read into memory, so for a streaming MCP session use the `mcp` gem's client (section 11).
+- `handle_callback` checks `state`, which can be used once, and the `iss` parameter when the server sends it. When the server's metadata says it sends `iss`, a callback without one is refused. A callback it refuses raises `CallbackError` and is not retried.
+- `disconnect` asks the authorization server to revoke the refresh token and deletes the stored tokens. The revocation is best effort: when the server has no revocation endpoint, or the call fails, the tokens are deleted all the same and `disconnect` still returns `true`, so `true` does not confirm that the server revoked anything. `disconnect(forget: true)` also deletes the stored registration, signed in or not; with no tokens stored it first asks the resource which authorization server it uses, and when that lookup fails the registration stays stored and a warning is logged.
+- `connect` does the same as `fetch` without calling the resource, `authorization_url` starts a sign-in for a "Connect" button, and `token_info` returns the granted scopes, the expiry and the client ID, never a token.
+- `scopes:` defaults to `["offline"]`, which is what gives the agent a refresh token. The client never asks for `openid` at a server that does not list it, and Kinde does not: an AI agents and MCP application refuses `openid` and issues no ID token. The login scopes set with `KindeSdk.configure` are not used.
+- Every URL must be `https`. Plain `http` is accepted only for the hosts `localhost`, `127.0.0.1` and `[::1]`, for local development. For the URLs a server supplies (the metadata URL in a challenge, the authorization server and its endpoints) that exception applies only when `resource_url` is itself on one of those hosts, so a remote server cannot make the agent call a service on the machine the agent runs on.
+- `account:` names the user when one store holds several users. With a store per user, such as the session, leave it out.
+
+How the agent identifies itself is decided in this order: a client ID metadata document when you set `client_metadata_url:` and the server supports it (section 10), then `client_id:` (with `client_secret:` and `issuer:` for a confidential client) when you have registered the agent by hand, then dynamic client registration. Without any of the three options set, the agent registers itself, and that works for redirect URIs on a host in the application's **Trusted agent hosts** and on loopback hosts. A registration within a day of its expiry is replaced at the next sign-in (one issued for less than two days: in the second half of its life); tokens issued to the old one are still refreshed and revoked with it until it expires.
+
+A client you registered by hand belongs to one authorization server. Name that server with `issuer:`, and the client ID and the secret are used there and nowhere else:
+
+```ruby
+KindeSdk::AgentClient.new(
+  resource_url: "https://api.example.com/mcp",
+  redirect_uri: "https://agent.example.com/oauth/callback",
+  client_id: ENV.fetch("AGENT_CLIENT_ID"),
+  client_secret: ENV.fetch("AGENT_CLIENT_SECRET"),
+  issuer: "https://yourbiz.kinde.com/oauth2/agents/app_id"
+)
+```
+
+- `issuer:` is required with `client_secret:`; without it the client raises an `ArgumentError`. With a `client_id:` alone it is optional, and without it the client ID is used at whatever authorization server the resource names.
+- The resource decides which authorization server the agent talks to, so without this setting a resource could have the secret sent to a server of its choosing. With `issuer:` set, a resource that names any other authorization server never receives the client ID's secret, at sign-in, refresh or revocation. The agent goes on as if no client ID was set: with the client ID metadata document or dynamic registration when that server supports one, and with an error otherwise.
+- The value must be exactly the issuer in the resource's metadata, character for character (a trailing slash counts). For Kinde it is the `issuer` in the application's `/.well-known/oauth-authorization-server` document. The URL rule is the same as for every other URL: `https`, or `http` on a loopback host, which only works when `resource_url` is on a loopback host too.
+
+### 10. Publish your agent's client ID metadata document
+
+A client ID metadata document is a small JSON file on your agent's own website. Its URL is the agent's `client_id`, so the agent needs no registration and no secret. This is the preferred way to identify an agent.
+
+Build the document with `KindeSdk::AgentClient.build_client_metadata_document`, or serve it with the Rack app:
+
+```ruby
+# config.ru
+require "kinde_sdk"
+
+map "/oauth/client-metadata.json" do
+  run KindeSdk::AgentClient.client_metadata_app(
+    client_id: "https://agent.example.com/oauth/client-metadata.json",
+    client_name: "Example Agent",
+    redirect_uris: ["https://agent.example.com/oauth/callback"]
+  )
+end
+```
+
+In Rails, mount it instead:
+
+```ruby
+# config/routes.rb
+mount KindeSdk::AgentClient.client_metadata_app(
+  client_id: "https://agent.example.com/oauth/client-metadata.json",
+  client_name: "Example Agent",
+  redirect_uris: ["https://agent.example.com/oauth/callback"]
+), at: "/oauth/client-metadata.json"
+```
+
+Then pass the same URL to the client as `client_metadata_url: "https://agent.example.com/oauth/client-metadata.json"`.
+
+- Mount the app at exactly the path of `client_id`. Kinde compares the `client_id` in the document with the URL it fetched, and the app does not check this for you.
+- Add the document's host (`agent.example.com`) to the application's **Trusted agent hosts** in Kinde. Well-known vendor agents such as Claude and ChatGPT are trusted already. Nothing else is, so without this step sign-in fails with `invalid_client`.
+- The document must be reachable from the public internet over `https`. Kinde fetches it and refuses private addresses, so a document on `localhost` cannot work. For local testing use a tunnel with a real domain.
+- Redirect URIs must be `https` on the same host as the document, or `http` on `localhost`, `127.0.0.1` or `[::1]` with any port. Kinde drops everything else, including other hosts and custom schemes such as `myapp://`, so the builder raises an `ArgumentError` for them.
+- The app answers `GET` and `HEAD` with `Cache-Control: public, max-age=3600` and never redirects.
+
+### 11. Use the `mcp` gem's client
+
+If your agent talks to the MCP server through the official Ruby MCP SDK, let the gem run the OAuth flow and give it `KindeSdk::AgentClient::KindeOAuthProvider`. The provider hands the gem your settings and your store, and keeps `openid` out of the request. Like the server adapter, it is optional: add `gem "mcp", ">= 1.10.0"` to your Gemfile.
+
+```ruby
+require "kinde_sdk"
+require "kinde_sdk/agent_client/mcp"
+
+agent = KindeSdk::AgentClient.new(
+  resource_url: "https://api.example.com/mcp",
+  redirect_uri: "https://agent.example.com/oauth/callback",
+  client_metadata_url: "https://agent.example.com/oauth/client-metadata.json",
+  storage: KindeSdk::AgentClient::SessionStore.new(session)
+)
+provider = KindeSdk::AgentClient::KindeOAuthProvider.new(agent)
+mcp_client = MCP::Client.new(transport: MCP::Client::HTTP.new(url: agent.config.resource_url, oauth: provider))
+```
+
+When the user has to sign in, the gem raises an error that carries the URL. Redirect to it, and finish in your callback route:
+
+```ruby
+begin
+  tools = mcp_client.tools
+rescue MCP::Client::OAuth::Flow::AuthorizationPendingError => e
+  redirect_to e.authorization_url, allow_other_host: true
+end
+
+# In the route of redirect_uri:
+provider.finish!(request.query_parameters)
+```
+
+With the adapter, the flow is the gem's, and these parts differ from `KindeSdk::AgentClient#fetch`:
+
+- The gem asks for the scopes the MCP server advertises. If the server's metadata does not list `offline`, the agent gets no refresh token. A server protected with `KindeSdk::AgentAuth` always lists it. A server that demands `openid` in its challenge is refused with `AuthorizationRefusedError`.
+- Set either `client_metadata_url:` or `client_id:`, not both: the provider raises an `ArgumentError` for both.
+- `issuer:` holds here too: the gem gets the configured `client_id:` and `client_secret:` bound to that issuer and does not use them at any other authorization server; there it registers a client of its own. The gem sends a configured secret in an HTTP Basic header. With `issuer:` set, a `client_id:` that is an `https` URL with a path raises an `ArgumentError`, because the gem treats such a client ID as valid at every server.
+- `pending_authorization_max_age:` can be 600 seconds at most (the default), because the stores drop sign-in attempts older than ten minutes. A higher value raises an `ArgumentError`.
+- When the stored registration is rejected with `invalid_client`, the gem does not register again; it raises `Flow::AuthorizationError`. A registration that is about to expire is still replaced.
+- A failed registration is reported with its status code only, without the server's description.
+- The gem does not revoke tokens, and `agent.disconnect` does not touch the tokens the gem stored.
+- The gem keeps its tokens apart from the ones `fetch` uses, so sign in through one of the two, not both.
+- With a `client_id:` and no `issuer:`, the configured client ID is used at whichever authorization server the resource names. When the resource changes its authorization server, the tokens of the old one are dropped and the next sign-in uses the configured client ID at the new one. Set `issuer:` to keep the client ID to one server.
+- A sign-in attempt belongs to the `account:`, `resource_url:` and `redirect_uri:` it was started with: `finish!` on a provider for another account refuses it, also when the two share a store.
+- The gem makes the discovery requests itself and applies its own rule to the URLs a server names: the metadata URL in a challenge must be on the MCP server's origin, and an authorization server or an authorization, token or registration endpoint on `localhost` or on a loopback, private or link-local address is refused, in `http` and in `https`, unless the MCP server is itself on such an address. That is stricter than `fetch`, which accepts `https` on any address and refuses only plain `http` (allowed on a loopback host when `resource_url` is on one too).
+
+### 12. Where tokens are stored
+
+The client keeps the tokens, the dynamic registration and, for up to ten minutes, the unfinished sign-in attempts in a store. Two stores ship with the SDK:
+
+| Store | Keeps things | Use it for |
+|---|---|---|
+| `KindeSdk::AgentClient::MemoryStore` (default) | In the memory of one process. Lost on restart, not shared between processes. | Tests, scripts and single-process tools. Pass `account:` per user. |
+| `KindeSdk::AgentClient::SessionStore.new(session)` | Under one key of the session, or of any Hash-like object. | Web apps: each user's tokens live in that user's session. |
+
+The store holds a refresh token, a client secret when the agent registered itself and, during sign-in, a PKCE verifier. So the session must be kept on the server (a database, Redis or cache session store) or be encrypted. Never keep it in a plain, unencrypted cookie. A cookie session also has a size limit of about 4 KB, which these records can exceed, so a server-side session store is the safe choice.
+
+A session is loaded when a request starts and written back when it ends, so each request works on its own copy. Two requests of one browser session that overlap can therefore both refresh the same token, and the one that ends last decides what the session keeps. When the authorization server replaces the refresh token at every use, the other request can be told to sign in again. Make the agent's calls for one user one after another, or keep the tokens in a store that every request shares (such as the Redis example below, with `account:` set to the user), where a refresh under way makes the next one wait.
+
+To keep tokens somewhere else, pass any object with these three methods as `storage:`:
+
+```ruby
+class RedisAgentStore
+  def initialize(redis)
+    @redis = redis
+  end
+
+  def read(namespace, key)
+    value = @redis.get(name(namespace, key))
+    value && JSON.parse(value)
+  end
+
+  # Unfinished sign-in attempts (those of the MCP adapter too) expire after ten minutes.
+  def write(namespace, key, value)
+    options = %w[pending mcp_pending].include?(namespace) ? { ex: 600 } : {}
+    @redis.set(name(namespace, key), JSON.generate(value), **options)
+    value
+  end
+
+  # Must remove the value and return it in one atomic step.
+  def delete(namespace, key)
+    value = @redis.getdel(name(namespace, key))
+    value && JSON.parse(value)
+  end
+
+  private
+
+  def name(namespace, key)
+    "kinde_agent:#{namespace}:#{JSON.generate(key)}"
+  end
+end
+```
+
+`namespace` is a String and `key` an Array of Strings: `tokens` with `[issuer, resource_url, account]`, `registrations` with `[issuer, redirect_uri]`, `pending` with `[state]`, and `issuers` with `[resource_url, account]`. Values are Hashes, Arrays and Strings that survive a round trip through JSON. `delete` must be atomic, because it is what makes a sign-in callback usable only once. Expire `pending` entries after ten minutes, and `mcp_pending` entries too, which the MCP adapter writes. A callback for an attempt older than ten minutes is refused by every store, but when the attempt, with its PKCE verifier, leaves the store differs: the two built-in stores drop old attempts on the next write, so one can stay longer when nothing is written after it, while an expiry set by the store, as in the Redis example, removes it without another write. Encrypt the values at rest if the storage is shared. What `write` returns is not used.
+
+Refreshes, sign-outs and registrations are serialised inside one Ruby process: a sign-out waits for a refresh that is under way, and sign-ins that start together register once. The built-in stores keep unrelated data apart, so two users with a session each never wait for each other. A store of your own shares one lock per record key with every other store of its kind, which is safe; when it serves unrelated data under the same keys (a database per tenant, say), give it a `lock_scope` method that returns a value naming that data, and only stores with an equal value wait for each other. Two processes that share a store can still refresh the same token, or register, at the same moment.
 
 ## Publishing
 
